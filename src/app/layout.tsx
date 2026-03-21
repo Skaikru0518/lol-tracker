@@ -22,6 +22,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
 	title: "Summon.gg",
 	description: "League of Legends profile and match tracker",
+	icons: {
+		icon: "/favicon.svg",
+	},
 };
 
 export default function RootLayout({
