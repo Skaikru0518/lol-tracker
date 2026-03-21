@@ -1,0 +1,200 @@
+"use client";
+
+import { type Match } from "@/lib/validators/match";
+import { type Champion, getChampionIcon } from "@/lib/icon-helpers";
+import { calculateStats } from "@/lib/match-stats";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import Image from "next/image";
+import { useMemo } from "react";
+
+interface StatsCardProps {
+	matches?: Match[];
+	puuid: string;
+	champions?: Record<number, Champion>;
+	version?: string;
+}
+
+function StatBlock({ label, value }: { label: string; value: string | number }) {
+	return (
+		<div className="text-center">
+			<p className="text-xl font-bold">{value}</p>
+			<p className="text-xs text-muted-foreground">{label}</p>
+		</div>
+	);
+}
+
+export default function StatsCard({
+	matches,
+	puuid,
+	champions,
+	version,
+}: StatsCardProps) {
+	const stats = useMemo(
+		() => (matches ? calculateStats(matches, puuid) : null),
+		[matches, puuid],
+	);
+
+	if (!stats || stats.totalGames === 0) return null;
+
+	const sortedRoles = Object.entries(stats.roles).sort(
+		([, a], [, b]) => b - a,
+	);
+	const maxRoleCount = sortedRoles[0]?.[1] ?? 1;
+
+	return (
+		<div className="space-y-4">
+			{/* Overview */}
+			<Card>
+				<CardHeader>
+					<CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+						Overview
+						<span className="ml-2 text-xs font-normal normal-case">
+							Last {stats.totalGames} games
+						</span>
+					</CardTitle>
+				</CardHeader>
+				<CardContent>
+					<div className="grid grid-cols-2 gap-4">
+						<div className="text-center">
+							<p className="text-3xl font-bold">{stats.winRate}%</p>
+							<p className="text-sm text-muted-foreground">
+								{stats.wins}W {stats.losses}L
+							</p>
+						</div>
+						<div className="text-center">
+							<p className="text-3xl font-bold">
+								<span className="text-primary">
+									{stats.avgKDA}
+								</span>
+							</p>
+							<p className="text-sm text-muted-foreground">
+								{stats.avgKills}/{stats.avgDeaths}/
+								{stats.avgAssists}
+							</p>
+						</div>
+					</div>
+
+					<div className="mt-5 grid grid-cols-4 gap-3">
+						<StatBlock label="CS" value={stats.avgCS} />
+						<StatBlock
+							label="Gold"
+							value={`${(stats.avgGold / 1000).toFixed(1)}k`}
+						/>
+						<StatBlock
+							label="Damage"
+							value={`${(stats.avgDamage / 1000).toFixed(1)}k`}
+						/>
+						<StatBlock label="Vision" value={stats.avgVisionScore} />
+					</div>
+
+					{/* Recent trend */}
+					<div className="mt-5">
+						<p className="mb-2 text-xs text-muted-foreground">
+							Recent
+						</p>
+						<div className="flex gap-1">
+							{stats.recentTrend.map((win, i) => (
+								<div
+									key={i}
+									className={`h-5 flex-1 rounded-sm ${
+										win ? "bg-win" : "bg-loss"
+									}`}
+								/>
+							))}
+						</div>
+					</div>
+				</CardContent>
+			</Card>
+
+			{/* Roles */}
+			<Card>
+				<CardHeader>
+					<CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+						Roles
+					</CardTitle>
+				</CardHeader>
+				<CardContent className="space-y-3">
+					{sortedRoles.map(([role, count]) => (
+						<div key={role}>
+							<div className="flex items-center justify-between mb-1">
+								<span className="text-sm font-medium">
+									{role}
+								</span>
+								<span className="text-sm text-muted-foreground">
+									{count} ({Math.round((count / stats.totalGames) * 100)}%)
+								</span>
+							</div>
+							<div className="flex h-1.5 overflow-hidden rounded-full bg-muted">
+								<div
+									className="bg-primary rounded-full transition-all"
+									style={{
+										width: `${(count / maxRoleCount) * 100}%`,
+									}}
+								/>
+							</div>
+						</div>
+					))}
+				</CardContent>
+			</Card>
+
+			{/* Most played champions */}
+			<Card>
+				<CardHeader>
+					<CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+						Most Played
+					</CardTitle>
+				</CardHeader>
+				<CardContent className="space-y-3">
+					{stats.champStats.slice(0, 5).map((c) => {
+						const champ = champions?.[c.championId];
+						const wr = Math.round((c.wins / c.games) * 100);
+
+						return (
+							<div
+								key={c.championName}
+								className="flex items-center gap-3"
+							>
+								{champ && version ? (
+									<Image
+										src={getChampionIcon(
+											version,
+											champ.id,
+										)}
+										alt={c.championName}
+										width={40}
+										height={40}
+										className="rounded-xl"
+									/>
+								) : (
+									<div className="size-10 rounded-xl bg-muted" />
+								)}
+								<div className="flex-1 min-w-0">
+									<p className="text-sm font-semibold truncate">
+										{c.championName}
+									</p>
+									<p className="text-xs text-muted-foreground">
+										{c.avgKills.toFixed(1)}/
+										{c.avgDeaths.toFixed(1)}/
+										{c.avgAssists.toFixed(1)} KDA
+									</p>
+								</div>
+								<div className="text-right">
+									<p
+										className={`text-sm font-medium ${
+											wr >= 50 ? "text-win" : "text-loss"
+										}`}
+									>
+										{wr}%
+									</p>
+									<p className="text-xs text-muted-foreground">
+										{c.wins}W {c.games - c.wins}L
+									</p>
+								</div>
+							</div>
+						);
+					})}
+				</CardContent>
+			</Card>
+		</div>
+	);
+}

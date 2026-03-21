@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:developer.riotgames.com)",
+      "Bash(node -e \"const d=require\\(''''fs''''\\).readFileSync\\(0,''''utf8''''\\);const j=JSON.parse\\(d\\);console.log\\(Object.keys\\(j.info.participants[0]\\).join\\(''''\\\\n''''\\)\\)\")"
+    ]
+  }
+}
