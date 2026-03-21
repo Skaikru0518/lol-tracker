@@ -123,19 +123,7 @@ export default function SummonerPage({
 						/>
 					</Button>
 				</div>
-				<div className="hidden gap-3 lg:flex">
-					{/* <div className="w-56">
-						<ChampionSearch
-							champions={champions}
-							version={version}
-							summonerSlug={name}
-						/>
-					</div> */}
-					<div className="w-80">
-						<SummonerSearch />
-					</div>
-				</div>
-			</motion.div>
+				</motion.div>
 
 			{/* Content grid */}
 			<div className="grid grid-cols-1 gap-6 lg:gap-8 lg:grid-cols-[320px_1fr_280px]">
