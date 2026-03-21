@@ -20,8 +20,9 @@ import RecentPlayers from "@/components/summoner/recent-players";
 import ChampionSearch from "@/components/summoner/champion-search";
 import { useRunes } from "@/hooks/useRunes";
 import LiveGameBanner from "@/components/summoner/live-game-banner";
-import SidebarSkeleton from "@/components/summoner/sidebar-skeleton";
 import StatsSkeleton from "@/components/summoner/stats-skeleton";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import BackButton from "@/components/ui/back-button";
@@ -144,23 +145,66 @@ export default function SummonerPage({
 					transition={{ duration: 0.5, delay: 0.1 }}
 					className="space-y-4 lg:sticky lg:top-[180px] lg:self-start"
 				>
-					{!ranked && !masteries ? (
-						<SidebarSkeleton />
+					{ranked ? (
+						<RankedCard entries={ranked} />
 					) : (
-						<>
-							<RankedCard entries={ranked} />
-							<MasteryList
-								masteries={masteries}
-								champions={champions}
-								version={version}
-								summonerSlug={name}
-							/>
-							<RecentPlayers
-								matches={matches}
-								puuid={account.puuid}
-								version={version}
-							/>
-						</>
+						<Card>
+							<CardHeader><Skeleton className="h-4 w-16" /></CardHeader>
+							<CardContent className="space-y-3">
+								<div className="flex items-center gap-4">
+									<Skeleton className="size-16 rounded-2xl" />
+									<div className="space-y-2 flex-1">
+										<Skeleton className="h-5 w-24" />
+										<Skeleton className="h-4 w-16" />
+									</div>
+								</div>
+							</CardContent>
+						</Card>
+					)}
+					{masteries && champions ? (
+						<MasteryList
+							masteries={masteries}
+							champions={champions}
+							version={version}
+							summonerSlug={name}
+						/>
+					) : (
+						<Card>
+							<CardHeader><Skeleton className="h-4 w-24" /></CardHeader>
+							<CardContent className="space-y-4">
+								{Array.from({ length: 5 }).map((_, i) => (
+									<div key={i} className="flex items-center gap-4">
+										<Skeleton className="size-12 rounded-xl" />
+										<div className="space-y-1.5 flex-1">
+											<Skeleton className="h-4 w-20" />
+											<Skeleton className="h-3 w-28" />
+										</div>
+									</div>
+								))}
+							</CardContent>
+						</Card>
+					)}
+					{matches ? (
+						<RecentPlayers
+							matches={matches}
+							puuid={account.puuid}
+							version={version}
+						/>
+					) : (
+						<Card>
+							<CardHeader><Skeleton className="h-4 w-32" /></CardHeader>
+							<CardContent className="space-y-3">
+								{Array.from({ length: 3 }).map((_, i) => (
+									<div key={i} className="flex items-center gap-3">
+										<Skeleton className="size-9 rounded-lg" />
+										<div className="space-y-1.5 flex-1">
+											<Skeleton className="h-4 w-24" />
+											<Skeleton className="h-3 w-16" />
+										</div>
+									</div>
+								))}
+							</CardContent>
+						</Card>
 					)}
 				</motion.div>
 

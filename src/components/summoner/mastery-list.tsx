@@ -6,6 +6,7 @@ import { getChampionIcon } from "@/lib/icon-helpers";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Image from "next/image";
 import Link from "next/link";
+import CountUp from "@/components/CountUp";
 
 interface MasteryListProps {
 	masteries?: ChampionMastery[];
@@ -64,7 +65,7 @@ export default function MasteryList({
 										</p>
 										<p className="text-sm text-muted-foreground">
 											Mastery {m.championLevel} ·{" "}
-											{m.championPoints.toLocaleString()}{" "}
+											<CountUp to={m.championPoints} duration={0.5} separator="," />{" "}
 											pts
 										</p>
 									</div>

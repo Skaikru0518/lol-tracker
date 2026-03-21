@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { type Participant } from "@/lib/validators/match";
 import { getChampionIcon, getItemIcon, getSummonerSpellIcon, getRuneIcon, type RuneData, type RuneStyle } from "@/lib/icon-helpers";
 import {
@@ -121,9 +121,8 @@ export default function TeamTable({
 							const isExpanded = expanded === p.puuid;
 
 							return (
-								<>
+								<Fragment key={p.puuid}>
 									<TableRow
-										key={p.puuid}
 										className="cursor-pointer transition-colors hover:bg-accent/30 h-16"
 										onClick={() =>
 											setExpanded(
@@ -297,7 +296,7 @@ export default function TeamTable({
 											</TableCell>
 										</TableRow>
 									)}
-								</>
+								</Fragment>
 							);
 						})}
 					</TableBody>

@@ -121,3 +121,32 @@
 		@apply hover:cursor-pointer transition-all duration-150 ease-in-out;
 	}
 }
+
+/* Scrollbar */
+::-webkit-scrollbar {
+	width: 8px;
+	height: 8px;
+}
+
+::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+	background: oklch(0.3 0.02 250);
+	border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background: oklch(0.4 0.03 250);
+}
+
+::-webkit-scrollbar-corner {
+	background: transparent;
+}
+
+/* Firefox */
+* {
+	scrollbar-width: thin;
+	scrollbar-color: oklch(0.3 0.02 250) transparent;
+}

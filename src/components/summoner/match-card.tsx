@@ -223,9 +223,9 @@ export default function MatchCard({
 						{version && (
 							<div className="hidden lg:flex flex-col gap-0.5 shrink-0">
 								<div className="flex gap-0.5">
-									{blueTeam.map((p) => (
+									{blueTeam.map((p, i) => (
 										<Image
-											key={p.puuid}
+											key={`blue-${i}`}
 											src={getChampionIcon(version, p.championName)}
 											alt={p.championName}
 											width={16}
@@ -239,9 +239,9 @@ export default function MatchCard({
 									))}
 								</div>
 								<div className="flex gap-0.5">
-									{redTeam.map((p) => (
+									{redTeam.map((p, i) => (
 										<Image
-											key={p.puuid}
+											key={`red-${i}`}
 											src={getChampionIcon(version, p.championName)}
 											alt={p.championName}
 											width={16}
