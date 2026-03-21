@@ -4,6 +4,7 @@ import { type Match } from "@/lib/validators/match";
 import { type Champion, getChampionIcon } from "@/lib/icon-helpers";
 import { calculateStats } from "@/lib/match-stats";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import CountUp from "@/components/CountUp";
 import Image from "next/image";
 import { useMemo } from "react";
 
@@ -15,10 +16,23 @@ interface StatsCardProps {
 }
 
 function StatBlock({ label, value }: { label: string; value: string | number }) {
+	const numValue = typeof value === "string" ? parseFloat(value) : value;
+	const isNumber = !isNaN(numValue);
+	const suffix = typeof value === "string" ? value.replace(/[\d.-]/g, "") : "";
+
 	return (
 		<div className="text-center">
-			<p className="text-xl font-bold">{value}</p>
-			<p className="text-xs text-muted-foreground">{label}</p>
+			<p className="text-xl font-bold">
+				{isNumber ? (
+					<>
+						<CountUp to={numValue} duration={1.5} separator="," />
+						{suffix}
+					</>
+				) : (
+					value
+				)}
+			</p>
+			<p className="text-sm text-muted-foreground">{label}</p>
 		</div>
 	);
 }
@@ -48,7 +62,7 @@ export default function StatsCard({
 				<CardHeader>
 					<CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
 						Overview
-						<span className="ml-2 text-xs font-normal normal-case">
+						<span className="ml-2 text-sm font-normal normal-case">
 							Last {stats.totalGames} games
 						</span>
 					</CardTitle>
@@ -56,7 +70,15 @@ export default function StatsCard({
 				<CardContent>
 					<div className="grid grid-cols-2 gap-4">
 						<div className="text-center">
-							<p className="text-3xl font-bold">{stats.winRate}%</p>
+							<p className={`text-3xl font-bold ${
+								stats.winRate > 60 ? "text-yellow-400" :
+								stats.winRate >= 51 ? "text-win" :
+								stats.winRate === 50 ? "text-foreground" :
+								stats.winRate >= 40 ? "text-orange-400" :
+								"text-loss"
+							}`}>
+								<CountUp to={stats.winRate} duration={1.5} />%
+							</p>
 							<p className="text-sm text-muted-foreground">
 								{stats.wins}W {stats.losses}L
 							</p>
@@ -64,7 +86,7 @@ export default function StatsCard({
 						<div className="text-center">
 							<p className="text-3xl font-bold">
 								<span className="text-primary">
-									{stats.avgKDA}
+									<CountUp to={stats.avgKDA} duration={1.5} />
 								</span>
 							</p>
 							<p className="text-sm text-muted-foreground">
@@ -89,7 +111,7 @@ export default function StatsCard({
 
 					{/* Recent trend */}
 					<div className="mt-5">
-						<p className="mb-2 text-xs text-muted-foreground">
+						<p className="mb-2 text-sm text-muted-foreground">
 							Recent
 						</p>
 						<div className="flex gap-1">
@@ -172,7 +194,7 @@ export default function StatsCard({
 									<p className="text-sm font-semibold truncate">
 										{c.championName}
 									</p>
-									<p className="text-xs text-muted-foreground">
+									<p className="text-sm text-muted-foreground">
 										{c.avgKills.toFixed(1)}/
 										{c.avgDeaths.toFixed(1)}/
 										{c.avgAssists.toFixed(1)} KDA
@@ -186,7 +208,7 @@ export default function StatsCard({
 									>
 										{wr}%
 									</p>
-									<p className="text-xs text-muted-foreground">
+									<p className="text-sm text-muted-foreground">
 										{c.wins}W {c.games - c.wins}L
 									</p>
 								</div>

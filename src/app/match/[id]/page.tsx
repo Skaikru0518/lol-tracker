@@ -5,6 +5,8 @@ import { useMatch } from "@/hooks/useMatch";
 import { useTimeline } from "@/hooks/useTimeline";
 import { useDDragonVersion } from "@/hooks/useDDragonVersion";
 import { useRunes } from "@/hooks/useRunes";
+import { useItems } from "@/hooks/useItems";
+import { useChampions } from "@/hooks/useChampions";
 import MatchInfo from "@/components/match/match-info";
 import TeamTable from "@/components/match/team-table";
 import TeamSummary from "@/components/match/team-summary";
@@ -18,6 +20,7 @@ import Loader from "@/components/ui/loader";
 import toast from "react-hot-toast";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
+import BackButton from "@/components/ui/back-button";
 
 export default function MatchPage({
 	params,
@@ -30,6 +33,8 @@ export default function MatchPage({
 	const { data: timeline } = useTimeline(id);
 	const { data: version } = useDDragonVersion();
 	const { data: runeData } = useRunes();
+	const { data: itemNames } = useItems();
+	const { data: champions } = useChampions();
 
 	useEffect(() => {
 		if (error) toast.error("Match not found");
@@ -43,13 +48,8 @@ export default function MatchPage({
 	const blueWon = blueTeam[0]?.win ?? false;
 
 	return (
-		<div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-			<button
-				onClick={() => router.back()}
-				className="mb-4 text-sm text-muted-foreground hover:text-foreground transition-colors"
-			>
-				← Back
-			</button>
+		<div className="mx-auto max-w-7xl px-3 py-6 sm:px-6 sm:py-8 lg:px-8">
+			<BackButton />
 			<motion.div
 				initial={{ opacity: 0, y: -10 }}
 				animate={{ opacity: 1, y: 0 }}
@@ -77,6 +77,10 @@ export default function MatchPage({
 						version={version}
 						gameDuration={match.info.gameDuration}
 						runeData={runeData}
+						timeline={timeline}
+						itemNames={itemNames}
+						bans={match.info.teams[0].bans}
+						champions={champions}
 					/>
 				</motion.div>
 
@@ -92,6 +96,10 @@ export default function MatchPage({
 						version={version}
 						gameDuration={match.info.gameDuration}
 						runeData={runeData}
+						timeline={timeline}
+						itemNames={itemNames}
+						bans={match.info.teams[1].bans}
+						champions={champions}
 					/>
 				</motion.div>
 			</div>
@@ -137,7 +145,7 @@ export default function MatchPage({
 					<CsGoldChart timeline={timeline} />
 
 					{/* Objectives */}
-					<ObjectivesTimeline timeline={timeline} />
+					<ObjectivesTimeline timeline={timeline} participants={match.info.participants} version={version} />
 				</div>
 			</motion.div>
 		</div>

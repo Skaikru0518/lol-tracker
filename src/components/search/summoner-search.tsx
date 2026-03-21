@@ -34,7 +34,7 @@ export default function SummonerSearch({ compact }: { compact?: boolean }) {
 					onChange={(e) => setInput(e.target.value)}
 					placeholder="GameName#TAG"
 					className={compact
-						? "h-9 pl-8 text-xs bg-card border-border/50 focus:border-primary/50 transition-colors"
+						? "h-9 pl-8 text-sm bg-card border-border/50 focus:border-primary/50 transition-colors"
 						: "h-12 pl-10 text-sm bg-card border-border/50 focus:border-primary/50 transition-colors"
 					}
 				/>
@@ -42,7 +42,7 @@ export default function SummonerSearch({ compact }: { compact?: boolean }) {
 			<Button
 				type="submit"
 				size={compact ? "sm" : "lg"}
-				className={compact ? "h-9 px-4 text-xs font-semibold" : "h-12 px-8 font-semibold"}
+				className={compact ? "h-9 px-4 text-sm font-semibold" : "h-12 px-8 text-base font-semibold"}
 			>
 				Search
 			</Button>

@@ -41,9 +41,48 @@ export function getRuneIcon(path: string) {
 	return `https://ddragon.leagueoflegends.com/cdn/img/${path}`;
 }
 
+const OBJECTIVE_ICONS: Record<string, string> = {
+	DRAGON: "dragon",
+	ELDER_DRAGON: "dragon",
+	BARON_NASHOR: "baron",
+	RIFTHERALD: "riftherald",
+	HORDE: "grub",
+};
+
+export function getObjectiveIcon(monsterType: string) {
+	const name = OBJECTIVE_ICONS[monsterType] ?? "dragon";
+	return `https://raw.communitydragon.org/latest/game/assets/ux/minimap/icons/${name}.png`;
+}
+
+export function getBuildingIcon(buildingType: string) {
+	const name = buildingType === "INHIBITOR_BUILDING" ? "inhibitor" : "tower";
+	return `https://raw.communitydragon.org/latest/game/assets/ux/minimap/icons/${name}.png`;
+}
+
 export function getItemIcon(version: string, itemId: number) {
 	if (itemId === 0) return null;
 	return `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/${itemId}.png`;
+}
+
+let cachedItems: Map<number, string> | null = null;
+
+export async function getItemMap(
+	version: string,
+): Promise<Map<number, string>> {
+	if (cachedItems) return cachedItems;
+
+	const res = await fetch(
+		`https://ddragon.leagueoflegends.com/cdn/${version}/data/en_US/item.json`,
+	);
+	if (!res.ok) throw new Error("Failed to fetch items");
+	const data = await res.json();
+
+	const map = new Map<number, string>();
+	for (const [id, item] of Object.entries(data.data) as [string, { name: string }][]) {
+		map.set(parseInt(id), item.name);
+	}
+	cachedItems = map;
+	return map;
 }
 
 export function getRankEmblem(tier: string) {

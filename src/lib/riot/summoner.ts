@@ -11,5 +11,6 @@ export interface SummonerData {
 export async function getSummonerByPuuid(puuid: string) {
 	return riotFetch<SummonerData>(
 		`${BASE_URL}/lol/summoner/v4/summoners/by-puuid/${puuid}`,
+		300,
 	);
 }

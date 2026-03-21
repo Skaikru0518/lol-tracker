@@ -1,4 +1,5 @@
 import { EURPOE_URL, riotFetch } from "./riot";
+import { type Timeline } from "@/lib/validators/timeline";
 
 export async function getMatchIdsByPuuid(
 	puuid: string,
@@ -9,17 +10,20 @@ export async function getMatchIdsByPuuid(
 	if (championId) params.set("champion", championId.toString());
 	return riotFetch<string[]>(
 		`${EURPOE_URL}/lol/match/v5/matches/by-puuid/${puuid}/ids?${params}`,
+		60,
 	);
 }
 
 export async function getMatchById(matchId: string) {
-	return riotFetch(`${EURPOE_URL}/lol/match/v5/matches/${matchId}`);
+	return riotFetch(
+		`${EURPOE_URL}/lol/match/v5/matches/${matchId}`,
+		86400,
+	);
 }
-
-import { type Timeline } from "@/lib/validators/timeline";
 
 export async function getMatchTimeline(matchId: string) {
 	return riotFetch<Timeline>(
 		`${EURPOE_URL}/lol/match/v5/matches/${matchId}/timeline`,
+		86400,
 	);
 }

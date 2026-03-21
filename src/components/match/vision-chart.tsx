@@ -45,7 +45,7 @@ export default function VisionChart({ participants }: VisionChartProps) {
 				</CardTitle>
 			</CardHeader>
 			<CardContent>
-				<div className="h-[400px] w-full">
+				<div className="h-[300px] md:h-[400px] w-full">
 					<ResponsiveContainer width="100%" height="100%">
 						<BarChart
 							data={data}
@@ -62,7 +62,7 @@ export default function VisionChart({ participants }: VisionChartProps) {
 							<YAxis
 								type="category"
 								dataKey="name"
-								width={90}
+								width={70}
 								stroke="hsl(220 15% 30%)"
 								fontSize={12}
 								tickLine={false}

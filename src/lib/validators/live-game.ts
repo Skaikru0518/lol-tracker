@@ -15,15 +15,24 @@ export const liveGameParticipantSchema = z.object({
 	}),
 });
 
+export const bannedChampionSchema = z.object({
+	championId: z.number(),
+	teamId: z.number(),
+	pickTurn: z.number(),
+});
+
 export const liveGameSchema = z.object({
 	gameId: z.number(),
 	gameMode: z.string(),
 	gameType: z.string(),
 	gameLength: z.number(),
+	gameStartTime: z.number(),
 	mapId: z.number(),
 	participants: z.array(liveGameParticipantSchema),
+	bannedChampions: z.array(bannedChampionSchema),
 	gameQueueConfigId: z.number(),
 });
 
 export type LiveGameParticipant = z.infer<typeof liveGameParticipantSchema>;
+export type BannedChampion = z.infer<typeof bannedChampionSchema>;
 export type LiveGame = z.infer<typeof liveGameSchema>;

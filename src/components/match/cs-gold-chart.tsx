@@ -62,7 +62,7 @@ export default function CsGoldChart({ timeline }: CsGoldChartProps) {
 				<div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
 					{/* CS chart */}
 					<div>
-						<p className="mb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+						<p className="mb-2 text-sm font-semibold text-muted-foreground uppercase tracking-wider">
 							CS
 						</p>
 						<div className="h-[200px] w-full">
@@ -150,7 +150,7 @@ export default function CsGoldChart({ timeline }: CsGoldChartProps) {
 
 					{/* Gold chart */}
 					<div>
-						<p className="mb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+						<p className="mb-2 text-sm font-semibold text-muted-foreground uppercase tracking-wider">
 							Total Gold
 						</p>
 						<div className="h-[200px] w-full">

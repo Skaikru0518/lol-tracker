@@ -32,9 +32,9 @@ export default function MatchInfo({
 	gameCreation,
 }: MatchInfoProps) {
 	return (
-		<div className="flex items-center justify-between rounded-xl border bg-card px-8 py-6">
+		<div className="flex items-center justify-between rounded-xl border bg-card px-4 py-4 sm:px-8 sm:py-6">
 			<div>
-				<h1 className="text-3xl font-bold tracking-tight">
+				<h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
 					{getQueueName(queueId, gameMode)}
 				</h1>
 				<p className="mt-1 text-base text-muted-foreground">
@@ -42,7 +42,7 @@ export default function MatchInfo({
 				</p>
 			</div>
 			<div className="text-right">
-				<p className="text-3xl font-bold font-mono">
+				<p className="text-2xl sm:text-3xl font-bold font-mono">
 					{formatDuration(gameDuration)}
 				</p>
 				<p className="text-base text-muted-foreground">Duration</p>

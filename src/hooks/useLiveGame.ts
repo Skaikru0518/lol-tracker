@@ -7,8 +7,10 @@ interface LiveGameResponse {
 	gameMode?: string;
 	gameType?: string;
 	gameLength?: number;
+	gameStartTime?: number;
 	mapId?: number;
 	participants?: LiveGame["participants"];
+	bannedChampions?: LiveGame["bannedChampions"];
 	gameQueueConfigId?: number;
 }
 

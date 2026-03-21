@@ -1,14 +1,22 @@
 "use client";
 
 import { type Participant } from "@/lib/validators/match";
+import { type Timeline } from "@/lib/validators/timeline";
 import { motion } from "framer-motion";
 import { getRuneIcon, type RuneData, type RuneStyle } from "@/lib/icon-helpers";
 import Image from "next/image";
+import SkillOrder from "./skill-order";
+import ItemBuild from "./item-build";
+import KillMap from "./kill-map";
 
 interface PlayerDetailsProps {
 	player: Participant;
 	gameDuration: number;
 	runeData?: { runes: Map<number, RuneData>; styles: Map<number, RuneStyle> };
+	timeline?: Timeline;
+	version?: string;
+	participantId: number;
+	itemNames?: Map<number, string>;
 }
 
 function formatTime(seconds: number): string {
@@ -28,7 +36,7 @@ function Stat({ label, value }: { label: string; value: string | number }) {
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
 	return (
-		<p className="mb-3 text-xs font-bold uppercase tracking-widest text-muted-foreground/70">
+		<p className="mb-3 text-sm font-bold uppercase tracking-widest text-muted-foreground/70">
 			{children}
 		</p>
 	);
@@ -37,6 +45,10 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
 export default function PlayerDetails({
 	player,
 	gameDuration,
+	timeline,
+	version,
+	participantId,
+	itemNames,
 	runeData,
 }: PlayerDetailsProps) {
 	const mins = gameDuration / 60;
@@ -60,7 +72,7 @@ export default function PlayerDetails({
 			transition={{ duration: 0.25 }}
 			className="overflow-hidden"
 		>
-			<div className="grid grid-cols-5 gap-8 p-6">
+			<div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5 lg:gap-8 p-6">
 				<div>
 					<SectionTitle>Damage</SectionTitle>
 					<Stat
@@ -135,7 +147,7 @@ export default function PlayerDetails({
 							<div className="space-y-3">
 								{primaryInfo && (
 									<div>
-										<p className="text-xs font-semibold text-muted-foreground mb-1.5">{primaryInfo.name}</p>
+										<p className="text-sm font-semibold text-muted-foreground mb-1.5">{primaryInfo.name}</p>
 										<div className="space-y-1">
 											{primaryStyle.selections.map((sel) => {
 												const rune = runeData.runes.get(sel.perk);
@@ -148,7 +160,7 @@ export default function PlayerDetails({
 															width={24}
 															height={24}
 														/>
-														<span className="text-xs">{rune.name}</span>
+														<span className="text-sm">{rune.name}</span>
 													</div>
 												);
 											})}
@@ -157,7 +169,7 @@ export default function PlayerDetails({
 								)}
 								{secondaryInfo && (
 									<div>
-										<p className="text-xs font-semibold text-muted-foreground mb-1.5">{secondaryInfo.name}</p>
+										<p className="text-sm font-semibold text-muted-foreground mb-1.5">{secondaryInfo.name}</p>
 										<div className="space-y-1">
 											{secondaryStyle!.selections.map((sel) => {
 												const rune = runeData.runes.get(sel.perk);
@@ -170,7 +182,7 @@ export default function PlayerDetails({
 															width={24}
 															height={24}
 														/>
-														<span className="text-xs">{rune.name}</span>
+														<span className="text-sm">{rune.name}</span>
 													</div>
 												);
 											})}
@@ -213,6 +225,24 @@ export default function PlayerDetails({
 					)}
 				</div>
 			</div>
+
+				{/* Skill Order + Kill Map */}
+				<div className="px-6 pb-6 pt-2 flex flex-col lg:flex-row gap-6">
+					<div className="flex-1">
+						<SectionTitle>Skill Order</SectionTitle>
+						<SkillOrder timeline={timeline} participantId={participantId} />
+					</div>
+					<div className="shrink-0">
+						<SectionTitle>Kill Map</SectionTitle>
+						<KillMap timeline={timeline} participantId={participantId} version={version} />
+					</div>
+				</div>
+
+				{/* Item Build */}
+				<div className="px-6 pb-6 pt-2">
+					<SectionTitle>Item Build Order</SectionTitle>
+					<ItemBuild timeline={timeline} participantId={participantId} version={version} itemNames={itemNames} />
+				</div>
 		</motion.div>
 	);
 }

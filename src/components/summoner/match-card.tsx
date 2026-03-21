@@ -1,7 +1,14 @@
 "use client";
 
 import { type Participant } from "@/lib/validators/match";
-import { getChampionIcon, getItemIcon, getSummonerSpellIcon } from "@/lib/icon-helpers";
+import {
+	getChampionIcon,
+	getItemIcon,
+	getSummonerSpellIcon,
+	getRuneIcon,
+	type RuneData,
+	type RuneStyle,
+} from "@/lib/icon-helpers";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
@@ -15,6 +22,7 @@ interface MatchCardProps {
 	gameCreation: number;
 	version?: string;
 	index: number;
+	runeData?: { runes: Map<number, RuneData>; styles: Map<number, RuneStyle> };
 }
 
 function formatDuration(seconds: number): string {
@@ -41,6 +49,7 @@ export default function MatchCard({
 	gameCreation,
 	version,
 	index,
+	runeData,
 }: MatchCardProps) {
 	const kda =
 		player.deaths === 0
@@ -66,155 +75,257 @@ export default function MatchCard({
 				initial={{ opacity: 0, y: 8 }}
 				animate={{ opacity: 1, y: 0 }}
 				transition={{ duration: 0.3, delay: index * 0.04 }}
-				className={`group flex items-center gap-3 rounded-xl border px-4 py-3 transition-all hover:bg-accent/30 hover:scale-105 duration-150 ${
-					player.win ? "border-win/15 bg-win/5" : "border-loss/15 bg-loss/5"
+				className={`group rounded-xl border overflow-hidden transition-all hover:bg-accent/20 hover:scale-[1.01] duration-150 ${
+					player.win
+						? "border-win/15 bg-win/5"
+						: "border-loss/15 bg-loss/5"
 				}`}
 			>
-				{/* Win/Loss bar */}
-				<div
-					className={`w-1 self-stretch rounded-full ${
-						player.win ? "bg-win" : "bg-loss"
-					}`}
-				/>
-
-				{/* Summoner spells */}
-				{version && (
-					<div className="flex flex-col gap-0.5">
-						<Image
-							src={getSummonerSpellIcon(version, player.summoner1Id)}
-							alt="Spell 1"
-							width={20}
-							height={20}
-							className="rounded"
+				{/* Desktop: Three-section layout */}
+				<div className="hidden sm:flex items-stretch">
+					{/* Section 1: Identity */}
+					<div className="flex items-center gap-3 px-4 py-3 min-w-[200px] border-r border-white/5">
+						<div
+							className={`w-1 self-stretch rounded-full shrink-0 ${
+								player.win ? "bg-win" : "bg-loss"
+							}`}
 						/>
-						<Image
-							src={getSummonerSpellIcon(version, player.summoner2Id)}
-							alt="Spell 2"
-							width={20}
-							height={20}
-							className="rounded"
-						/>
-					</div>
-				)}
-
-				{/* Champion icon */}
-				{version && (
-					<Image
-						src={getChampionIcon(version, player.championName)}
-						alt={player.championName}
-						width={52}
-						height={52}
-						className="rounded-xl"
-					/>
-				)}
-
-				{/* Champion info */}
-				<div className="min-w-[100px]">
-					<p className="text-base font-semibold">{player.championName}</p>
-					<p className="text-sm text-muted-foreground">
-						Lvl {player.champLevel}
-					</p>
-				</div>
-
-				{/* KDA */}
-				<div className="min-w-[100px] text-center">
-					<p className="text-base font-mono font-bold">
-						{player.kills}
-						<span className="text-muted-foreground">/</span>
-						{player.deaths}
-						<span className="text-muted-foreground">/</span>
-						{player.assists}
-					</p>
-					<p
-						className={`text-sm font-medium ${
-							kda === "Perfect" || parseFloat(kda) >= 3
-								? "text-primary"
-								: "text-muted-foreground"
-						}`}
-					>
-						{kda} KDA
-					</p>
-				</div>
-
-				{/* CS */}
-				<div className="min-w-[50px] text-center">
-					<p className="text-base font-medium">{player.totalMinionsKilled}</p>
-					<p className="text-sm text-muted-foreground">CS</p>
-				</div>
-
-				{/* Items */}
-				{version && (
-					<div className="flex items-center gap-0.5">
-						{itemIds.map((itemId, i) => {
-							const icon = getItemIcon(version, itemId);
-							return icon ? (
-								<Image
-									key={i}
-									src={icon}
-									alt={`Item ${i}`}
-									width={24}
-									height={24}
-									className="rounded"
-								/>
-							) : (
-								<div
-									key={i}
-									className="h-[24px] w-[24px] rounded bg-muted/40"
-								/>
-							);
-						})}
-					</div>
-				)}
-
-				<div className="flex-1" />
-
-				{/* Game info */}
-				<div className="text-right">
-					<p className="text-sm font-medium text-foreground">{queueName}</p>
-					<p className="text-sm text-muted-foreground">
-						{formatDuration(gameDuration)} · {timeAgo(gameCreation)}
-					</p>
-				</div>
-
-				{/* Team icons */}
-				{version && (
-					<div className="flex flex-col gap-0.5">
-						<div className="flex gap-0.5">
-							{blueTeam.map((p) => (
-								<Image
-									key={p.puuid}
-									src={getChampionIcon(version, p.championName)}
-									alt={p.championName}
-									width={20}
-									height={20}
-									className={`rounded ${
-										p.puuid === player.puuid
-											? "ring-1 ring-primary"
-											: ""
-									}`}
-								/>
-							))}
-						</div>
-						<div className="flex gap-0.5">
-							{redTeam.map((p) => (
-								<Image
-									key={p.puuid}
-									src={getChampionIcon(version, p.championName)}
-									alt={p.championName}
-									width={20}
-									height={20}
-									className={`rounded ${
-										p.puuid === player.puuid
-											? "ring-1 ring-primary"
-											: ""
-									}`}
-								/>
-							))}
+						{version && (
+							<div className="flex gap-1 shrink-0">
+								<div className="flex flex-col gap-0.5">
+									<Image
+										src={getSummonerSpellIcon(version, player.summoner1Id)}
+										alt="Spell 1"
+										width={18}
+										height={18}
+										className="rounded"
+									/>
+									<Image
+										src={getSummonerSpellIcon(version, player.summoner2Id)}
+										alt="Spell 2"
+										width={18}
+										height={18}
+										className="rounded"
+									/>
+								</div>
+								<div className="flex flex-col gap-0.5">
+									{(() => {
+										const primaryStyle = player.perks.styles[0];
+										const secondaryStyle = player.perks.styles[1];
+										const keystoneId = primaryStyle?.selections[0]?.perk;
+										const keystoneRune = keystoneId && runeData ? runeData.runes.get(keystoneId) : null;
+										const subStyle = secondaryStyle && runeData ? runeData.styles.get(secondaryStyle.style) : null;
+										return (
+											<>
+												{keystoneRune && (
+													<Image
+														src={getRuneIcon(keystoneRune.icon)}
+														alt={keystoneRune.name}
+														width={18}
+														height={18}
+														className="rounded"
+													/>
+												)}
+												{subStyle && (
+													<Image
+														src={getRuneIcon(subStyle.icon)}
+														alt={subStyle.name}
+														width={18}
+														height={18}
+														className="rounded opacity-60"
+													/>
+												)}
+											</>
+										);
+									})()}
+								</div>
+							</div>
+						)}
+						{version && (
+							<Image
+								src={getChampionIcon(version, player.championName)}
+								alt={player.championName}
+								width={48}
+								height={48}
+								className="rounded-xl shrink-0"
+							/>
+						)}
+						<div className="min-w-0">
+							<p className="text-sm font-semibold truncate">
+								{player.championName}
+							</p>
+							<p className="text-sm text-muted-foreground">
+								Lvl {player.champLevel}
+							</p>
 						</div>
 					</div>
-				)}
 
-				</motion.div>
+					{/* Section 2: Performance */}
+					<div className="flex items-center gap-5 px-5 py-3 flex-1 border-r border-white/5">
+						<div className="text-center min-w-[70px]">
+							<p className="text-sm font-mono font-bold">
+								{player.kills}
+								<span className="text-muted-foreground">/</span>
+								{player.deaths}
+								<span className="text-muted-foreground">/</span>
+								{player.assists}
+							</p>
+							<p
+								className={`text-sm font-medium ${
+									kda === "Perfect" || parseFloat(kda) >= 3
+										? "text-primary"
+										: "text-muted-foreground"
+								}`}
+							>
+								{kda} KDA
+							</p>
+						</div>
+						<div className="text-center">
+							<p className="text-sm font-medium">
+								{player.totalMinionsKilled}
+							</p>
+							<p className="text-sm text-muted-foreground">CS</p>
+						</div>
+						{version && (
+							<div className="flex gap-1">
+								{itemIds.map((itemId, i) => {
+									const icon = getItemIcon(version, itemId);
+									return icon ? (
+										<Image
+											key={i}
+											src={icon}
+											alt={`Item ${i}`}
+											width={24}
+											height={24}
+											className="rounded"
+										/>
+									) : (
+										<div
+											key={i}
+											className="size-6 rounded bg-muted/30"
+										/>
+									);
+								})}
+							</div>
+						)}
+					</div>
+
+					{/* Section 3: Game meta + teams */}
+					<div className="flex items-center gap-3 px-4 py-3">
+						<div className="text-right min-w-[90px]">
+							<p className="text-sm font-medium text-foreground">
+								{queueName}
+							</p>
+							<p className="text-sm text-muted-foreground">
+								{formatDuration(gameDuration)} · {timeAgo(gameCreation)}
+							</p>
+						</div>
+						{version && (
+							<div className="hidden lg:flex flex-col gap-0.5 shrink-0">
+								<div className="flex gap-0.5">
+									{blueTeam.map((p) => (
+										<Image
+											key={p.puuid}
+											src={getChampionIcon(version, p.championName)}
+											alt={p.championName}
+											width={16}
+											height={16}
+											className={`rounded-sm ${
+												p.puuid === player.puuid
+													? "ring-1 ring-primary"
+													: ""
+											}`}
+										/>
+									))}
+								</div>
+								<div className="flex gap-0.5">
+									{redTeam.map((p) => (
+										<Image
+											key={p.puuid}
+											src={getChampionIcon(version, p.championName)}
+											alt={p.championName}
+											width={16}
+											height={16}
+											className={`rounded-sm ${
+												p.puuid === player.puuid
+													? "ring-1 ring-primary"
+													: ""
+											}`}
+										/>
+									))}
+								</div>
+							</div>
+						)}
+					</div>
+				</div>
+
+				{/* Mobile layout */}
+				<div className="flex sm:hidden flex-col gap-2 p-3">
+					{/* Row 1: Champ + KDA + Game info */}
+					<div className="flex items-center gap-3">
+						<div
+							className={`w-1 self-stretch rounded-full shrink-0 ${
+								player.win ? "bg-win" : "bg-loss"
+							}`}
+						/>
+						{version && (
+							<Image
+								src={getChampionIcon(version, player.championName)}
+								alt={player.championName}
+								width={40}
+								height={40}
+								className="rounded-lg shrink-0"
+							/>
+						)}
+						<div className="flex-1 min-w-0">
+							<p className="text-sm font-semibold truncate">
+								{player.championName}
+							</p>
+							<p className="text-sm font-mono">
+								{player.kills}/{player.deaths}/{player.assists}
+								<span
+									className={`ml-1.5 text-sm ${
+										kda === "Perfect" || parseFloat(kda) >= 3
+											? "text-primary"
+											: "text-muted-foreground"
+									}`}
+								>
+									{kda}
+								</span>
+							</p>
+						</div>
+						<div className="text-right shrink-0">
+							<p className="text-sm font-medium">{queueName}</p>
+							<p className="text-sm text-muted-foreground">
+								{formatDuration(gameDuration)} · {timeAgo(gameCreation)}
+							</p>
+						</div>
+					</div>
+					{/* Row 2: Items */}
+					{version && (
+						<div className="flex gap-1 ml-6">
+							{itemIds.map((itemId, i) => {
+								const icon = getItemIcon(version, itemId);
+								return icon ? (
+									<Image
+										key={i}
+										src={icon}
+										alt={`Item ${i}`}
+										width={22}
+										height={22}
+										className="rounded"
+									/>
+								) : (
+									<div
+										key={i}
+										className="size-[22px] rounded bg-muted/30"
+									/>
+								);
+							})}
+						</div>
+					)}
+				</div>
+			</motion.div>
 		</Link>
 	);
 }

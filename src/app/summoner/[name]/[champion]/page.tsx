@@ -15,6 +15,7 @@ import toast from "react-hot-toast";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
+import BackButton from "@/components/ui/back-button";
 
 function StatBlock({
 	label,
@@ -32,7 +33,7 @@ function StatBlock({
 			>
 				{value}
 			</p>
-			<p className="text-xs text-muted-foreground">{label}</p>
+			<p className="text-sm text-muted-foreground">{label}</p>
 		</div>
 	);
 }
@@ -89,20 +90,14 @@ export default function ChampionPage({
 
 	return (
 		<div className="mx-auto max-w-7xl px-6 py-8 lg:px-12">
-			{/* Back link */}
-			<Link
-				href={`/summoner/${name}`}
-				className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-			>
-				← Back to {gameName}
-			</Link>
+			<BackButton />
 
 			{/* Champion header */}
 			<motion.div
 				initial={{ opacity: 0, y: -10 }}
 				animate={{ opacity: 1, y: 0 }}
 				transition={{ duration: 0.4 }}
-				className="mt-6 flex items-center gap-5"
+				className="mt-6 flex flex-wrap items-center gap-5"
 			>
 				{version && champion && (
 					<Image
@@ -110,7 +105,7 @@ export default function ChampionPage({
 						alt={champion.name}
 						width={80}
 						height={80}
-						className="rounded-2xl"
+						className="size-[60px] sm:size-[80px] rounded-2xl"
 					/>
 				)}
 				<div>
@@ -213,7 +208,7 @@ export default function ChampionPage({
 
 								{/* Recent trend */}
 								<div>
-									<p className="mb-2 text-xs text-muted-foreground">
+									<p className="mb-2 text-sm text-muted-foreground">
 										Recent
 									</p>
 									<div className="flex gap-1">

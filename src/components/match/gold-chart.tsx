@@ -101,7 +101,7 @@ export default function GoldChart({ timeline }: GoldChartProps) {
 								fontSize={12}
 								tickLine={false}
 								axisLine={false}
-								width={45}
+								width={35}
 							/>
 							<Tooltip
 								content={({ active, payload, label }) => {

@@ -11,9 +11,13 @@ export class RiotApiError extends Error {
 	}
 }
 
-export async function riotFetch<T>(url: string): Promise<T> {
+export async function riotFetch<T>(
+	url: string,
+	revalidate: number = 60,
+): Promise<T> {
 	const res = await fetch(url, {
 		headers: { "X-Riot-Token": RIOT_API_KEY },
+		next: { revalidate },
 	});
 
 	if (!res.ok) {

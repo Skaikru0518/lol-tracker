@@ -21,7 +21,7 @@ export default function Home() {
 					className="text-center"
 				>
 					<h1 className="text-5xl font-bold tracking-tight sm:text-6xl">
-						<span className="text-primary">LoL</span> Tracker
+						<span className="text-primary">Summon</span>.gg
 					</h1>
 					<p className="mt-3 text-base text-muted-foreground">
 						Search any summoner to view their ranked stats and match
@@ -45,7 +45,7 @@ export default function Home() {
 					initial={{ opacity: 0 }}
 					animate={{ opacity: 1 }}
 					transition={{ duration: 0.8, delay: 0.4 }}
-					className="flex gap-6 text-xs text-muted-foreground"
+					className="flex gap-6 text-sm text-muted-foreground"
 				>
 					<span>Ranked Stats</span>
 					<span className="text-border">·</span>

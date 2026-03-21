@@ -94,11 +94,11 @@ export default function RecentPlayers({
 							<div className="flex-1 min-w-0">
 								<p className="text-sm font-medium truncate">
 									{p.gameName}
-									<span className="ml-1 text-xs text-muted-foreground">
+									<span className="ml-1 text-sm text-muted-foreground">
 										#{p.tagLine}
 									</span>
 								</p>
-								<p className="text-xs text-muted-foreground">
+								<p className="text-sm text-muted-foreground">
 									{p.games} game{p.games > 1 ? "s" : ""}
 								</p>
 							</div>

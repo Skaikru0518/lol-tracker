@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { type Match } from "@/lib/validators/match";
+import { type RuneData, type RuneStyle } from "@/lib/icon-helpers";
 import { getQueueName } from "@/lib/queue-names";
 import MatchCard from "./match-card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -39,6 +40,7 @@ interface MatchListProps {
 	puuid: string;
 	version?: string;
 	isLoading?: boolean;
+	runeData?: { runes: Map<number, RuneData>; styles: Map<number, RuneStyle> };
 }
 
 export function MatchList({
@@ -46,6 +48,7 @@ export function MatchList({
 	puuid,
 	version,
 	isLoading,
+	runeData,
 }: MatchListProps) {
 	const [queueFilter, setQueueFilter] = useState<QueueFilter>("all");
 	const [visibleCount, setVisibleCount] = useState(10);
@@ -71,8 +74,8 @@ export function MatchList({
 	const filteredMatches = filterMatchesByQueue(matches, queueFilter);
 
 	return (
-		<div className="space-y-2 flex flex-col min-h-[400px] min-w-[700px]">
-			<h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+		<div className="space-y-2 flex flex-col min-h-[400px] lg:min-w-[700px]">
+			<h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
 				Recent Matches
 			</h3>
 			<div className="mb-2 flex flex-wrap gap-1.5">
@@ -80,7 +83,7 @@ export function MatchList({
 					<button
 						key={filter.value}
 						onClick={() => setQueueFilter(filter.value)}
-						className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+						className={`rounded-full px-3 py-1 text-sm font-medium transition-colors ${
 							queueFilter === filter.value
 								? "bg-primary text-primary-foreground"
 								: "bg-secondary text-secondary-foreground hover:bg-accent/30"
@@ -111,6 +114,7 @@ export function MatchList({
 								gameCreation={match.info.gameCreation}
 								version={version}
 								index={i}
+								runeData={runeData}
 							/>
 						);
 					})}

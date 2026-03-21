@@ -93,6 +93,14 @@ export const matchSchema = z.object({
 		gameMode: z.string(),
 		queueId: z.number(),
 		participants: z.array(participantSchema),
+		teams: z.array(z.object({
+			teamId: z.number(),
+			win: z.boolean(),
+			bans: z.array(z.object({
+				championId: z.number(),
+				pickTurn: z.number(),
+			})),
+		})),
 	}),
 });
 

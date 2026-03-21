@@ -18,11 +18,13 @@ import SummonerSearch from "@/components/search/summoner-search";
 import StatsCard from "@/components/summoner/stats-card";
 import RecentPlayers from "@/components/summoner/recent-players";
 import ChampionSearch from "@/components/summoner/champion-search";
+import { useRunes } from "@/hooks/useRunes";
 import LiveGameBanner from "@/components/summoner/live-game-banner";
 import SidebarSkeleton from "@/components/summoner/sidebar-skeleton";
 import StatsSkeleton from "@/components/summoner/stats-skeleton";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
+import BackButton from "@/components/ui/back-button";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
@@ -50,6 +52,7 @@ export default function SummonerPage({
 	);
 	const { data: masteries } = useMastery(account?.puuid);
 	const { data: champions } = useChampions();
+	const { data: runeData } = useRunes();
 
 	const queryClient = useQueryClient();
 	const [refreshing, setRefreshing] = useState(false);
@@ -92,19 +95,14 @@ export default function SummonerPage({
 	}
 
 	return (
-		<div className="mx-auto max-w-400 px-6 py-8 lg:px-12">
-			<button
-				onClick={() => router.back()}
-				className="mb-4 text-sm text-muted-foreground hover:text-foreground transition-colors"
-			>
-				← Back
-			</button>
-			<LiveGameBanner puuid={account.puuid} version={version} champions={champions} />
+		<div className="mx-auto max-w-400 px-4 py-6 sm:px-6 lg:px-12 lg:py-8">
+			<BackButton />
+			<LiveGameBanner puuid={account.puuid} summonerSlug={name} version={version} champions={champions} />
 			<motion.div
 				initial={{ opacity: 0, y: -10 }}
 				animate={{ opacity: 1, y: 0 }}
 				transition={{ duration: 0.4 }}
-				className="mb-8 flex items-center justify-between gap-4 sticky top-14 z-30 py-4 backdrop-blur-md bg-background/60"
+				className="mb-6 lg:mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 lg:sticky lg:top-14 lg:z-30 lg:py-4 lg:backdrop-blur-md lg:bg-background/60"
 			>
 				<div className="flex items-center gap-3">
 					<ProfileHeader
@@ -125,13 +123,13 @@ export default function SummonerPage({
 					</Button>
 				</div>
 				<div className="hidden gap-3 lg:flex">
-					<div className="w-56">
+					{/* <div className="w-56">
 						<ChampionSearch
 							champions={champions}
 							version={version}
 							summonerSlug={name}
 						/>
-					</div>
+					</div> */}
 					<div className="w-80">
 						<SummonerSearch />
 					</div>
@@ -139,12 +137,12 @@ export default function SummonerPage({
 			</motion.div>
 
 			{/* Content grid */}
-			<div className="grid grid-cols-1 gap-8 lg:grid-cols-[320px_1fr_280px]">
+			<div className="grid grid-cols-1 gap-6 lg:gap-8 lg:grid-cols-[320px_1fr_280px]">
 				<motion.div
 					initial={{ opacity: 0, x: -20 }}
 					animate={{ opacity: 1, x: 0 }}
 					transition={{ duration: 0.5, delay: 0.1 }}
-					className="space-y-4 sticky top-[180px] self-start"
+					className="space-y-4 lg:sticky lg:top-[180px] lg:self-start"
 				>
 					{!ranked && !masteries ? (
 						<SidebarSkeleton />
@@ -176,6 +174,7 @@ export default function SummonerPage({
 						puuid={account.puuid}
 						version={version}
 						isLoading={matchesLoading}
+						runeData={runeData}
 					/>
 				</motion.div>
 
@@ -183,7 +182,7 @@ export default function SummonerPage({
 					initial={{ opacity: 0, x: 20 }}
 					animate={{ opacity: 1, x: 0 }}
 					transition={{ duration: 0.5, delay: 0.3 }}
-					className="sticky top-[180px] self-start"
+					className="lg:sticky lg:top-[180px] lg:self-start"
 				>
 					{matchesLoading ? (
 						<StatsSkeleton />

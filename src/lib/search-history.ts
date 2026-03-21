@@ -1,4 +1,4 @@
-const STORAGE_KEY = "lol-tracker-search-history";
+const STORAGE_KEY = "summon-gg-search-history";
 const MAX_ITEMS = 5;
 
 export function getSearchHistory(): string[] {

@@ -28,7 +28,7 @@ function CompareRow({ label, blue, red, format }: CompareRowProps) {
 		<div className="space-y-1.5">
 			<div className="flex items-center justify-between text-sm">
 				<span className="font-medium text-blue-400">{fmt(blue)}</span>
-				<span className="text-xs text-muted-foreground uppercase tracking-wider">
+				<span className="text-sm text-muted-foreground uppercase tracking-wider">
 					{label}
 				</span>
 				<span className="font-medium text-red-400">{fmt(red)}</span>
