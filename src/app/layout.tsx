@@ -40,7 +40,7 @@ export default function RootLayout({
 			)}
 		>
 			<body className="min-h-full flex flex-col font-sans scroll-smooth">
-				{/* <AuroraBackground /> */}
+				<AuroraBackground />
 				<QueryProvider>
 					<Toaster
 						toastOptions={{
@@ -53,9 +53,7 @@ export default function RootLayout({
 						}}
 					/>
 					<Navbar />
-					<main className="flex-1 pt-14 pb-12">
-						{children}
-					</main>
+					<main className="flex-1 pt-14 pb-12">{children}</main>
 					<Footer />
 				</QueryProvider>
 			</body>
