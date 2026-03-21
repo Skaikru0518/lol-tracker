@@ -18,6 +18,7 @@ import SummonerSearch from "@/components/search/summoner-search";
 import StatsCard from "@/components/summoner/stats-card";
 import RecentPlayers from "@/components/summoner/recent-players";
 import ChampionSearch from "@/components/summoner/champion-search";
+import LiveGameBanner from "@/components/summoner/live-game-banner";
 import SidebarSkeleton from "@/components/summoner/sidebar-skeleton";
 import StatsSkeleton from "@/components/summoner/stats-skeleton";
 import { useQueryClient } from "@tanstack/react-query";
@@ -45,7 +46,7 @@ export default function SummonerPage({
 	const { data: ranked } = useRanked(account?.puuid);
 	const { data: matches, isLoading: matchesLoading } = useMatches(
 		account?.puuid,
-		10,
+		50,
 	);
 	const { data: masteries } = useMastery(account?.puuid);
 	const { data: champions } = useChampions();
@@ -98,11 +99,12 @@ export default function SummonerPage({
 			>
 				← Back
 			</button>
+			<LiveGameBanner puuid={account.puuid} version={version} champions={champions} />
 			<motion.div
 				initial={{ opacity: 0, y: -10 }}
 				animate={{ opacity: 1, y: 0 }}
 				transition={{ duration: 0.4 }}
-				className="mb-8 flex items-center justify-between gap-4"
+				className="mb-8 flex items-center justify-between gap-4 sticky top-14 z-30 py-4 backdrop-blur-md bg-background/60"
 			>
 				<div className="flex items-center gap-3">
 					<ProfileHeader
@@ -142,7 +144,7 @@ export default function SummonerPage({
 					initial={{ opacity: 0, x: -20 }}
 					animate={{ opacity: 1, x: 0 }}
 					transition={{ duration: 0.5, delay: 0.1 }}
-					className="space-y-4"
+					className="space-y-4 sticky top-[180px] self-start"
 				>
 					{!ranked && !masteries ? (
 						<SidebarSkeleton />
@@ -181,6 +183,7 @@ export default function SummonerPage({
 					initial={{ opacity: 0, x: 20 }}
 					animate={{ opacity: 1, x: 0 }}
 					transition={{ duration: 0.5, delay: 0.3 }}
+					className="sticky top-[180px] self-start"
 				>
 					{matchesLoading ? (
 						<StatsSkeleton />

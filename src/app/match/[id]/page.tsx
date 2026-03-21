@@ -4,6 +4,7 @@ import { use, useEffect } from "react";
 import { useMatch } from "@/hooks/useMatch";
 import { useTimeline } from "@/hooks/useTimeline";
 import { useDDragonVersion } from "@/hooks/useDDragonVersion";
+import { useRunes } from "@/hooks/useRunes";
 import MatchInfo from "@/components/match/match-info";
 import TeamTable from "@/components/match/team-table";
 import TeamSummary from "@/components/match/team-summary";
@@ -28,6 +29,7 @@ export default function MatchPage({
 	const { data: match, isLoading, error } = useMatch(id);
 	const { data: timeline } = useTimeline(id);
 	const { data: version } = useDDragonVersion();
+	const { data: runeData } = useRunes();
 
 	useEffect(() => {
 		if (error) toast.error("Match not found");
@@ -74,6 +76,7 @@ export default function MatchPage({
 						won={blueWon}
 						version={version}
 						gameDuration={match.info.gameDuration}
+						runeData={runeData}
 					/>
 				</motion.div>
 
@@ -88,6 +91,7 @@ export default function MatchPage({
 						won={!blueWon}
 						version={version}
 						gameDuration={match.info.gameDuration}
+						runeData={runeData}
 					/>
 				</motion.div>
 			</div>

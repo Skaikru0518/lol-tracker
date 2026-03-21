@@ -1,9 +1,38 @@
 "use client";
 
+import { useState } from "react";
 import { type Match } from "@/lib/validators/match";
 import { getQueueName } from "@/lib/queue-names";
 import MatchCard from "./match-card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+
+const QUEUE_FILTERS = [
+	{ label: "All", value: "all" },
+	{ label: "Ranked Solo", value: "ranked-solo" },
+	{ label: "Ranked Flex", value: "ranked-flex" },
+	{ label: "ARAM", value: "aram" },
+	{ label: "Normal", value: "normal" },
+] as const;
+
+type QueueFilter = (typeof QUEUE_FILTERS)[number]["value"];
+
+function filterMatchesByQueue(matches: Match[], filter: QueueFilter): Match[] {
+	switch (filter) {
+		case "all":
+			return matches;
+		case "ranked-solo":
+			return matches.filter((m) => m.info.queueId === 420);
+		case "ranked-flex":
+			return matches.filter((m) => m.info.queueId === 440);
+		case "aram":
+			return matches.filter((m) => m.info.queueId === 450);
+		case "normal":
+			return matches.filter(
+				(m) => m.info.queueId === 400 || m.info.queueId === 430,
+			);
+	}
+}
 
 interface MatchListProps {
 	matches?: Match[];
@@ -18,6 +47,9 @@ export function MatchList({
 	version,
 	isLoading,
 }: MatchListProps) {
+	const [queueFilter, setQueueFilter] = useState<QueueFilter>("all");
+	const [visibleCount, setVisibleCount] = useState(10);
+
 	if (isLoading) {
 		return (
 			<div className="space-y-2">
@@ -36,28 +68,63 @@ export function MatchList({
 		);
 	}
 
+	const filteredMatches = filterMatchesByQueue(matches, queueFilter);
+
 	return (
-		<div className="space-y-2 flex flex-col">
+		<div className="space-y-2 flex flex-col min-h-[400px] min-w-[700px]">
 			<h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
 				Recent Matches
 			</h3>
-			{matches.map((match, i) => {
-				const player = match.info.participants.find((p) => p.puuid === puuid);
-				if (!player) return null;
+			<div className="mb-2 flex flex-wrap gap-1.5">
+				{QUEUE_FILTERS.map((filter) => (
+					<button
+						key={filter.value}
+						onClick={() => setQueueFilter(filter.value)}
+						className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+							queueFilter === filter.value
+								? "bg-primary text-primary-foreground"
+								: "bg-secondary text-secondary-foreground hover:bg-accent/30"
+						}`}
+					>
+						{filter.label}
+					</button>
+				))}
+			</div>
+			{filteredMatches.length === 0 ? (
+				<div className="flex h-24 items-center justify-center rounded-xl border border-dashed text-sm text-muted-foreground">
+					No matches found for this queue type
+				</div>
+			) : (
+				<>
+					{filteredMatches.slice(0, visibleCount).map((match, i) => {
+						const player = match.info.participants.find((p) => p.puuid === puuid);
+						if (!player) return null;
 
-				return (
-					<MatchCard
-						key={match.metadata.matchId}
-						matchId={match.metadata.matchId}
-						player={player}
-						queueName={getQueueName(match.info.queueId, match.info.gameMode)}
-						gameDuration={match.info.gameDuration}
-						gameCreation={match.info.gameCreation}
-						version={version}
-						index={i}
-					/>
-				);
-			})}
+						return (
+							<MatchCard
+								key={match.metadata.matchId}
+								matchId={match.metadata.matchId}
+								player={player}
+								participants={match.info.participants}
+								queueName={getQueueName(match.info.queueId, match.info.gameMode)}
+								gameDuration={match.info.gameDuration}
+								gameCreation={match.info.gameCreation}
+								version={version}
+								index={i}
+							/>
+						);
+					})}
+					{visibleCount < filteredMatches.length && (
+						<Button
+							variant="outline"
+							className="w-full"
+							onClick={() => setVisibleCount((prev) => prev + 10)}
+						>
+							Load More
+						</Button>
+					)}
+				</>
+			)}
 		</div>
 	);
 }

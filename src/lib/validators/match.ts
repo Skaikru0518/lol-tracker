@@ -59,6 +59,25 @@ export const participantSchema = z.object({
 	totalTimeSpentDead: z.number(),
 	longestTimeSpentLiving: z.number(),
 	timeCCingOthers: z.number(),
+	summoner1Id: z.number(),
+	summoner2Id: z.number(),
+	perks: z.object({
+		statPerks: z.object({
+			defense: z.number(),
+			flex: z.number(),
+			offense: z.number(),
+		}),
+		styles: z.array(z.object({
+			description: z.string(),
+			selections: z.array(z.object({
+				perk: z.number(),
+				var1: z.number(),
+				var2: z.number(),
+				var3: z.number(),
+			})),
+			style: z.number(),
+		})),
+	}),
 	teamPosition: z.string(),
 	individualPosition: z.string(),
 	teamId: z.number(),

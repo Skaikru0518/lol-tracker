@@ -2,10 +2,13 @@
 
 import { type Participant } from "@/lib/validators/match";
 import { motion } from "framer-motion";
+import { getRuneIcon, type RuneData, type RuneStyle } from "@/lib/icon-helpers";
+import Image from "next/image";
 
 interface PlayerDetailsProps {
 	player: Participant;
 	gameDuration: number;
+	runeData?: { runes: Map<number, RuneData>; styles: Map<number, RuneStyle> };
 }
 
 function formatTime(seconds: number): string {
@@ -34,6 +37,7 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
 export default function PlayerDetails({
 	player,
 	gameDuration,
+	runeData,
 }: PlayerDetailsProps) {
 	const mins = gameDuration / 60;
 	const csTotal = player.totalMinionsKilled + player.neutralMinionsKilled;
@@ -56,7 +60,7 @@ export default function PlayerDetails({
 			transition={{ duration: 0.25 }}
 			className="overflow-hidden"
 		>
-			<div className="grid grid-cols-4 gap-8 p-6">
+			<div className="grid grid-cols-5 gap-8 p-6">
 				<div>
 					<SectionTitle>Damage</SectionTitle>
 					<Stat
@@ -118,6 +122,64 @@ export default function PlayerDetails({
 						label="Control Wards"
 						value={player.visionWardsBoughtInGame}
 					/>
+				</div>
+
+				<div>
+					<SectionTitle>Runes</SectionTitle>
+					{runeData && (() => {
+						const primaryStyle = player.perks.styles.find(s => s.description === "primaryStyle");
+						const secondaryStyle = player.perks.styles.find(s => s.description === "subStyle");
+						const primaryInfo = primaryStyle && runeData.styles.get(primaryStyle.style);
+						const secondaryInfo = secondaryStyle && runeData.styles.get(secondaryStyle.style);
+						return (
+							<div className="space-y-3">
+								{primaryInfo && (
+									<div>
+										<p className="text-xs font-semibold text-muted-foreground mb-1.5">{primaryInfo.name}</p>
+										<div className="space-y-1">
+											{primaryStyle.selections.map((sel) => {
+												const rune = runeData.runes.get(sel.perk);
+												if (!rune) return null;
+												return (
+													<div key={sel.perk} className="flex items-center gap-2">
+														<Image
+															src={getRuneIcon(rune.icon)}
+															alt={rune.name}
+															width={24}
+															height={24}
+														/>
+														<span className="text-xs">{rune.name}</span>
+													</div>
+												);
+											})}
+										</div>
+									</div>
+								)}
+								{secondaryInfo && (
+									<div>
+										<p className="text-xs font-semibold text-muted-foreground mb-1.5">{secondaryInfo.name}</p>
+										<div className="space-y-1">
+											{secondaryStyle!.selections.map((sel) => {
+												const rune = runeData.runes.get(sel.perk);
+												if (!rune) return null;
+												return (
+													<div key={sel.perk} className="flex items-center gap-2">
+														<Image
+															src={getRuneIcon(rune.icon)}
+															alt={rune.name}
+															width={24}
+															height={24}
+														/>
+														<span className="text-xs">{rune.name}</span>
+													</div>
+												);
+											})}
+										</div>
+									</div>
+								)}
+							</div>
+						);
+					})()}
 				</div>
 
 				<div>

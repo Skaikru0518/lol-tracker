@@ -1,7 +1,7 @@
 "use client";
 
 import { type Participant } from "@/lib/validators/match";
-import { getChampionIcon } from "@/lib/icon-helpers";
+import { getChampionIcon, getItemIcon, getSummonerSpellIcon } from "@/lib/icon-helpers";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
@@ -9,6 +9,7 @@ import Link from "next/link";
 interface MatchCardProps {
 	matchId: string;
 	player: Participant;
+	participants: Participant[];
 	queueName: string;
 	gameDuration: number;
 	gameCreation: number;
@@ -34,6 +35,7 @@ function timeAgo(timestamp: number): string {
 export default function MatchCard({
 	matchId,
 	player,
+	participants,
 	queueName,
 	gameDuration,
 	gameCreation,
@@ -45,13 +47,26 @@ export default function MatchCard({
 			? "Perfect"
 			: ((player.kills + player.assists) / player.deaths).toFixed(1);
 
+	const itemIds = [
+		player.item0,
+		player.item1,
+		player.item2,
+		player.item3,
+		player.item4,
+		player.item5,
+		player.item6,
+	];
+
+	const blueTeam = participants.slice(0, 5);
+	const redTeam = participants.slice(5, 10);
+
 	return (
 		<Link href={`/match/${matchId}`}>
 			<motion.div
 				initial={{ opacity: 0, y: 8 }}
 				animate={{ opacity: 1, y: 0 }}
 				transition={{ duration: 0.3, delay: index * 0.04 }}
-				className={`group flex items-center gap-5 rounded-xl border px-5 py-4 transition-all hover:bg-accent/30 hover:scale-105 duration-150 ${
+				className={`group flex items-center gap-3 rounded-xl border px-4 py-3 transition-all hover:bg-accent/30 hover:scale-105 duration-150 ${
 					player.win ? "border-win/15 bg-win/5" : "border-loss/15 bg-loss/5"
 				}`}
 			>
@@ -61,6 +76,26 @@ export default function MatchCard({
 						player.win ? "bg-win" : "bg-loss"
 					}`}
 				/>
+
+				{/* Summoner spells */}
+				{version && (
+					<div className="flex flex-col gap-0.5">
+						<Image
+							src={getSummonerSpellIcon(version, player.summoner1Id)}
+							alt="Spell 1"
+							width={20}
+							height={20}
+							className="rounded"
+						/>
+						<Image
+							src={getSummonerSpellIcon(version, player.summoner2Id)}
+							alt="Spell 2"
+							width={20}
+							height={20}
+							className="rounded"
+						/>
+					</div>
+				)}
 
 				{/* Champion icon */}
 				{version && (
@@ -74,7 +109,7 @@ export default function MatchCard({
 				)}
 
 				{/* Champion info */}
-				<div className="min-w-[110px]">
+				<div className="min-w-[100px]">
 					<p className="text-base font-semibold">{player.championName}</p>
 					<p className="text-sm text-muted-foreground">
 						Lvl {player.champLevel}
@@ -82,7 +117,7 @@ export default function MatchCard({
 				</div>
 
 				{/* KDA */}
-				<div className="min-w-[110px] text-center">
+				<div className="min-w-[100px] text-center">
 					<p className="text-base font-mono font-bold">
 						{player.kills}
 						<span className="text-muted-foreground">/</span>
@@ -102,10 +137,34 @@ export default function MatchCard({
 				</div>
 
 				{/* CS */}
-				<div className="min-w-[60px] text-center">
+				<div className="min-w-[50px] text-center">
 					<p className="text-base font-medium">{player.totalMinionsKilled}</p>
 					<p className="text-sm text-muted-foreground">CS</p>
 				</div>
+
+				{/* Items */}
+				{version && (
+					<div className="flex items-center gap-0.5">
+						{itemIds.map((itemId, i) => {
+							const icon = getItemIcon(version, itemId);
+							return icon ? (
+								<Image
+									key={i}
+									src={icon}
+									alt={`Item ${i}`}
+									width={24}
+									height={24}
+									className="rounded"
+								/>
+							) : (
+								<div
+									key={i}
+									className="h-[24px] w-[24px] rounded bg-muted/40"
+								/>
+							);
+						})}
+					</div>
+				)}
 
 				<div className="flex-1" />
 
@@ -117,15 +176,45 @@ export default function MatchCard({
 					</p>
 				</div>
 
-				{/* Result */}
-				<div
-					className={`w-12 rounded-lg py-1.5 text-center text-sm font-bold ${
-						player.win ? "bg-win/15 text-win" : "bg-loss/15 text-loss"
-					}`}
-				>
-					{player.win ? "W" : "L"}
-				</div>
-			</motion.div>
+				{/* Team icons */}
+				{version && (
+					<div className="flex flex-col gap-0.5">
+						<div className="flex gap-0.5">
+							{blueTeam.map((p) => (
+								<Image
+									key={p.puuid}
+									src={getChampionIcon(version, p.championName)}
+									alt={p.championName}
+									width={20}
+									height={20}
+									className={`rounded ${
+										p.puuid === player.puuid
+											? "ring-1 ring-primary"
+											: ""
+									}`}
+								/>
+							))}
+						</div>
+						<div className="flex gap-0.5">
+							{redTeam.map((p) => (
+								<Image
+									key={p.puuid}
+									src={getChampionIcon(version, p.championName)}
+									alt={p.championName}
+									width={20}
+									height={20}
+									className={`rounded ${
+										p.puuid === player.puuid
+											? "ring-1 ring-primary"
+											: ""
+									}`}
+								/>
+							))}
+						</div>
+					</div>
+				)}
+
+				</motion.div>
 		</Link>
 	);
 }

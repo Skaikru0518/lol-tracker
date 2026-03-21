@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { type Participant } from "@/lib/validators/match";
-import { getChampionIcon, getItemIcon } from "@/lib/icon-helpers";
+import { getChampionIcon, getItemIcon, getSummonerSpellIcon, getRuneIcon, type RuneData, type RuneStyle } from "@/lib/icon-helpers";
 import {
 	Table,
 	TableBody,
@@ -21,6 +21,7 @@ interface TeamTableProps {
 	won: boolean;
 	version?: string;
 	gameDuration: number;
+	runeData?: { runes: Map<number, RuneData>; styles: Map<number, RuneStyle> };
 }
 
 export default function TeamTable({
@@ -29,6 +30,7 @@ export default function TeamTable({
 	won,
 	version,
 	gameDuration,
+	runeData,
 }: TeamTableProps) {
 	const [expanded, setExpanded] = useState<string | null>(null);
 	const itemSlots = [0, 1, 2, 3, 4, 5, 6] as const;
@@ -106,6 +108,41 @@ export default function TeamTable({
 														height={44}
 														className="rounded-xl"
 													/>
+												)}
+												{version && (
+													<div className="flex items-center gap-1">
+														<div className="flex flex-col gap-0.5">
+															<Image
+																src={getSummonerSpellIcon(version, p.summoner1Id)}
+																alt="Spell 1"
+																width={20}
+																height={20}
+																className="rounded"
+															/>
+															<Image
+																src={getSummonerSpellIcon(version, p.summoner2Id)}
+																alt="Spell 2"
+																width={20}
+																height={20}
+																className="rounded"
+															/>
+														</div>
+														{(() => {
+															const primaryStyle = p.perks.styles.find(s => s.description === "primaryStyle");
+															const keystoneId = primaryStyle?.selections[0]?.perk;
+															const keystoneRune = keystoneId && runeData?.runes.get(keystoneId);
+															if (!keystoneRune) return null;
+															return (
+																<Image
+																	src={getRuneIcon(keystoneRune.icon)}
+																	alt={keystoneRune.name}
+																	width={20}
+																	height={20}
+																	className="rounded"
+																/>
+															);
+														})()}
+													</div>
 												)}
 												<div>
 													<Link
@@ -201,6 +238,7 @@ export default function TeamTable({
 												<PlayerDetails
 													player={p}
 													gameDuration={gameDuration}
+													runeData={runeData}
 												/>
 											</TableCell>
 										</TableRow>

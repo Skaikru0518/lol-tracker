@@ -1,11 +1,12 @@
 "use client";
 
 import SummonerSearch from "@/components/search/summoner-search";
+import SearchHistory from "@/components/search/search-history";
 import { motion } from "framer-motion";
 
 export default function Home() {
 	return (
-		<div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-4">
+		<div className="relative flex h-[calc(100vh-3.5rem-3rem)] flex-col items-center justify-center overflow-hidden px-4">
 			{/* Background glow */}
 			<div className="pointer-events-none absolute inset-0">
 				<div className="absolute left-1/2 top-1/3 -translate-x-1/2 -translate-y-1/2 size-[600px] rounded-full bg-primary/5 blur-[120px]" />
@@ -35,6 +36,9 @@ export default function Home() {
 					className="w-full max-w-lg"
 				>
 					<SummonerSearch />
+					<div className="mt-4">
+						<SearchHistory />
+					</div>
 				</motion.div>
 
 				<motion.div
