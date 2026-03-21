@@ -18,7 +18,10 @@ import SummonerSearch from "@/components/search/summoner-search";
 import StatsCard from "@/components/summoner/stats-card";
 import RecentPlayers from "@/components/summoner/recent-players";
 import ChampionSearch from "@/components/summoner/champion-search";
+import SidebarSkeleton from "@/components/summoner/sidebar-skeleton";
+import StatsSkeleton from "@/components/summoner/stats-skeleton";
 import { useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
@@ -30,6 +33,7 @@ export default function SummonerPage({
 }) {
 	const { name } = use(params);
 	const [gameName, tagLine] = name.split("-");
+	const router = useRouter();
 
 	const { data: version } = useDDragonVersion();
 	const {
@@ -61,16 +65,39 @@ export default function SummonerPage({
 		setRefreshing(false);
 	}, [queryClient]);
 
-	useEffect(() => {
-		if (accountError) toast.error("Summoner not found");
-	}, [accountError]);
-
 	if (accountLoading) return <Loader fullScreen />;
-	if (!account) return null;
+
+	if (accountError || !account) {
+		return (
+			<div className="flex min-h-screen flex-col items-center justify-center gap-6 px-4">
+				<div className="text-center">
+					<h1 className="text-5xl font-bold text-destructive">Error</h1>
+					<p className="mt-3 text-lg text-muted-foreground">
+						Summoner not found
+					</p>
+					<p className="mt-1 text-sm text-muted-foreground/70">
+						Could not find &quot;{gameName}#{tagLine}&quot;
+					</p>
+				</div>
+				<Button
+					onClick={() => router.back()}
+					size="lg"
+					className="h-12 px-8"
+				>
+					Go Back
+				</Button>
+			</div>
+		);
+	}
 
 	return (
 		<div className="mx-auto max-w-400 px-6 py-8 lg:px-12">
-			{/* Top bar with search */}
+			<button
+				onClick={() => router.back()}
+				className="mb-4 text-sm text-muted-foreground hover:text-foreground transition-colors"
+			>
+				← Back
+			</button>
 			<motion.div
 				initial={{ opacity: 0, y: -10 }}
 				animate={{ opacity: 1, y: 0 }}
@@ -117,18 +144,24 @@ export default function SummonerPage({
 					transition={{ duration: 0.5, delay: 0.1 }}
 					className="space-y-4"
 				>
-					<RankedCard entries={ranked} />
-					<MasteryList
-						masteries={masteries}
-						champions={champions}
-						version={version}
-						summonerSlug={name}
-					/>
-					<RecentPlayers
-						matches={matches}
-						puuid={account.puuid}
-						version={version}
-					/>
+					{!ranked && !masteries ? (
+						<SidebarSkeleton />
+					) : (
+						<>
+							<RankedCard entries={ranked} />
+							<MasteryList
+								masteries={masteries}
+								champions={champions}
+								version={version}
+								summonerSlug={name}
+							/>
+							<RecentPlayers
+								matches={matches}
+								puuid={account.puuid}
+								version={version}
+							/>
+						</>
+					)}
 				</motion.div>
 
 				<motion.div
@@ -149,12 +182,16 @@ export default function SummonerPage({
 					animate={{ opacity: 1, x: 0 }}
 					transition={{ duration: 0.5, delay: 0.3 }}
 				>
-					<StatsCard
-						matches={matches}
-						puuid={account.puuid}
-						champions={champions}
-						version={version}
-					/>
+					{matchesLoading ? (
+						<StatsSkeleton />
+					) : (
+						<StatsCard
+							matches={matches}
+							puuid={account.puuid}
+							champions={champions}
+							version={version}
+						/>
+					)}
 				</motion.div>
 			</div>
 		</div>
