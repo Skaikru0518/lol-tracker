@@ -8,7 +8,7 @@ import toast from "react-hot-toast";
 import { Search } from "lucide-react";
 import { addSearchHistory } from "@/lib/search-history";
 
-export default function SummonerSearch({ compact }: { compact?: boolean }) {
+export default function SummonerSearch({ compact, autoFocus }: { compact?: boolean; autoFocus?: boolean }) {
 	const [input, setInput] = useState("");
 	const router = useRouter();
 
@@ -33,6 +33,7 @@ export default function SummonerSearch({ compact }: { compact?: boolean }) {
 					value={input}
 					onChange={(e) => setInput(e.target.value)}
 					placeholder="GameName#TAG"
+					autoFocus={autoFocus}
 					className={compact
 						? "h-9 pl-8 text-sm bg-card border-border/50 focus:border-primary/50 transition-colors"
 						: "h-12 pl-10 text-sm bg-card border-border/50 focus:border-primary/50 transition-colors"
