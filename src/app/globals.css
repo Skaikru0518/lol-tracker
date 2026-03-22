@@ -150,3 +150,14 @@
 	scrollbar-width: thin;
 	scrollbar-color: oklch(0.3 0.02 250) transparent;
 }
+
+/* Shimmer animation for skeletons */
+@keyframes shimmer {
+	100% {
+		transform: translateX(100%);
+	}
+}
+
+@theme inline {
+	--animate-shimmer: shimmer 1.5s infinite;
+}
