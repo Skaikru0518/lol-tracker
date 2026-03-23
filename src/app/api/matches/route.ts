@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getMatchIdsByPuuid, getMatchById } from "@/lib/riot/matches";
 import { RiotApiError } from "@/lib/riot/riot";
+import { prisma } from "@/lib/db";
 
 export async function GET(req: NextRequest) {
 	const puuid = req.nextUrl.searchParams.get("puuid");
@@ -18,7 +19,23 @@ export async function GET(req: NextRequest) {
 		);
 		const matches = [];
 		for (const id of matchIds) {
-			matches.push(await getMatchById(id));
+			const cached = await prisma.match.findUnique({ where: { matchId: id } });
+			if (cached) {
+				matches.push(cached.data);
+			} else {
+				const matchData = await getMatchById(id);
+				await prisma.match.create({
+					data: {
+						matchId: id,
+						queueId: matchData.info.queueId,
+						gameMode: matchData.info.gameMode,
+						gameDuration: matchData.info.gameDuration,
+						gameCreation: BigInt(matchData.info.gameCreation),
+						data: matchData as any,
+					},
+				});
+				matches.push(matchData);
+			}
 		}
 		return NextResponse.json(matches);
 	} catch (error) {

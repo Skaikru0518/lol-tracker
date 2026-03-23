@@ -10,5 +10,7 @@ export function useRunes() {
 		queryFn: () => getRuneMap(version!),
 		staleTime: Infinity,
 		enabled: !!version,
+		retry: 3,
+		retryDelay: 1000,
 	});
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { type Participant } from "@/lib/validators/match";
+import { getChampionDisplayName } from "@/lib/icon-helpers";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
 	BarChart,
@@ -27,7 +28,7 @@ interface DamageDataPoint {
 
 export default function DamageChart({ participants }: DamageChartProps) {
 	const data: DamageDataPoint[] = participants.map((p) => ({
-		name: p.championName,
+		name: getChampionDisplayName(p.championName),
 		physical: p.physicalDamageDealtToChampions,
 		magic: p.magicDamageDealtToChampions,
 		true_: p.trueDamageDealtToChampions,

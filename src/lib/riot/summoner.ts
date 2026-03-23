@@ -1,15 +1,8 @@
 import { BASE_URL, riotFetch } from "./riot";
-
-export interface SummonerData {
-	id: string;
-	accountId: string;
-	puuid: string;
-	profileIconId: number;
-	summonerLevel: number;
-}
+import { type Summoner } from "@/lib/validators/summoner";
 
 export async function getSummonerByPuuid(puuid: string) {
-	return riotFetch<SummonerData>(
+	return riotFetch<Summoner>(
 		`${BASE_URL}/lol/summoner/v4/summoners/by-puuid/${puuid}`,
 		300,
 	);

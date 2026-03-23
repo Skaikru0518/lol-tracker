@@ -7,6 +7,7 @@ import { useDDragonVersion } from "@/hooks/useDDragonVersion";
 import { useRunes } from "@/hooks/useRunes";
 import { useItems } from "@/hooks/useItems";
 import { useChampions } from "@/hooks/useChampions";
+import { usePlayerRanks } from "@/hooks/usePlayerRanks";
 import MatchInfo from "@/components/match/match-info";
 import TeamTable from "@/components/match/team-table";
 import TeamSummary from "@/components/match/team-summary";
@@ -36,11 +37,15 @@ export default function MatchPage({
 	const { data: itemNames } = useItems();
 	const { data: champions } = useChampions();
 
+	const puuids = match?.info.participants.map(p => p.puuid);
+	const { data: playerRanks } = usePlayerRanks(puuids);
+
 	useEffect(() => {
 		if (error) toast.error("Match not found");
 	}, [error]);
 
-	if (isLoading) return <Loader fullScreen />;
+	const allLoaded = match && version && runeData && champions && playerRanks;
+	if (isLoading || !allLoaded) return <Loader fullScreen />;
 	if (!match) return null;
 
 	const blueTeam = match.info.participants.slice(0, 5);
@@ -60,6 +65,7 @@ export default function MatchPage({
 					gameMode={match.info.gameMode}
 					gameDuration={match.info.gameDuration}
 					gameCreation={match.info.gameCreation}
+					playerRanks={playerRanks}
 				/>
 			</motion.div>
 
@@ -81,6 +87,8 @@ export default function MatchPage({
 						itemNames={itemNames}
 						bans={match.info.teams[0].bans}
 						champions={champions}
+						playerRanks={playerRanks}
+						queueId={match.info.queueId}
 					/>
 				</motion.div>
 
@@ -100,6 +108,8 @@ export default function MatchPage({
 						itemNames={itemNames}
 						bans={match.info.teams[1].bans}
 						champions={champions}
+						playerRanks={playerRanks}
+						queueId={match.info.queueId}
 					/>
 				</motion.div>
 			</div>

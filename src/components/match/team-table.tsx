@@ -2,7 +2,9 @@
 
 import { Fragment, useState } from "react";
 import { type Participant } from "@/lib/validators/match";
-import { getChampionIcon, getItemIcon, getSummonerSpellIcon, getRuneIcon, type RuneData, type RuneStyle } from "@/lib/icon-helpers";
+import { type RankedEntry } from "@/lib/validators/ranked";
+import { getChampionIcon, getChampionDisplayName, getItemIcon, getSummonerSpellIcon, getRuneIcon, getRankEmblem, type RuneData, type RuneStyle } from "@/lib/icon-helpers";
+import IconTooltip from "@/components/ui/icon-tooltip";
 import {
 	Table,
 	TableBody,
@@ -28,6 +30,8 @@ interface TeamTableProps {
 	itemNames?: Map<number, string>;
 	bans?: { championId: number; pickTurn: number }[];
 	champions?: Record<number, { id: string; name: string }>;
+	playerRanks?: Record<string, RankedEntry[]>;
+	queueId?: number;
 }
 
 export default function TeamTable({
@@ -41,6 +45,8 @@ export default function TeamTable({
 	itemNames,
 	bans,
 	champions,
+	playerRanks,
+	queueId,
 }: TeamTableProps) {
 	const [expanded, setExpanded] = useState<string | null>(null);
 	const itemSlots = [0, 1, 2, 3, 4, 5, 6] as const;
@@ -132,6 +138,40 @@ export default function TeamTable({
 									>
 										<TableCell>
 											<div className="flex items-center gap-3">
+												{(() => {
+													if (!playerRanks) return null;
+													const entries = playerRanks[p.puuid];
+													const relevantQueue = queueId === 440 ? "RANKED_FLEX_SR" : "RANKED_SOLO_5x5";
+													const entry = entries?.find(e => e.queueType === relevantQueue);
+													if (!entry) {
+														return (
+															<IconTooltip label="Unranked">
+																<Image
+																	src={getRankEmblem("unranked")}
+																	alt="Unranked"
+																	width={32}
+																	height={32}
+																	className="shrink-0 brightness-200"
+																/>
+															</IconTooltip>
+														);
+													}
+													const isApex = ["MASTER", "GRANDMASTER", "CHALLENGER"].includes(entry.tier);
+													const label = isApex
+														? `${entry.tier.charAt(0) + entry.tier.slice(1).toLowerCase()} ${entry.leaguePoints} LP`
+														: `${entry.tier.charAt(0) + entry.tier.slice(1).toLowerCase()} ${entry.rank}`;
+													return (
+														<IconTooltip label={label}>
+															<Image
+																src={getRankEmblem(entry.tier)}
+																alt={label}
+																width={32}
+																height={32}
+																className="shrink-0"
+															/>
+														</IconTooltip>
+													);
+												})()}
 												{version && (
 													<Image
 														src={getChampionIcon(
@@ -145,21 +185,21 @@ export default function TeamTable({
 													/>
 												)}
 												{version && (
-													<div className="flex items-center gap-1">
+													<div className="flex items-center gap-1 shrink-0">
 														<div className="flex flex-col gap-0.5">
 															<Image
 																src={getSummonerSpellIcon(version, p.summoner1Id)}
 																alt="Spell 1"
 																width={20}
 																height={20}
-																className="rounded"
+																className="rounded size-5 min-w-5 min-h-5"
 															/>
 															<Image
 																src={getSummonerSpellIcon(version, p.summoner2Id)}
 																alt="Spell 2"
 																width={20}
 																height={20}
-																className="rounded"
+																className="rounded size-5 min-w-5 min-h-5"
 															/>
 														</div>
 														{(() => {
@@ -176,7 +216,7 @@ export default function TeamTable({
 																			alt={keystoneRune.name}
 																			width={20}
 																			height={20}
-																			className="rounded"
+																			className="rounded size-5 min-w-5 min-h-5"
 																		/>
 																	)}
 																	{subStyle && (
@@ -185,7 +225,7 @@ export default function TeamTable({
 																			alt={subStyle.name}
 																			width={20}
 																			height={20}
-																			className="rounded opacity-60"
+																			className="rounded size-5 opacity-60"
 																		/>
 																	)}
 																</div>
@@ -205,7 +245,7 @@ export default function TeamTable({
 														</span>
 													</Link>
 													<p className="text-sm text-muted-foreground">
-														{p.championName} · Lvl{" "}
+														{getChampionDisplayName(p.championName)} · Lvl{" "}
 														{p.champLevel}
 													</p>
 												</div>

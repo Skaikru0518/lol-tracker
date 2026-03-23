@@ -70,9 +70,7 @@ export default function SummonerPage({
 		setRefreshing(false);
 	}, [queryClient]);
 
-	if (accountLoading) return <Loader fullScreen />;
-
-	if (accountError || !account) {
+	if (accountError) {
 		return (
 			<div className="flex min-h-screen flex-col items-center justify-center gap-6 px-4">
 				<div className="text-center">
@@ -94,6 +92,9 @@ export default function SummonerPage({
 			</div>
 		);
 	}
+
+	const coreLoaded = account && summoner && version && champions;
+	if (accountLoading || !coreLoaded) return <Loader fullScreen />;
 
 	return (
 		<div className="mx-auto max-w-400 px-4 py-6 sm:px-6 lg:px-12 lg:py-8">

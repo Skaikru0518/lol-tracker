@@ -1,5 +1,6 @@
 import { getMatchById } from "@/lib/riot/matches";
 import { RiotApiError } from "@/lib/riot/riot";
+import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
@@ -8,8 +9,23 @@ export async function GET(
 ) {
 	const { id } = await params;
 	try {
-		const match = await getMatchById(id);
-		return NextResponse.json(match);
+		const cached = await prisma.match.findUnique({ where: { matchId: id } });
+		if (cached) {
+			return NextResponse.json(cached.data);
+		}
+
+		const matchData = await getMatchById(id);
+		await prisma.match.create({
+			data: {
+				matchId: id,
+				queueId: matchData.info.queueId,
+				gameMode: matchData.info.gameMode,
+				gameDuration: matchData.info.gameDuration,
+				gameCreation: BigInt(matchData.info.gameCreation),
+				data: matchData as any,
+			},
+		});
+		return NextResponse.json(matchData);
 	} catch (error) {
 		if (error instanceof RiotApiError) {
 			return NextResponse.json(

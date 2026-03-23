@@ -3,6 +3,7 @@
 import { type Participant } from "@/lib/validators/match";
 import {
 	getChampionIcon,
+	getChampionDisplayName,
 	getItemIcon,
 	getSummonerSpellIcon,
 	getRuneIcon,
@@ -76,15 +77,13 @@ export default function MatchCard({
 				animate={{ opacity: 1, y: 0 }}
 				transition={{ duration: 0.3, delay: index * 0.04 }}
 				className={`group rounded-xl border overflow-hidden transition-all hover:bg-accent/20 hover:scale-[1.01] duration-150 ${
-					player.win
-						? "border-win/15 bg-win/5"
-						: "border-loss/15 bg-loss/5"
+					player.win ? "border-win/15 bg-win/5" : "border-loss/15 bg-loss/5"
 				}`}
 			>
 				{/* Desktop: Three-section layout */}
 				<div className="hidden sm:flex items-stretch">
 					{/* Section 1: Identity */}
-					<div className="flex items-center gap-3 px-4 py-3 min-w-[200px] border-r border-white/5">
+					<div className="flex items-center gap-3 px-4 py-3 min-w-[230px] border-r border-white/5">
 						<div
 							className={`w-1 self-stretch rounded-full shrink-0 ${
 								player.win ? "bg-win" : "bg-loss"
@@ -113,8 +112,14 @@ export default function MatchCard({
 										const primaryStyle = player.perks.styles[0];
 										const secondaryStyle = player.perks.styles[1];
 										const keystoneId = primaryStyle?.selections[0]?.perk;
-										const keystoneRune = keystoneId && runeData ? runeData.runes.get(keystoneId) : null;
-										const subStyle = secondaryStyle && runeData ? runeData.styles.get(secondaryStyle.style) : null;
+										const keystoneRune =
+											keystoneId && runeData
+												? runeData.runes.get(keystoneId)
+												: null;
+										const subStyle =
+											secondaryStyle && runeData
+												? runeData.styles.get(secondaryStyle.style)
+												: null;
 										return (
 											<>
 												{keystoneRune && (
@@ -144,7 +149,7 @@ export default function MatchCard({
 						{version && (
 							<Image
 								src={getChampionIcon(version, player.championName)}
-								alt={player.championName}
+								alt={getChampionDisplayName(player.championName)}
 								width={48}
 								height={48}
 								className="rounded-xl shrink-0"
@@ -152,7 +157,7 @@ export default function MatchCard({
 						)}
 						<div className="min-w-0">
 							<p className="text-sm font-semibold truncate">
-								{player.championName}
+								{getChampionDisplayName(player.championName)}
 							</p>
 							<p className="text-sm text-muted-foreground">
 								Lvl {player.champLevel}
@@ -181,9 +186,7 @@ export default function MatchCard({
 							</p>
 						</div>
 						<div className="text-center">
-							<p className="text-sm font-medium">
-								{player.totalMinionsKilled}
-							</p>
+							<p className="text-sm font-medium">{player.totalMinionsKilled}</p>
 							<p className="text-sm text-muted-foreground">CS</p>
 						</div>
 						{version && (
@@ -200,10 +203,7 @@ export default function MatchCard({
 											className="rounded"
 										/>
 									) : (
-										<div
-											key={i}
-											className="size-6 rounded bg-muted/30"
-										/>
+										<div key={i} className="size-6 rounded bg-muted/30" />
 									);
 								})}
 							</div>
@@ -213,9 +213,7 @@ export default function MatchCard({
 					{/* Section 3: Game meta + teams */}
 					<div className="flex items-center gap-3 px-4 py-3">
 						<div className="text-right min-w-[90px]">
-							<p className="text-sm font-medium text-foreground">
-								{queueName}
-							</p>
+							<p className="text-sm font-medium text-foreground">{queueName}</p>
 							<p className="text-sm text-muted-foreground">
 								{formatDuration(gameDuration)} · {timeAgo(gameCreation)}
 							</p>
@@ -231,10 +229,8 @@ export default function MatchCard({
 											width={16}
 											height={16}
 											className={`rounded-sm ${
-												p.puuid === player.puuid
-													? "ring-1 ring-primary"
-													: ""
-											}`}
+												p.puuid === player.puuid ? "ring-1 ring-primary" : ""
+											} size-4`}
 										/>
 									))}
 								</div>
@@ -247,10 +243,8 @@ export default function MatchCard({
 											width={16}
 											height={16}
 											className={`rounded-sm ${
-												p.puuid === player.puuid
-													? "ring-1 ring-primary"
-													: ""
-											}`}
+												p.puuid === player.puuid ? "ring-1 ring-primary" : ""
+											} size-4`}
 										/>
 									))}
 								</div>
@@ -271,7 +265,7 @@ export default function MatchCard({
 						{version && (
 							<Image
 								src={getChampionIcon(version, player.championName)}
-								alt={player.championName}
+								alt={getChampionDisplayName(player.championName)}
 								width={40}
 								height={40}
 								className="rounded-lg shrink-0"
@@ -279,7 +273,7 @@ export default function MatchCard({
 						)}
 						<div className="flex-1 min-w-0">
 							<p className="text-sm font-semibold truncate">
-								{player.championName}
+								{getChampionDisplayName(player.championName)}
 							</p>
 							<p className="text-sm font-mono">
 								{player.kills}/{player.deaths}/{player.assists}
@@ -316,10 +310,7 @@ export default function MatchCard({
 										className="rounded"
 									/>
 								) : (
-									<div
-										key={i}
-										className="size-[22px] rounded bg-muted/30"
-									/>
+									<div key={i} className="size-[22px] rounded bg-muted/30" />
 								);
 							})}
 						</div>

@@ -1,4 +1,5 @@
 import { EURPOE_URL, riotFetch } from "./riot";
+import { type Match } from "@/lib/validators/match";
 import { type Timeline } from "@/lib/validators/timeline";
 
 export async function getMatchIdsByPuuid(
@@ -15,7 +16,7 @@ export async function getMatchIdsByPuuid(
 }
 
 export async function getMatchById(matchId: string) {
-	return riotFetch(
+	return riotFetch<Match>(
 		`${EURPOE_URL}/lol/match/v5/matches/${matchId}`,
 		86400,
 	);

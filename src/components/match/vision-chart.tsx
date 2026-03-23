@@ -1,6 +1,7 @@
 "use client";
 
 import { type Participant } from "@/lib/validators/match";
+import { getChampionDisplayName } from "@/lib/icon-helpers";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
 	BarChart,
@@ -28,7 +29,7 @@ interface VisionDataPoint {
 export default function VisionChart({ participants }: VisionChartProps) {
 	const data: VisionDataPoint[] = participants
 		.map((p) => ({
-			name: p.championName,
+			name: getChampionDisplayName(p.championName),
 			visionScore: p.visionScore,
 			wardsPlaced: p.wardsPlaced,
 			wardsKilled: p.wardsKilled,

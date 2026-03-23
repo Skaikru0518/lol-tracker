@@ -1,5 +1,7 @@
 import { RiotApiError } from "@/lib/riot/riot";
 import { getSummonerByPuuid } from "@/lib/riot/summoner";
+import { prisma } from "@/lib/db";
+import { isRecent } from "@/lib/cache-utils";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
@@ -8,7 +10,34 @@ export async function GET(req: NextRequest) {
 		return NextResponse.json({ error: "puuid is required" }, { status: 400 });
 
 	try {
+		const cached = await prisma.summoner.findUnique({ where: { puuid } });
+
+		if (cached && isRecent(cached.updatedAt, 300)) {
+			return NextResponse.json({
+				puuid: cached.puuid,
+				profileIconId: cached.profileIconId,
+				summonerLevel: cached.summonerLevel,
+				revisionDate: Number(cached.revisionDate),
+			});
+		}
+
 		const summoner = await getSummonerByPuuid(puuid);
+
+		await prisma.summoner.upsert({
+			where: { puuid },
+			update: {
+				profileIconId: summoner.profileIconId,
+				summonerLevel: summoner.summonerLevel,
+				revisionDate: BigInt(summoner.revisionDate),
+			},
+			create: {
+				puuid,
+				profileIconId: summoner.profileIconId,
+				summonerLevel: summoner.summonerLevel,
+				revisionDate: BigInt(summoner.revisionDate),
+			},
+		});
+
 		return NextResponse.json(summoner);
 	} catch (error) {
 		if (error instanceof RiotApiError)

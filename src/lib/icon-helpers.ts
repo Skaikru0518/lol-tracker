@@ -19,6 +19,15 @@ export function getChampionIcon(version: string, championName: string) {
 	return `https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/${championName}.png`;
 }
 
+const CHAMPION_NAME_OVERRIDES: Record<string, string> = {
+	MonkeyKing: "Wukong",
+	FiddleSticks: "Fiddlesticks",
+};
+
+export function getChampionDisplayName(championName: string): string {
+	return CHAMPION_NAME_OVERRIDES[championName] ?? championName;
+}
+
 const SPELL_NAMES: Record<number, string> = {
 	1: 'Boost', // Cleanse
 	3: 'Exhaust',

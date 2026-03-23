@@ -1,5 +1,7 @@
 import { RiotApiError } from "@/lib/riot/riot";
 import { getAccountById } from "@/lib/riot/account";
+import { prisma } from "@/lib/db";
+import { isRecent } from "@/lib/cache-utils";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
@@ -14,7 +16,30 @@ export async function GET(req: NextRequest) {
 	}
 
 	try {
+		const cached = await prisma.account.findFirst({
+			where: { gameName, tagLine },
+		});
+
+		if (cached && isRecent(cached.updatedAt, 600)) {
+			return NextResponse.json({
+				puuid: cached.puuid,
+				gameName: cached.gameName,
+				tagLine: cached.tagLine,
+			});
+		}
+
 		const account = await getAccountById(gameName, tagLine);
+
+		await prisma.account.upsert({
+			where: { puuid: account.puuid },
+			update: { gameName: account.gameName, tagLine: account.tagLine },
+			create: {
+				puuid: account.puuid,
+				gameName: account.gameName,
+				tagLine: account.tagLine,
+			},
+		});
+
 		return NextResponse.json(account);
 	} catch (error) {
 		if (error instanceof RiotApiError) {
@@ -24,7 +49,7 @@ export async function GET(req: NextRequest) {
 			);
 		}
 		return NextResponse.json(
-			{ error: "Iternal server error" },
+			{ error: "Internal server error" },
 			{ status: 500 },
 		);
 	}

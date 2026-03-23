@@ -1,8 +1,10 @@
 import { z } from "zod";
 
 export const rankedEntrySchema = z.object({
-	leagueId: z.string(),
-	summonerId: z.string(),
+	id: z.string().optional(),
+	leagueId: z.string().optional(),
+	summonerId: z.string().optional(),
+	puuid: z.string().optional(),
 	queueType: z.string(),
 	tier: z.string(),
 	rank: z.string(),
@@ -13,6 +15,7 @@ export const rankedEntrySchema = z.object({
 	veteran: z.boolean(),
 	freshBlood: z.boolean(),
 	inactive: z.boolean(),
+	updatedAt: z.coerce.date().optional(),
 });
 
 export type RankedEntry = z.infer<typeof rankedEntrySchema>;

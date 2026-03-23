@@ -1,0 +1,113 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Account {
+  puuid    String @id
+  gameName String
+  tagLine  String
+
+  summoner          Summoner?
+  rankedEntries     RankedEntry[]
+  championMasteries ChampionMastery[]
+  lpHistory         LPHistory[]
+
+  updatedAt DateTime @updatedAt
+
+  @@index([gameName, tagLine])
+}
+
+model Summoner {
+  puuid         String @id
+  profileIconId Int
+  summonerLevel Int
+  revisionDate  BigInt
+
+  account Account @relation(fields: [puuid], references: [puuid])
+
+  updatedAt DateTime @updatedAt
+}
+
+model RankedEntry {
+  id           String  @id @default(cuid())
+  puuid        String
+  queueType    String
+  tier         String
+  rank         String
+  leaguePoints Int
+  wins         Int
+  losses       Int
+  hotStreak    Boolean @default(false)
+  veteran      Boolean @default(false)
+  freshBlood   Boolean @default(false)
+  inactive     Boolean @default(false)
+
+  updatedAt DateTime @updatedAt
+
+  account Account @relation(fields: [puuid], references: [puuid])
+
+  @@unique([puuid, queueType])
+  @@index([puuid])
+}
+
+model Match {
+  matchId      String @id
+  queueId      Int
+  gameMode     String
+  gameDuration Int
+  gameCreation BigInt
+  data         Json
+
+  timeLine MatchTimeline?
+
+  updatedAt DateTime @updatedAt
+}
+
+model MatchTimeline {
+  matchId String @id
+  data    Json
+
+  match Match @relation(fields: [matchId], references: [matchId])
+
+  updatedAt DateTime @updatedAt
+}
+
+model ChampionMastery {
+  id             String @id @default(cuid())
+  puuid          String
+  championId     Int
+  championLevel  Int
+  championPoints Int
+  lastPlayTime   BigInt
+
+  account Account @relation(fields: [puuid], references: [puuid])
+
+  updatedAt DateTime @updatedAt
+
+  @@unique([puuid, championId])
+  @@index([puuid])
+}
+
+model LPHistory {
+  id        String @id @default(cuid())
+  puuid     String
+  queueType String
+  tier      String
+  rank      String
+  lp        Int
+
+  account Account @relation(fields: [puuid], references: [puuid])
+
+  createdAt DateTime @default(now())
+
+  @@index([puuid, queueType])
+}
