@@ -20,9 +20,14 @@ export default function Home() {
 					transition={{ duration: 0.6, ease: "easeOut" }}
 					className="text-center"
 				>
-					<h1 className="text-5xl font-bold tracking-tight sm:text-6xl">
-						<span className="text-primary">Summon</span>.gg
-					</h1>
+					<div className="relative inline-block">
+						<div className="absolute inset-0 blur-2xl animate-smoke opacity-40">
+							<div className="absolute inset-0 bg-gradient-to-r from-primary/60 via-cyan-400/40 to-primary/60 rounded-full" />
+						</div>
+						<h1 className="relative text-5xl font-bold tracking-tight sm:text-6xl">
+							<span className="text-primary">Summon</span>.gg
+						</h1>
+					</div>
 					<p className="mt-3 text-base text-muted-foreground">
 						Search any summoner to view their ranked stats and match
 						history
