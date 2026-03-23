@@ -54,7 +54,8 @@ export default function SummonerPage({
 	const { data: masteries } = useMastery(account?.puuid);
 	const { data: champions } = useChampions();
 	const { data: runeData } = useRunes();
-	const { data: lpHistory } = useLPHistory(account?.puuid);
+	const { data: soloHistory } = useLPHistory(account?.puuid, "RANKED_SOLO_5x5");
+	const { data: flexHistory } = useLPHistory(account?.puuid, "RANKED_FLEX_SR");
 
 	if (accountError) {
 		return (
@@ -198,10 +199,9 @@ export default function SummonerPage({
 					className="lg:sticky lg:top-[180px] lg:self-start"
 				>
 					<LPHistoryChart
-						history={lpHistory}
-						currentTier={ranked?.[0]?.tier}
-						currentRank={ranked?.[0]?.rank}
-						currentLP={ranked?.[0]?.leaguePoints}
+						soloHistory={soloHistory}
+						flexHistory={flexHistory}
+						ranked={ranked}
 					/>
 					{matchesLoading ? (
 						<StatsSkeleton />
