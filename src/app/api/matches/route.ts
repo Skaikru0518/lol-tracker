@@ -27,24 +27,26 @@ export async function GET(req: NextRequest) {
 		// Find which matches are missing from DB
 		const missingIds = matchIds.filter((id) => !cachedMap.has(id));
 
-		// Fetch missing matches from Riot API (sequential to avoid rate limits)
-		for (const id of missingIds) {
-			try {
-				const matchData = await getMatchById(id);
-				await prisma.match.create({
-					data: {
-						matchId: id,
-						queueId: matchData.info.queueId,
-						gameMode: matchData.info.gameMode,
-						gameDuration: matchData.info.gameDuration,
-						gameCreation: BigInt(matchData.info.gameCreation),
-						data: matchData as any,
-					},
-				});
-				cachedMap.set(id, matchData as any);
-			} catch {
-				// Skip individual match errors
-			}
+		// Fetch missing matches from Riot API in parallel batches of 10
+		const BATCH_SIZE = 10;
+		for (let i = 0; i < missingIds.length; i += BATCH_SIZE) {
+			const batch = missingIds.slice(i, i + BATCH_SIZE);
+			const results = await Promise.allSettled(
+				batch.map(async (id) => {
+					const matchData = await getMatchById(id);
+					await prisma.match.create({
+						data: {
+							matchId: id,
+							queueId: matchData.info.queueId,
+							gameMode: matchData.info.gameMode,
+							gameDuration: matchData.info.gameDuration,
+							gameCreation: BigInt(matchData.info.gameCreation),
+							data: matchData as any,
+						},
+					});
+					cachedMap.set(id, matchData as any);
+				}),
+			);
 		}
 
 		// Return matches in original order
