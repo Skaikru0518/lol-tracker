@@ -202,10 +202,11 @@ export default function LPHistoryChart({
 	const soloEntry = ranked?.find((e) => e.queueType === "RANKED_SOLO_5x5");
 	const flexEntry = ranked?.find((e) => e.queueType === "RANKED_FLEX_SR");
 
-	const hasSolo = soloHistory && soloHistory.length >= 2;
-	const hasFlex = flexHistory && flexHistory.length >= 2;
+	const hasSoloRank = !!soloEntry;
+	const hasFlexRank = !!flexEntry;
+	const hasSoloChart = soloHistory && soloHistory.length >= 2;
+	const hasFlexChart = flexHistory && flexHistory.length >= 2;
 
-	if (!hasSolo && !hasFlex) return null;
 
 	return (
 		<Card>
@@ -215,14 +216,47 @@ export default function LPHistoryChart({
 				</CardTitle>
 			</CardHeader>
 			<CardContent>
-				{hasSolo && (
+				{!hasSoloRank && !hasFlexRank && (
+					<p className="text-sm text-muted-foreground text-center py-4">Not enough data yet</p>
+				)}
+				{hasSoloRank && !hasSoloChart && (
+					<div className="mb-6 last:mb-0">
+						<div className="flex items-center gap-3 mb-3">
+							<Image src={getRankEmblem(soloEntry.tier)} alt={soloEntry.tier} width={36} height={36} />
+							<div>
+								<p className="text-sm text-muted-foreground">Solo/Duo</p>
+								<p className="text-base font-bold" style={{ color: RANK_COLORS[soloEntry.tier] ?? "#888" }}>
+									{formatRankLabel(soloEntry.tier, soloEntry.rank)}{" "}
+									<span className="text-sm font-normal text-muted-foreground">{soloEntry.leaguePoints} LP</span>
+								</p>
+							</div>
+						</div>
+						<p className="text-sm text-muted-foreground text-center py-4">Not enough data yet</p>
+					</div>
+				)}
+				{hasSoloChart && (
 					<SingleQueueChart
 						history={soloHistory}
 						entry={soloEntry}
 						queueLabel="Solo/Duo"
 					/>
 				)}
-				{hasFlex && (
+				{hasFlexRank && !hasFlexChart && (
+					<div className="mb-6 last:mb-0">
+						<div className="flex items-center gap-3 mb-3">
+							<Image src={getRankEmblem(flexEntry.tier)} alt={flexEntry.tier} width={36} height={36} />
+							<div>
+								<p className="text-sm text-muted-foreground">Flex</p>
+								<p className="text-base font-bold" style={{ color: RANK_COLORS[flexEntry.tier] ?? "#888" }}>
+									{formatRankLabel(flexEntry.tier, flexEntry.rank)}{" "}
+									<span className="text-sm font-normal text-muted-foreground">{flexEntry.leaguePoints} LP</span>
+								</p>
+							</div>
+						</div>
+						<p className="text-sm text-muted-foreground text-center py-4">Not enough data yet</p>
+					</div>
+				)}
+				{hasFlexChart && (
 					<SingleQueueChart
 						history={flexHistory}
 						entry={flexEntry}

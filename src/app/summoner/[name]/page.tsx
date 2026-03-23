@@ -196,7 +196,7 @@ export default function SummonerPage({
 					initial={{ opacity: 0, x: 20 }}
 					animate={{ opacity: 1, x: 0 }}
 					transition={{ duration: 0.5, delay: 0.3 }}
-					className="lg:sticky lg:top-[180px] lg:self-start"
+					className="space-y-4 lg:sticky lg:top-[180px] lg:self-start"
 				>
 					<LPHistoryChart
 						soloHistory={soloHistory}

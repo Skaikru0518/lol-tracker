@@ -27,7 +27,11 @@ export default function RankedCard({ entries }: RankedCardProps) {
 					<p className="text-base text-muted-foreground">Unranked</p>
 				) : (
 					<div className="space-y-6">
-						{entries.map((entry) => {
+						{[...entries].sort((a, b) => {
+							if (a.queueType === "RANKED_SOLO_5x5") return -1;
+							if (b.queueType === "RANKED_SOLO_5x5") return 1;
+							return 0;
+						}).map((entry) => {
 							const totalGames = entry.wins + entry.losses;
 							const winRate = Math.round(
 								(entry.wins / totalGames) * 100,

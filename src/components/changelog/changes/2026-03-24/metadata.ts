@@ -67,6 +67,24 @@ const changelog: ChangelogEntry = {
 			description:
 				"The cron endpoint now accepts the secret via query parameter in addition to the Authorization header, making it compatible with free external cron services like cron-job.org.",
 		},
+		{
+			category: "improvement",
+			title: "LP History Always Visible",
+			description:
+				"The LP History card now always shows up on the summoner page. If there isn't enough data for a chart yet, it displays the current rank with a \"Not enough data yet\" message instead of hiding completely.",
+		},
+		{
+			category: "fix",
+			title: "Ranked Queue Ordering",
+			description:
+				"Solo/Duo now always appears above Flex in the ranked card and LP history charts, regardless of API response order.",
+		},
+		{
+			category: "fix",
+			title: "Right Sidebar Spacing",
+			description:
+				"Fixed missing gap between the LP History chart and the Overview stats card in the right sidebar.",
+		},
 	],
 };
 
