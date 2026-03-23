@@ -11,139 +11,61 @@ const changelog: ChangelogEntry = {
 			category: "feature",
 			title: "Stale-While-Revalidate Caching",
 			description:
-				"All API routes now return cached data from the database immediately, even if it's slightly outdated. Fresh data is fetched from Riot in the background and will show up on the next visit or refresh. This means returning summoner pages load in milliseconds instead of seconds.",
+				"All API routes now return cached data instantly from the database, even if slightly outdated. Fresh data is fetched from Riot in the background. Removed the Next.js fetch cache layer — Prisma DB is now the sole cache, simpler and more predictable.",
 		},
 		{
 			category: "feature",
-			title: "Automated LP Tracking (Cron Job)",
+			title: "Automated LP Tracking",
 			description:
-				"An external cron job now pings our API every 5 minutes to check ranked data for all tracked summoners. LP snapshots are saved automatically whenever LP changes — no need to have the page open. The LP history graph will fill up on its own over time.",
+				"An external cron job pings our API every 5 minutes to check ranked data for all tracked summoners. LP snapshots are saved automatically whenever LP changes — no need to have the page open.",
 		},
 		{
 			category: "feature",
 			title: "Dual LP History Charts",
 			description:
-				"The LP History section now shows separate charts for Solo/Duo and Flex queues, each with their own rank badge, LP counter, and trend line. Both queues are tracked independently.",
+				"The LP History section now shows separate charts for Solo/Duo and Flex queues. Shows \"Not enough data yet\" when there aren't enough snapshots. LP change indicator shows the difference between the last two snapshots.",
 		},
 		{
 			category: "feature",
-			title: "Smoke Effect on Landing Page",
+			title: "Live Game — Avg Lobby Rank",
 			description:
-				"The Summon.gg title on the home page now has a subtle animated glow/smoke effect behind it — pulsing cyan and magenta gradients that breathe behind the text.",
+				"The live game page now shows the average lobby rank in the header and individual rank badges next to each player's champion icon.",
 		},
 		{
 			category: "feature",
-			title: "Changelog System",
+			title: "Privacy & Data Policy",
 			description:
-				"Added a /changelog page with a vertical timeline layout, and individual changelog entries with numbered accordion items, category badges, and expandable descriptions. You're reading it right now!",
+				"Added a /policy page explaining what data we collect (all from Riot API, publicly available), how we store it, and what we don't collect. Linked from the footer.",
 		},
 		{
 			category: "improvement",
-			title: "Batch Database Queries",
+			title: "10x Faster Match Loading",
 			description:
-				"Match lookups went from 50 individual DB queries to a single batch query. Combined with parallel Riot API fetches (10 at a time), first-time match loading dropped from ~20 seconds to ~2 seconds.",
+				"Match lookups went from 50 individual DB queries to a single batch query, and new matches are now fetched 10 at a time in parallel. First-time load dropped from ~20s to ~2s.",
 		},
 		{
 			category: "improvement",
-			title: "Removed Next.js Fetch Cache",
+			title: "Live Game Polish",
 			description:
-				"Simplified the caching architecture by removing the Next.js server fetch cache layer. Prisma DB is now the sole cache — one cache to rule them all, fewer things to go wrong.",
+				"Champ Select (yellow) / In Game (green) status with pulsing dot. Timer no longer shows negative values. Mobile-friendly banner with evenly spaced status, queue type, and timer.",
 		},
 		{
 			category: "improvement",
-			title: "Parallel Match Fetching",
+			title: "Mobile Layout Fixes",
 			description:
-				"When loading matches for the first time, we now fetch 10 matches simultaneously instead of one by one. This cuts initial load time by roughly 10x for new summoners.",
-		},
-		{
-			category: "design",
-			title: "Category Badges",
-			description:
-				"New reusable badge components for feature categories — cyan for features, green for improvements, orange for fixes, fuchsia for design. Built on shadcn Badge with outlined tint style.",
-		},
-		{
-			category: "fix",
-			title: "External Cron Service Support",
-			description:
-				"The cron endpoint now accepts the secret via query parameter in addition to the Authorization header, making it compatible with free external cron services like cron-job.org.",
-		},
-		{
-			category: "improvement",
-			title: "LP History Always Visible",
-			description:
-				"The LP History card now always shows up on the summoner page. If there isn't enough data for a chart yet, it displays the current rank with a \"Not enough data yet\" message instead of hiding completely.",
-		},
-		{
-			category: "fix",
-			title: "Ranked Queue Ordering",
-			description:
-				"Solo/Duo now always appears above Flex in the ranked card and LP history charts, regardless of API response order.",
-		},
-		{
-			category: "fix",
-			title: "Right Sidebar Spacing",
-			description:
-				"Fixed missing gap between the LP History chart and the Overview stats card in the right sidebar.",
-		},
-		{
-			category: "feature",
-			title: "Live Game — Avg Lobby Rank & Player Ranks",
-			description:
-				"The live game page now shows the average lobby rank in the header and individual rank badges next to each player's champion icon, just like the match detail page.",
-		},
-		{
-			category: "improvement",
-			title: "Live Game — Champ Select & Timer Fix",
-			description:
-				"The live game header now shows 'Champ Select' (yellow) or 'In Game' (green) with a pulsing dot indicator. The timer no longer shows negative values during champ select. Mobile-friendly layout with responsive flex.",
-		},
-		{
-			category: "fix",
-			title: "Live Game — Ban Placeholder Size",
-			description:
-				"Fixed ban champion placeholder boxes being larger than actual champion icons in the bans section.",
-		},
-		{
-			category: "improvement",
-			title: "Live Banner Mobile Layout",
-			description:
-				"Redesigned the live game banner on the summoner page for mobile — status, queue type, and timer are now evenly spaced in a single row, with smaller champion icons below.",
-		},
-		{
-			category: "improvement",
-			title: "Match Header Layout",
-			description:
-				"Reorganized the match detail header — queue name and date on the top left, duration on the top right, and average lobby rank centered below with a subtle divider. Works much better on mobile.",
-		},
-		{
-			category: "improvement",
-			title: "Match Table Mobile Optimization",
-			description:
-				"CS column now hides on small screens, and the Player column uses a flexible minimum width instead of a fixed one to prevent overflow on mobile devices.",
-		},
-		{
-			category: "feature",
-			title: "Privacy & Data Policy Page",
-			description:
-				"Added a /policy page explaining what data we collect (all from Riot API, publicly available), how we store it, and what we don't collect (no personal info, no cookies, no tracking). Linked from the footer.",
+				"Match detail header reorganized for mobile — queue name top-left, duration top-right, avg rank centered below. Team table CS column hides on small screens. Fixed sidebar spacing issues.",
 		},
 		{
 			category: "improvement",
 			title: "SEO & Metadata",
 			description:
-				"Full metadata setup — Open Graph, Twitter cards, keywords, author info, title templates, favicon (SVG + ICO), and Apple touch icon. Social previews now look proper when sharing links.",
+				"Open Graph, Twitter cards, keywords, author info, title templates, favicons (SVG + ICO), and Apple touch icon.",
 		},
 		{
 			category: "fix",
-			title: "LP History — Last Change Calculation",
+			title: "Ranked & Display Fixes",
 			description:
-				"The LP change indicator now shows the difference between the last two snapshots instead of the total change since the first snapshot. So if you went from 50 to 65 LP, it shows +15.",
-		},
-		{
-			category: "fix",
-			title: "Champion Name Normalization in Most Played",
-			description:
-				"MonkeyKing now correctly displays as Wukong in the Most Played champions list on the right sidebar.",
+				"Solo/Duo always appears above Flex. MonkeyKing displays as Wukong. Match timestamps now show granular times (5m ago, 10m ago) instead of just \"Just now\" for anything under an hour.",
 		},
 	],
 };

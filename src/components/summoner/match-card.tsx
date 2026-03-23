@@ -35,8 +35,10 @@ function formatDuration(seconds: number): string {
 
 function timeAgo(timestamp: number): string {
 	const diff = Date.now() - timestamp;
-	const hours = Math.floor(diff / (1000 * 60 * 60));
-	if (hours < 1) return "Just now";
+	const minutes = Math.floor(diff / (1000 * 60));
+	if (minutes < 5) return "Just now";
+	if (minutes < 60) return `${Math.floor(minutes / 5) * 5}m ago`;
+	const hours = Math.floor(minutes / 60);
 	if (hours < 24) return `${hours}h ago`;
 	const days = Math.floor(hours / 24);
 	return `${days}d ago`;
