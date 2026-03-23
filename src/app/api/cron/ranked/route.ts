@@ -3,9 +3,13 @@ import { getRankedByPuuid } from "@/lib/riot/ranked";
 import { NextResponse } from "next/server";
 
 export async function GET(req: Request) {
-	// Verify cron secret (Vercel sends this header)
+	// Verify cron secret via header or query param
+	const url = new URL(req.url);
 	const authHeader = req.headers.get("authorization");
-	if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+	const querySecret = url.searchParams.get("secret");
+	const secret = process.env.CRON_SECRET;
+
+	if (authHeader !== `Bearer ${secret}` && querySecret !== secret) {
 		return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 	}
 
