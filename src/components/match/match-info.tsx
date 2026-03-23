@@ -40,48 +40,50 @@ export default function MatchInfo({
 	const avgRank = calculateAvgRank(playerRanks, queueId);
 
 	return (
-		<div className="flex items-center justify-between rounded-xl border bg-card px-4 py-4 sm:px-8 sm:py-6">
-			<div>
-				<h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-					{getQueueName(queueId, gameMode)}
-				</h1>
-				<p className="mt-1 text-base text-muted-foreground">
-					{formatDate(gameCreation)}
-				</p>
+		<div className="rounded-xl border bg-card px-4 py-4 sm:px-8 sm:py-6">
+			{/* Top row: Queue name + Duration */}
+			<div className="flex items-start justify-between">
+				<div>
+					<h1 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight">
+						{getQueueName(queueId, gameMode)}
+					</h1>
+					<p className="mt-1 text-sm text-muted-foreground">
+						{formatDate(gameCreation)}
+					</p>
+				</div>
+				<div className="text-right">
+					<p className="text-xl sm:text-2xl lg:text-3xl font-bold font-mono">
+						{formatDuration(gameDuration)}
+					</p>
+					<p className="text-sm text-muted-foreground">Duration</p>
+				</div>
 			</div>
 
-			{/* Avg Lobby Rank */}
+			{/* Bottom center: Avg Rank */}
 			{avgRank && (
-				<div className="flex items-center gap-2">
+				<div className="flex items-center justify-center gap-2 mt-4 pt-4 border-t border-border/30">
 					<Image
 						src={getRankEmblem(avgRank.tier)}
 						alt={formatRankLabel(avgRank.tier, avgRank.rank)}
-						width={56}
-						height={56}
+						width={40}
+						height={40}
 						className="shrink-0"
 					/>
-					<div className="text-center">
+					<div>
 						<p
-							className="text-xl font-bold"
+							className="text-base sm:text-lg font-bold"
 							style={{
 								color: RANK_COLORS[avgRank.tier] ?? "#888",
 							}}
 						>
 							{formatRankLabel(avgRank.tier, avgRank.rank)}
 						</p>
-						<p className="text-base text-muted-foreground">
-							Avg Rank
+						<p className="text-sm text-muted-foreground">
+							Avg Lobby Rank
 						</p>
 					</div>
 				</div>
 			)}
-
-			<div className="text-right">
-				<p className="text-2xl sm:text-3xl font-bold font-mono">
-					{formatDuration(gameDuration)}
-				</p>
-				<p className="text-base text-muted-foreground">Duration</p>
-			</div>
 		</div>
 	);
 }

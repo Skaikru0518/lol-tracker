@@ -6,6 +6,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
 	const puuid = req.nextUrl.searchParams.get("puuid");
+	const force = req.nextUrl.searchParams.get("force") === "true";
 
 	if (!puuid)
 		return NextResponse.json(
@@ -16,7 +17,7 @@ export async function GET(req: NextRequest) {
 	try {
 		const cached = await prisma.rankedEntry.findMany({ where: { puuid } });
 
-		if (cached.length > 0) {
+		if (!force && cached.length > 0) {
 			if (!cached.every((entry) => isRecent(entry.updatedAt, 120))) {
 				revalidateInBackground(async () => {
 					const entries = await getRankedByPuuid(puuid);

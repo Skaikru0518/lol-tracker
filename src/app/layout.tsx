@@ -20,10 +20,49 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-	title: "Summon.gg",
-	description: "League of Legends profile and match tracker",
+	title: {
+		default: "Summon.gg",
+		template: "%s | Summon.gg",
+	},
+	description:
+		"Track any League of Legends summoner — ranked stats, match history, champion mastery, live game detection, and detailed match breakdowns.",
+	keywords: [
+		"League of Legends",
+		"LoL",
+		"summoner",
+		"tracker",
+		"match history",
+		"ranked",
+		"stats",
+		"op.gg",
+		"u.gg",
+	],
+	authors: [{ name: "Skaikru0518" }],
+	creator: "Skaikru0518",
+	metadataBase: new URL("https://summon-gg.vercel.app"),
+	openGraph: {
+		type: "website",
+		locale: "en_US",
+		siteName: "Summon.gg",
+		title: "Summon.gg",
+		description:
+			"Track any League of Legends summoner — ranked stats, match history, champion mastery, and live game detection.",
+	},
+	twitter: {
+		card: "summary",
+		title: "Summon.gg",
+		description:
+			"League of Legends summoner tracker with ranked stats, match history, and live game detection.",
+	},
+	robots: {
+		index: true,
+		follow: true,
+	},
 	icons: {
-		icon: "/favicon.svg",
+		icon: [
+			{ url: "/favicon.svg", type: "image/svg+xml" },
+			{ url: "/icon.ico", sizes: "any" },
+		],
 	},
 };
 

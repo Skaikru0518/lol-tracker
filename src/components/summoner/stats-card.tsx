@@ -1,7 +1,7 @@
 "use client";
 
 import { type Match } from "@/lib/validators/match";
-import { type Champion, getChampionIcon } from "@/lib/icon-helpers";
+import { type Champion, getChampionIcon, getChampionDisplayName } from "@/lib/icon-helpers";
 import { calculateStats } from "@/lib/match-stats";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import CountUp from "@/components/CountUp";
@@ -192,7 +192,7 @@ export default function StatsCard({
 								)}
 								<div className="flex-1 min-w-0">
 									<p className="text-sm font-semibold truncate">
-										{c.championName}
+										{getChampionDisplayName(c.championName)}
 									</p>
 									<p className="text-sm text-muted-foreground">
 										{c.avgKills.toFixed(1)}/

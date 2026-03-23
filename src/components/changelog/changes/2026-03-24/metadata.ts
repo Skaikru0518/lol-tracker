@@ -103,6 +103,48 @@ const changelog: ChangelogEntry = {
 			description:
 				"Fixed ban champion placeholder boxes being larger than actual champion icons in the bans section.",
 		},
+		{
+			category: "improvement",
+			title: "Live Banner Mobile Layout",
+			description:
+				"Redesigned the live game banner on the summoner page for mobile — status, queue type, and timer are now evenly spaced in a single row, with smaller champion icons below.",
+		},
+		{
+			category: "improvement",
+			title: "Match Header Layout",
+			description:
+				"Reorganized the match detail header — queue name and date on the top left, duration on the top right, and average lobby rank centered below with a subtle divider. Works much better on mobile.",
+		},
+		{
+			category: "improvement",
+			title: "Match Table Mobile Optimization",
+			description:
+				"CS column now hides on small screens, and the Player column uses a flexible minimum width instead of a fixed one to prevent overflow on mobile devices.",
+		},
+		{
+			category: "feature",
+			title: "Privacy & Data Policy Page",
+			description:
+				"Added a /policy page explaining what data we collect (all from Riot API, publicly available), how we store it, and what we don't collect (no personal info, no cookies, no tracking). Linked from the footer.",
+		},
+		{
+			category: "improvement",
+			title: "SEO & Metadata",
+			description:
+				"Full metadata setup — Open Graph, Twitter cards, keywords, author info, title templates, favicon (SVG + ICO), and Apple touch icon. Social previews now look proper when sharing links.",
+		},
+		{
+			category: "fix",
+			title: "LP History — Last Change Calculation",
+			description:
+				"The LP change indicator now shows the difference between the last two snapshots instead of the total change since the first snapshot. So if you went from 50 to 65 LP, it shows +15.",
+		},
+		{
+			category: "fix",
+			title: "Champion Name Normalization in Most Played",
+			description:
+				"MonkeyKing now correctly displays as Wukong in the Most Played champions list on the right sidebar.",
+		},
 	],
 };
 

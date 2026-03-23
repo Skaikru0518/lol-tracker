@@ -79,8 +79,8 @@ function SingleQueueChart({
 	const maxLP = Math.max(...data.map((d) => d.lp));
 	const padding = Math.max(50, (maxLP - minLP) * 0.1);
 	const lastPoint = data[data.length - 1];
-	const firstPoint = data[0];
-	const lpChange = lastPoint.lp - firstPoint.lp;
+	const prevPoint = data.length >= 2 ? data[data.length - 2] : null;
+	const lpChange = prevPoint ? lastPoint.lp - prevPoint.lp : 0;
 
 	return (
 		<div className="mb-6 last:mb-0">

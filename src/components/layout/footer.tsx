@@ -11,9 +11,11 @@ export default function Footer() {
 			<div className="flex items-center justify-center gap-3 text-[11px] text-muted-foreground">
 				<span className="font-medium">Summon.gg</span>
 				<span>·</span>
-				<span>LoL Patch {version ?? "..."}</span>
+				<span>Patch {version ?? "..."}</span>
 				<span>·</span>
-				<Link href={"/changelog"}>Changes</Link>
+				<Link href="/changelog">Changes</Link>
+				<span>·</span>
+				<Link href="/policy">Policy</Link>
 				<span>·</span>
 				<span>© {new Date().getFullYear()}</span>
 			</div>

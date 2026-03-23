@@ -97,13 +97,13 @@ export default function TeamTable({
 				<Table>
 					<TableHeader>
 						<TableRow className="hover:bg-transparent">
-							<TableHead className="w-[280px] text-sm">
+							<TableHead className="min-w-[160px] sm:w-[280px] text-sm">
 								Player
 							</TableHead>
-							<TableHead className="text-center w-[140px] text-sm">
+							<TableHead className="text-center min-w-[80px] sm:w-[140px] text-sm">
 								KDA
 							</TableHead>
-							<TableHead className="text-center w-[100px] text-sm">
+							<TableHead className="text-center w-[60px] sm:w-[100px] text-sm hidden sm:table-cell">
 								CS
 							</TableHead>
 							<TableHead className="text-center w-[100px] text-sm hidden md:table-cell">
@@ -267,7 +267,7 @@ export default function TeamTable({
 												{kda} KDA
 											</p>
 										</TableCell>
-										<TableCell className="text-center text-sm font-medium">
+										<TableCell className="text-center text-sm font-medium hidden sm:table-cell">
 											{p.totalMinionsKilled +
 												p.neutralMinionsKilled}
 										</TableCell>

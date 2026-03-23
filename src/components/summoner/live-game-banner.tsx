@@ -64,11 +64,11 @@ export default function LiveGameBanner({
 				transition={{ duration: 0.4, ease: "easeOut" }}
 				className="mb-4 overflow-hidden rounded-xl bg-gradient-to-r from-green-500/10 via-green-500/5 to-transparent border border-green-500/15 cursor-pointer hover:border-green-500/30 transition-colors"
 			>
-				<div className="flex items-center gap-4 px-5 py-3">
-					{/* Left: Status + Timer */}
-					<div className="flex flex-col items-center gap-1 min-w-[60px]">
+				<div className="flex flex-col gap-3 px-4 py-3 sm:px-5">
+					{/* Top: Status + Timer */}
+					<div className="flex items-center justify-between">
 						<div className="flex items-center gap-2">
-							<div className="relative size-2.5">
+							<div className="relative size-2.5 shrink-0">
 								<div className={`absolute inset-0 rounded-full ${isChampSelect ? "bg-yellow-400" : "bg-green-500"}`} />
 								<div className={`absolute inset-0 rounded-full animate-ping opacity-50 ${isChampSelect ? "bg-yellow-400" : "bg-green-500"}`} />
 							</div>
@@ -76,15 +76,18 @@ export default function LiveGameBanner({
 								{isChampSelect ? "CHAMP SELECT" : "IN GAME"}
 							</span>
 						</div>
+						{data.gameQueueConfigId !== undefined && (
+							<span className="text-sm font-medium text-muted-foreground">
+								{getQueueName(data.gameQueueConfigId)}
+							</span>
+						)}
 						<span className="font-mono text-base text-muted-foreground tabular-nums">
 							{formatDuration(elapsed)}
 						</span>
 					</div>
 
-					<div className="w-px h-10 bg-border/30" />
-
-					{/* Center: Teams or Champ Select */}
-					<div className="flex-1 flex flex-col items-center gap-2">
+					{/* Teams or Champ Select */}
+					<div className="flex flex-col items-center gap-2">
 						{isChampSelect ? (
 							<span className="text-sm font-semibold text-yellow-400 animate-pulse">
 								Champ Select
@@ -98,7 +101,7 @@ export default function LiveGameBanner({
 												{blueTeam.map((p) => {
 													const champ = champions[p.championId];
 													if (!champ) return (
-														<div key={p.puuid} className="size-8 rounded-lg bg-blue-900/50" />
+														<div key={p.puuid} className="size-7 rounded-lg bg-blue-900/50" />
 													);
 													const isCurrentPlayer = p.puuid === puuid;
 													return (
@@ -106,8 +109,8 @@ export default function LiveGameBanner({
 															key={p.puuid}
 															src={getChampionIcon(version, champ.id)}
 															alt={champ.name}
-															width={32}
-															height={32}
+															width={28}
+															height={28}
 															className={`rounded-lg ${
 																isCurrentPlayer
 																	? "ring-2 ring-cyan-400 shadow-lg shadow-cyan-400/20"
@@ -124,7 +127,7 @@ export default function LiveGameBanner({
 												{redTeam.map((p) => {
 													const champ = champions[p.championId];
 													if (!champ) return (
-														<div key={p.puuid} className="size-8 rounded-lg bg-red-900/50" />
+														<div key={p.puuid} className="size-7 rounded-lg bg-red-900/50" />
 													);
 													const isCurrentPlayer = p.puuid === puuid;
 													return (
@@ -132,8 +135,8 @@ export default function LiveGameBanner({
 															key={p.puuid}
 															src={getChampionIcon(version, champ.id)}
 															alt={champ.name}
-															width={32}
-															height={32}
+															width={28}
+															height={28}
 															className={`rounded-lg ${
 																isCurrentPlayer
 																	? "ring-2 ring-cyan-400 shadow-lg shadow-cyan-400/20"
@@ -187,23 +190,6 @@ export default function LiveGameBanner({
 								)}
 							</>
 						)}
-					</div>
-
-					<div className="w-px h-10 bg-border/30" />
-
-					{/* Right: Game mode + link */}
-					<div className="text-right min-w-[120px]">
-						<p className="text-base font-semibold text-foreground">
-							{isChampSelect ? "Champ Select" : "In Game"}
-						</p>
-						{data.gameQueueConfigId !== undefined && (
-							<p className="text-sm text-muted-foreground">
-								{getQueueName(data.gameQueueConfigId)}
-							</p>
-						)}
-						<p className="text-sm text-muted-foreground/50 mt-0.5">
-							View details →
-						</p>
 					</div>
 				</div>
 			</motion.div>

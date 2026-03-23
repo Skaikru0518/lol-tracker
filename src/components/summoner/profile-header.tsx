@@ -62,7 +62,7 @@ export default function ProfileHeader({
 						<span className="text-base text-muted-foreground">
 							Level {summoner.summonerLevel}
 						</span>
-						<RefreshTimer />
+						<RefreshTimer puuid={account.puuid} />
 					</div>
 				)}
 			</div>
