@@ -110,6 +110,7 @@ export function MatchList({
 								player={player}
 								participants={match.info.participants}
 								queueName={getQueueName(match.info.queueId, match.info.gameMode)}
+								queueId={match.info.queueId}
 								gameDuration={match.info.gameDuration}
 								gameCreation={match.info.gameCreation}
 								version={version}

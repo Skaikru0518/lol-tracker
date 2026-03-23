@@ -75,6 +75,8 @@ export async function GET(req: NextRequest) {
 						tier: entry.tier,
 						rank: entry.rank,
 						lp: entry.leaguePoints,
+						wins: entry.wins,
+						losses: entry.losses,
 					},
 				});
 			}

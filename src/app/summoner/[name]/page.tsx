@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useCallback, useEffect, useState } from "react";
+import { use } from "react";
 import { useAccount } from "@/hooks/useAccount";
 import { useSummoner } from "@/hooks/useSummoner";
 import { useRanked } from "@/hooks/useRanked";
@@ -23,12 +23,12 @@ import LiveGameBanner from "@/components/summoner/live-game-banner";
 import StatsSkeleton from "@/components/summoner/stats-skeleton";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import BackButton from "@/components/ui/back-button";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { RefreshCw } from "lucide-react";
+import { useLPHistory } from "@/hooks/useLPHistory";
+import LPHistoryChart from "@/components/summoner/lp-history-chart";
 
 export default function SummonerPage({
 	params,
@@ -54,21 +54,7 @@ export default function SummonerPage({
 	const { data: masteries } = useMastery(account?.puuid);
 	const { data: champions } = useChampions();
 	const { data: runeData } = useRunes();
-
-	const queryClient = useQueryClient();
-	const [refreshing, setRefreshing] = useState(false);
-
-	const handleRefresh = useCallback(async () => {
-		setRefreshing(true);
-		await queryClient.invalidateQueries({
-			predicate: (query) => {
-				const key = query.queryKey[0] as string;
-				return ["matches", "ranked", "summoner", "mastery"].includes(key);
-			},
-		});
-		toast.success("Data refreshed");
-		setRefreshing(false);
-	}, [queryClient]);
+	const { data: lpHistory } = useLPHistory(account?.puuid);
 
 	if (accountError) {
 		return (
@@ -82,11 +68,7 @@ export default function SummonerPage({
 						Could not find &quot;{gameName}#{tagLine}&quot;
 					</p>
 				</div>
-				<Button
-					onClick={() => router.back()}
-					size="lg"
-					className="h-12 px-8"
-				>
+				<Button onClick={() => router.back()} size="lg" className="h-12 px-8">
 					Go Back
 				</Button>
 			</div>
@@ -97,34 +79,26 @@ export default function SummonerPage({
 	if (accountLoading || !coreLoaded) return <Loader fullScreen />;
 
 	return (
-		<div className="mx-auto max-w-400 px-4 py-6 sm:px-6 lg:px-12 lg:py-8">
+		<div className="mx-auto max-w-425 px-4 py-6 sm:px-6 lg:px-12 lg:py-8">
 			<BackButton />
-			<LiveGameBanner puuid={account.puuid} summonerSlug={name} version={version} champions={champions} />
+			<LiveGameBanner
+				puuid={account.puuid}
+				summonerSlug={name}
+				version={version}
+				champions={champions}
+			/>
 			<motion.div
 				initial={{ opacity: 0, y: -10 }}
 				animate={{ opacity: 1, y: 0 }}
 				transition={{ duration: 0.4 }}
 				className="mb-6 lg:mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 lg:sticky lg:top-14 lg:z-30 lg:py-4 lg:backdrop-blur-md lg:bg-background/60"
 			>
-				<div className="flex items-center gap-3">
-					<ProfileHeader
-						account={account}
-						summoner={summoner}
-						version={version}
-					/>
-					<Button
-						variant="ghost"
-						size="icon"
-						onClick={handleRefresh}
-						disabled={refreshing}
-						className="shrink-0"
-					>
-						<RefreshCw
-							className={`size-4 ${refreshing ? "animate-spin" : ""}`}
-						/>
-					</Button>
-				</div>
-				</motion.div>
+				<ProfileHeader
+					account={account}
+					summoner={summoner}
+					version={version}
+				/>
+			</motion.div>
 
 			{/* Content grid */}
 			<div className="grid grid-cols-1 gap-6 lg:gap-8 lg:grid-cols-[320px_1fr_280px]">
@@ -138,7 +112,9 @@ export default function SummonerPage({
 						<RankedCard entries={ranked} />
 					) : (
 						<Card>
-							<CardHeader><Skeleton className="h-4 w-16" /></CardHeader>
+							<CardHeader>
+								<Skeleton className="h-4 w-16" />
+							</CardHeader>
 							<CardContent className="space-y-3">
 								<div className="flex items-center gap-4">
 									<Skeleton className="size-16 rounded-2xl" />
@@ -159,7 +135,9 @@ export default function SummonerPage({
 						/>
 					) : (
 						<Card>
-							<CardHeader><Skeleton className="h-4 w-24" /></CardHeader>
+							<CardHeader>
+								<Skeleton className="h-4 w-24" />
+							</CardHeader>
 							<CardContent className="space-y-4">
 								{Array.from({ length: 5 }).map((_, i) => (
 									<div key={i} className="flex items-center gap-4">
@@ -181,7 +159,9 @@ export default function SummonerPage({
 						/>
 					) : (
 						<Card>
-							<CardHeader><Skeleton className="h-4 w-32" /></CardHeader>
+							<CardHeader>
+								<Skeleton className="h-4 w-32" />
+							</CardHeader>
 							<CardContent className="space-y-3">
 								{Array.from({ length: 3 }).map((_, i) => (
 									<div key={i} className="flex items-center gap-3">
@@ -217,6 +197,12 @@ export default function SummonerPage({
 					transition={{ duration: 0.5, delay: 0.3 }}
 					className="lg:sticky lg:top-[180px] lg:self-start"
 				>
+					<LPHistoryChart
+						history={lpHistory}
+						currentTier={ranked?.[0]?.tier}
+						currentRank={ranked?.[0]?.rank}
+						currentLP={ranked?.[0]?.leaguePoints}
+					/>
 					{matchesLoading ? (
 						<StatsSkeleton />
 					) : (

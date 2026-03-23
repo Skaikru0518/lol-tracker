@@ -5,6 +5,7 @@ import { getSummonerIcon } from "@/lib/icon-helpers";
 import { Copy, Check } from "lucide-react";
 import { useState } from "react";
 import Image from "next/image";
+import RefreshTimer from "./refresh-timer";
 
 interface ProfileHeaderProps {
 	account: Account;
@@ -57,9 +58,12 @@ export default function ProfileHeader({
 					</span>
 				</h1>
 				{summoner && (
-					<p className="mt-1 text-base text-muted-foreground">
-						Level {summoner.summonerLevel}
-					</p>
+					<div className="mt-1 flex items-center gap-3">
+						<span className="text-base text-muted-foreground">
+							Level {summoner.summonerLevel}
+						</span>
+						<RefreshTimer />
+					</div>
 				)}
 			</div>
 		</div>

@@ -19,6 +19,7 @@ interface MatchCardProps {
 	player: Participant;
 	participants: Participant[];
 	queueName: string;
+	queueId: number;
 	gameDuration: number;
 	gameCreation: number;
 	version?: string;
@@ -46,6 +47,7 @@ export default function MatchCard({
 	player,
 	participants,
 	queueName,
+	queueId,
 	gameDuration,
 	gameCreation,
 	version,
@@ -286,7 +288,7 @@ export default function MatchCard({
 								>
 									{kda}
 								</span>
-							</p>
+								</p>
 						</div>
 						<div className="text-right shrink-0">
 							<p className="text-sm font-medium">{queueName}</p>

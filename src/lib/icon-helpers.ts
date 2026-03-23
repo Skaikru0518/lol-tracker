@@ -15,8 +15,13 @@ export function getSummonerIcon(version: string, iconId: number) {
 	return `https://ddragon.leagueoflegends.com/cdn/${version}/img/profileicon/${iconId}.png`;
 }
 
+const CHAMPION_ID_FIXES: Record<string, string> = {
+	FiddleSticks: "Fiddlesticks",
+};
+
 export function getChampionIcon(version: string, championName: string) {
-	return `https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/${championName}.png`;
+	const fixedName = CHAMPION_ID_FIXES[championName] ?? championName;
+	return `https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/${fixedName}.png`;
 }
 
 const CHAMPION_NAME_OVERRIDES: Record<string, string> = {

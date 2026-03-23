@@ -104,6 +104,8 @@ model LPHistory {
   tier      String
   rank      String
   lp        Int
+  wins      Int?
+  losses    Int?
 
   account Account @relation(fields: [puuid], references: [puuid])
 
