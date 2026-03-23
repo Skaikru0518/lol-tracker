@@ -6,11 +6,15 @@ import { useLiveGame } from "@/hooks/useLiveGame";
 import { useDDragonVersion } from "@/hooks/useDDragonVersion";
 import { useChampions } from "@/hooks/useChampions";
 import { useRunes } from "@/hooks/useRunes";
+import { usePlayerRanks } from "@/hooks/usePlayerRanks";
 import { getQueueName } from "@/lib/queue-names";
+import { calculateAvgRank, formatRankLabel } from "@/lib/rank-calculator";
 import {
 	getChampionIcon,
 	getSummonerSpellIcon,
 	getRuneIcon,
+	getRankEmblem,
+	RANK_COLORS,
 } from "@/lib/icon-helpers";
 import BackButton from "@/components/ui/back-button";
 import Loader from "@/components/ui/loader";
@@ -28,8 +32,9 @@ import Image from "next/image";
 import Link from "next/link";
 
 function formatTime(seconds: number) {
-	const m = Math.floor(seconds / 60);
-	const s = seconds % 60;
+	const abs = Math.abs(seconds);
+	const m = Math.floor(abs / 60);
+	const s = abs % 60;
 	return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
@@ -52,6 +57,12 @@ export default function LiveGamePage({
 	const { data: liveGame, isLoading: liveLoading } = useLiveGame(
 		account?.puuid,
 	);
+
+	const livePuuids = useMemo(
+		() => liveGame?.participants?.map((p) => p.puuid),
+		[liveGame?.participants],
+	);
+	const { data: playerRanks } = usePlayerRanks(livePuuids);
 
 	const [elapsed, setElapsed] = useState(0);
 
@@ -112,13 +123,46 @@ export default function LiveGamePage({
 			>
 				<Card className="mt-6">
 					<CardHeader>
-						<CardTitle className="flex items-center justify-between">
-							<span className="text-2xl font-bold">
-								{queueName}
-							</span>
-							<span className="text-2xl font-mono tabular-nums text-muted-foreground">
-								{formatTime(elapsed)}
-							</span>
+						<CardTitle className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+							<div>
+								<span className="text-xl sm:text-2xl font-bold">
+									{queueName}
+								</span>
+								<span className={`ml-3 text-sm font-semibold ${elapsed < 0 ? "text-yellow-400" : "text-green-400"}`}>
+									{elapsed < 0 ? "Champ Select" : "In Game"}
+								</span>
+							</div>
+							<div className="flex items-center gap-4">
+								{(() => {
+									const avgRank = calculateAvgRank(playerRanks, liveGame.gameQueueConfigId ?? 420);
+									if (!avgRank) return null;
+									return (
+										<div className="flex items-center gap-2">
+											<Image
+												src={getRankEmblem(avgRank.tier)}
+												alt={formatRankLabel(avgRank.tier, avgRank.rank)}
+												width={40}
+												height={40}
+											/>
+											<div className="text-center">
+												<p className="text-sm font-bold" style={{ color: RANK_COLORS[avgRank.tier] ?? "#888" }}>
+													{formatRankLabel(avgRank.tier, avgRank.rank)}
+												</p>
+												<p className="text-sm text-muted-foreground">Avg Rank</p>
+											</div>
+										</div>
+									);
+								})()}
+								<div className="flex items-center gap-2">
+									<div className="relative size-2.5">
+										<div className={`absolute inset-0 rounded-full ${elapsed < 0 ? "bg-yellow-400" : "bg-green-500"}`} />
+										<div className={`absolute inset-0 rounded-full animate-ping opacity-50 ${elapsed < 0 ? "bg-yellow-400" : "bg-green-500"}`} />
+									</div>
+									<span className="text-xl sm:text-2xl font-mono tabular-nums text-muted-foreground">
+										{formatTime(elapsed)}
+									</span>
+								</div>
+							</div>
 						</CardTitle>
 					</CardHeader>
 				</Card>
@@ -162,7 +206,7 @@ export default function LiveGamePage({
 														className="rounded grayscale opacity-60"
 													/>
 												) : (
-													<div className="size-10 rounded-lg bg-muted" />
+													<div className="size-8 rounded-lg bg-muted" />
 												)}
 											</div>
 										);
@@ -191,7 +235,7 @@ export default function LiveGamePage({
 														className="rounded grayscale opacity-60"
 													/>
 												) : (
-													<div className="size-10 rounded-lg bg-muted" />
+													<div className="size-8 rounded-lg bg-muted" />
 												)}
 											</div>
 										);
@@ -223,6 +267,8 @@ export default function LiveGamePage({
 								version={version}
 								champions={champions}
 								runeData={runeData}
+								playerRanks={playerRanks}
+								queueId={liveGame.gameQueueConfigId}
 							/>
 						</CardContent>
 					</Card>
@@ -246,6 +292,8 @@ export default function LiveGamePage({
 								version={version}
 								champions={champions}
 								runeData={runeData}
+								playerRanks={playerRanks}
+								queueId={liveGame.gameQueueConfigId}
 							/>
 						</CardContent>
 					</Card>
@@ -260,6 +308,8 @@ function TeamTable({
 	version,
 	champions,
 	runeData,
+	playerRanks,
+	queueId,
 }: {
 	participants: NonNullable<
 		ReturnType<typeof useLiveGame>["data"]
@@ -274,6 +324,8 @@ function TeamTable({
 				styles: Map<number, { id: number; icon: string }>;
 		  }
 		| undefined;
+	playerRanks?: Record<string, unknown[]>;
+	queueId?: number;
 }) {
 	return (
 		<Table>
@@ -293,11 +345,32 @@ function TeamTable({
 					);
 					const subStyle = runeData?.styles.get(p.perks.perkSubStyle);
 
+				const relevantQueue = queueId === 440 ? "RANKED_FLEX_SR" : "RANKED_SOLO_5x5";
+					const rankEntries = playerRanks?.[p.puuid] as { queueType: string; tier: string; rank: string; leaguePoints: number }[] | undefined;
+					const rankEntry = rankEntries?.find((e) => e.queueType === relevantQueue);
+
 					return (
 						<TableRow key={p.puuid}>
 							{/* Champion */}
 							<TableCell>
 								<div className="flex items-center gap-2">
+									{rankEntry ? (
+										<Image
+											src={getRankEmblem(rankEntry.tier)}
+											alt={`${rankEntry.tier} ${rankEntry.rank}`}
+											width={28}
+											height={28}
+											className="shrink-0"
+										/>
+									) : playerRanks ? (
+										<Image
+											src={getRankEmblem("unranked")}
+											alt="Unranked"
+											width={28}
+											height={28}
+											className="shrink-0 brightness-200"
+										/>
+									) : null}
 									{version && champ ? (
 										<Image
 											src={getChampionIcon(
@@ -310,7 +383,7 @@ function TeamTable({
 											className="rounded-lg"
 										/>
 									) : (
-										<div className="size-10 rounded-lg bg-muted" />
+										<div className="size-8 rounded-lg bg-muted" />
 									)}
 									<span className="hidden sm:inline text-base text-muted-foreground">
 										{champ?.name}

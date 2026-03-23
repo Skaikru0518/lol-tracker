@@ -85,6 +85,24 @@ const changelog: ChangelogEntry = {
 			description:
 				"Fixed missing gap between the LP History chart and the Overview stats card in the right sidebar.",
 		},
+		{
+			category: "feature",
+			title: "Live Game — Avg Lobby Rank & Player Ranks",
+			description:
+				"The live game page now shows the average lobby rank in the header and individual rank badges next to each player's champion icon, just like the match detail page.",
+		},
+		{
+			category: "improvement",
+			title: "Live Game — Champ Select & Timer Fix",
+			description:
+				"The live game header now shows 'Champ Select' (yellow) or 'In Game' (green) with a pulsing dot indicator. The timer no longer shows negative values during champ select. Mobile-friendly layout with responsive flex.",
+		},
+		{
+			category: "fix",
+			title: "Live Game — Ban Placeholder Size",
+			description:
+				"Fixed ban champion placeholder boxes being larger than actual champion icons in the bans section.",
+		},
 	],
 };
 
