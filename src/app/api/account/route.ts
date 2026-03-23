@@ -1,7 +1,7 @@
 import { RiotApiError } from "@/lib/riot/riot";
 import { getAccountById } from "@/lib/riot/account";
 import { prisma } from "@/lib/db";
-import { isRecent } from "@/lib/cache-utils";
+import { isRecent, revalidateInBackground } from "@/lib/cache-utils";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
@@ -20,7 +20,22 @@ export async function GET(req: NextRequest) {
 			where: { gameName, tagLine },
 		});
 
-		if (cached && isRecent(cached.updatedAt, 600)) {
+		if (cached) {
+			if (!isRecent(cached.updatedAt, 600)) {
+				revalidateInBackground(async () => {
+					const account = await getAccountById(gameName, tagLine);
+					await prisma.account.upsert({
+						where: { puuid: account.puuid },
+						update: { gameName: account.gameName, tagLine: account.tagLine },
+						create: {
+							puuid: account.puuid,
+							gameName: account.gameName,
+							tagLine: account.tagLine,
+						},
+					});
+				});
+			}
+
 			return NextResponse.json({
 				puuid: cached.puuid,
 				gameName: cached.gameName,
@@ -28,6 +43,7 @@ export async function GET(req: NextRequest) {
 			});
 		}
 
+		// Not found in DB — first time, must await Riot API
 		const account = await getAccountById(gameName, tagLine);
 
 		await prisma.account.upsert({

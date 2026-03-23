@@ -1,7 +1,7 @@
 import { RiotApiError } from "@/lib/riot/riot";
 import { getSummonerByPuuid } from "@/lib/riot/summoner";
 import { prisma } from "@/lib/db";
-import { isRecent } from "@/lib/cache-utils";
+import { isRecent, revalidateInBackground } from "@/lib/cache-utils";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
@@ -12,7 +12,27 @@ export async function GET(req: NextRequest) {
 	try {
 		const cached = await prisma.summoner.findUnique({ where: { puuid } });
 
-		if (cached && isRecent(cached.updatedAt, 300)) {
+		if (cached) {
+			if (!isRecent(cached.updatedAt, 300)) {
+				revalidateInBackground(async () => {
+					const summoner = await getSummonerByPuuid(puuid);
+					await prisma.summoner.upsert({
+						where: { puuid },
+						update: {
+							profileIconId: summoner.profileIconId,
+							summonerLevel: summoner.summonerLevel,
+							revisionDate: BigInt(summoner.revisionDate),
+						},
+						create: {
+							puuid,
+							profileIconId: summoner.profileIconId,
+							summonerLevel: summoner.summonerLevel,
+							revisionDate: BigInt(summoner.revisionDate),
+						},
+					});
+				});
+			}
+
 			return NextResponse.json({
 				puuid: cached.puuid,
 				profileIconId: cached.profileIconId,
@@ -21,6 +41,7 @@ export async function GET(req: NextRequest) {
 			});
 		}
 
+		// Not found in DB — first time, must await Riot API
 		const summoner = await getSummonerByPuuid(puuid);
 
 		await prisma.summoner.upsert({

@@ -23,11 +23,22 @@ export async function GET(req: NextRequest) {
 
 	const result: Record<string, unknown[]> = {};
 
+	// Batch DB lookup — single query for all puuids
+	const allCached = await prisma.rankedEntry.findMany({
+		where: { puuid: { in: puuids } },
+	});
+
+	// Group by puuid
+	const cacheByPuuid = new Map<string, typeof allCached>();
+	for (const entry of allCached) {
+		const existing = cacheByPuuid.get(entry.puuid) ?? [];
+		existing.push(entry);
+		cacheByPuuid.set(entry.puuid, existing);
+	}
+
 	for (const puuid of puuids) {
 		try {
-			const cached = await prisma.rankedEntry.findMany({
-				where: { puuid },
-			});
+			const cached = cacheByPuuid.get(puuid) ?? [];
 
 			if (
 				cached.length > 0 &&
@@ -39,7 +50,7 @@ export async function GET(req: NextRequest) {
 
 			const entries = await getRankedByPuuid(puuid);
 
-			// Ensure Account exists before upserting ranked entries
+			// Ensure Account exists
 			await prisma.account.upsert({
 				where: { puuid },
 				update: {},
@@ -79,8 +90,7 @@ export async function GET(req: NextRequest) {
 			}
 
 			result[puuid] = entries;
-		} catch (error) {
-			// If Riot API returns 404 or other error, player has no rank
+		} catch {
 			result[puuid] = [];
 		}
 	}

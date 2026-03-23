@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getTopMasteries } from "@/lib/riot/mastery";
 import { RiotApiError } from "@/lib/riot/riot";
 import { prisma } from "@/lib/db";
-import { isRecent } from "@/lib/cache-utils";
+import { isRecent, revalidateInBackground } from "@/lib/cache-utils";
 
 export async function GET(req: NextRequest) {
 	const puuid = req.nextUrl.searchParams.get("puuid");
@@ -19,10 +19,35 @@ export async function GET(req: NextRequest) {
 			take: parseInt(count),
 		});
 
-		if (
-			cached.length > 0 &&
-			cached.every((entry) => isRecent(entry.updatedAt, 1800))
-		) {
+		if (cached.length > 0) {
+			// Always return DB data immediately (stale-while-revalidate)
+			const stale = !cached.every((entry) => isRecent(entry.updatedAt, 1800));
+
+			if (stale) {
+				revalidateInBackground(async () => {
+					const masteries = await getTopMasteries(puuid, parseInt(count));
+					for (const mastery of masteries) {
+						await prisma.championMastery.upsert({
+							where: {
+								puuid_championId: { puuid, championId: mastery.championId },
+							},
+							update: {
+								championLevel: mastery.championLevel,
+								championPoints: mastery.championPoints,
+								lastPlayTime: BigInt(mastery.lastPlayTime),
+							},
+							create: {
+								puuid,
+								championId: mastery.championId,
+								championLevel: mastery.championLevel,
+								championPoints: mastery.championPoints,
+								lastPlayTime: BigInt(mastery.lastPlayTime),
+							},
+						});
+					}
+				});
+			}
+
 			return NextResponse.json(
 				cached.map((entry) => ({
 					...entry,
@@ -31,6 +56,7 @@ export async function GET(req: NextRequest) {
 			);
 		}
 
+		// Nothing in DB — must await Riot API before responding
 		const masteries = await getTopMasteries(puuid, parseInt(count));
 
 		for (const mastery of masteries) {

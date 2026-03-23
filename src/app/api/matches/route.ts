@@ -17,12 +17,19 @@ export async function GET(req: NextRequest) {
 			parseInt(count),
 			championId ? parseInt(championId) : undefined,
 		);
-		const matches = [];
-		for (const id of matchIds) {
-			const cached = await prisma.match.findUnique({ where: { matchId: id } });
-			if (cached) {
-				matches.push(cached.data);
-			} else {
+
+		// Batch DB lookup — single query instead of 50 individual ones
+		const cachedMatches = await prisma.match.findMany({
+			where: { matchId: { in: matchIds } },
+		});
+		const cachedMap = new Map(cachedMatches.map((m) => [m.matchId, m.data]));
+
+		// Find which matches are missing from DB
+		const missingIds = matchIds.filter((id) => !cachedMap.has(id));
+
+		// Fetch missing matches from Riot API (sequential to avoid rate limits)
+		for (const id of missingIds) {
+			try {
 				const matchData = await getMatchById(id);
 				await prisma.match.create({
 					data: {
@@ -34,9 +41,17 @@ export async function GET(req: NextRequest) {
 						data: matchData as any,
 					},
 				});
-				matches.push(matchData);
+				cachedMap.set(id, matchData as any);
+			} catch {
+				// Skip individual match errors
 			}
 		}
+
+		// Return matches in original order
+		const matches = matchIds
+			.map((id) => cachedMap.get(id))
+			.filter(Boolean);
+
 		return NextResponse.json(matches);
 	} catch (error) {
 		if (error instanceof RiotApiError)

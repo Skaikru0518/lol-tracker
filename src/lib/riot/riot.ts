@@ -11,13 +11,10 @@ export class RiotApiError extends Error {
 	}
 }
 
-export async function riotFetch<T>(
-	url: string,
-	revalidate: number = 60,
-): Promise<T> {
+export async function riotFetch<T>(url: string): Promise<T> {
 	const res = await fetch(url, {
 		headers: { "X-Riot-Token": RIOT_API_KEY },
-		next: { revalidate },
+		cache: "no-store",
 	});
 
 	if (!res.ok) {
