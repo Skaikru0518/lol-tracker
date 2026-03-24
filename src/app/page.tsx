@@ -29,8 +29,7 @@ export default function Home() {
 						</h1>
 					</div>
 					<p className="mt-3 text-base text-muted-foreground">
-						Search any summoner to view their ranked stats and match
-						history
+						Search any summoner to view their ranked stats and match history
 					</p>
 				</motion.div>
 
@@ -38,7 +37,7 @@ export default function Home() {
 					initial={{ opacity: 0, y: 20 }}
 					animate={{ opacity: 1, y: 0 }}
 					transition={{ duration: 0.6, delay: 0.15, ease: "easeOut" }}
-					className="w-full max-w-lg"
+					className="w-full max-w-xl"
 				>
 					<SummonerSearch />
 					<div className="mt-4">

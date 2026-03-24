@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import SummonerSearch from "@/components/search/summoner-search";
+import SearchHistory from "@/components/search/search-history";
 import ThemeToggle from "@/components/ui/theme-toggle";
 import { Search } from "lucide-react";
 
@@ -94,6 +95,9 @@ export default function Navbar() {
 								onClick={(e) => e.stopPropagation()}
 							>
 								<SummonerSearch autoFocus />
+								<div className="mt-3">
+									<SearchHistory />
+								</div>
 								<p className="mt-3 text-center text-sm text-muted-foreground/50">
 									Press <kbd className="text-[10px] border border-border/30 rounded px-1.5 py-0.5">Esc</kbd> to close
 								</p>
