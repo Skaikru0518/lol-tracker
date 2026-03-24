@@ -8,6 +8,7 @@ import { Toaster } from "react-hot-toast";
 import AuroraBackground from "@/components/ui/aurora-background";
 import Navbar from "@/components/layout/navbar";
 import Footer from "@/components/layout/footer";
+import { Analytics } from "@vercel/analytics/next";
 
 const geistSans = Geist({
 	variable: "--font-geist-sans",
@@ -98,6 +99,7 @@ export default function RootLayout({
 						/>
 						<Navbar />
 						<main className="flex-1 pt-14 pb-12">{children}</main>
+						<Analytics />
 						<Footer />
 					</QueryProvider>
 				</ThemeProvider>
