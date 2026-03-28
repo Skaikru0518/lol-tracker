@@ -1,5 +1,5 @@
 const STORAGE_KEY = "summon-gg-search-history";
-const MAX_ITEMS = 5;
+const MAX_ITEMS = 10;
 
 export function getSearchHistory(): string[] {
 	if (typeof window === "undefined") return [];
