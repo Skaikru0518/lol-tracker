@@ -5,21 +5,18 @@ import { type Champion } from "@/lib/icon-helpers";
 import { getChampionIcon } from "@/lib/icon-helpers";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Image from "next/image";
-import Link from "next/link";
 import CountUp from "@/components/CountUp";
 
 interface MasteryListProps {
 	masteries?: ChampionMastery[];
 	champions?: Record<number, Champion>;
 	version?: string;
-	summonerSlug?: string;
 }
 
 export default function MasteryList({
 	masteries,
 	champions,
 	version,
-	summonerSlug,
 }: MasteryListProps) {
 	return (
 		<Card>
@@ -36,14 +33,9 @@ export default function MasteryList({
 						{masteries.map((m, i) => {
 							const champ = champions?.[m.championId];
 							return (
-								<Link
+								<div
 									key={m.championId}
-									href={
-										summonerSlug && champ
-											? `/summoner/${summonerSlug}/${champ.id}`
-											: "#"
-									}
-									className="flex items-center gap-4 rounded-lg p-1 -mx-1 transition-colors hover:bg-accent/30"
+									className="flex items-center gap-4 rounded-lg p-1 -mx-1"
 								>
 									<span className="w-5 text-base text-muted-foreground text-right font-medium">
 										{i + 1}
@@ -73,7 +65,7 @@ export default function MasteryList({
 											pts
 										</p>
 									</div>
-								</Link>
+								</div>
 							);
 						})}
 					</div>

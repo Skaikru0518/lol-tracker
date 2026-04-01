@@ -132,7 +132,6 @@ export default function SummonerPage({
 							masteries={masteries}
 							champions={champions}
 							version={version}
-							summonerSlug={name}
 						/>
 					) : (
 						<Card>
