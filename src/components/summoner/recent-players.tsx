@@ -55,9 +55,7 @@ export default function RecentPlayers({
 			}
 		}
 
-		return [...map.values()]
-			.sort((a, b) => b.games - a.games)
-			.slice(0, 5);
+		return [...map.values()].sort((a, b) => b.games - a.games).slice(0, 5);
 	}, [matches, puuid]);
 
 	if (players.length === 0) return null;
@@ -82,8 +80,8 @@ export default function RecentPlayers({
 								<Image
 									src={getSummonerIcon(version, p.profileIcon)}
 									alt={p.gameName}
-									width={36}
-									height={36}
+									width={45}
+									height={45}
 									className="rounded-lg"
 								/>
 							) : (
@@ -105,9 +103,7 @@ export default function RecentPlayers({
 							<div className="text-right">
 								<p
 									className={`text-sm font-medium ${
-										wr >= 50
-											? "text-win"
-											: "text-loss"
+										wr >= 50 ? "text-win" : "text-loss"
 									}`}
 								>
 									{wr}%

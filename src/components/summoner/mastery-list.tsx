@@ -38,7 +38,11 @@ export default function MasteryList({
 							return (
 								<Link
 									key={m.championId}
-									href={summonerSlug && champ ? `/summoner/${summonerSlug}/${champ.id}` : "#"}
+									href={
+										summonerSlug && champ
+											? `/summoner/${summonerSlug}/${champ.id}`
+											: "#"
+									}
 									className="flex items-center gap-4 rounded-lg p-1 -mx-1 transition-colors hover:bg-accent/30"
 								>
 									<span className="w-5 text-base text-muted-foreground text-right font-medium">
@@ -46,13 +50,10 @@ export default function MasteryList({
 									</span>
 									{champ && version ? (
 										<Image
-											src={getChampionIcon(
-												version,
-												champ.id,
-											)}
+											src={getChampionIcon(version, champ.id)}
 											alt={champ.name}
-											width={48}
-											height={48}
+											width={45}
+											height={45}
 											className="rounded-xl"
 										/>
 									) : (
@@ -60,12 +61,15 @@ export default function MasteryList({
 									)}
 									<div className="flex-1 min-w-0">
 										<p className="text-base font-semibold truncate">
-											{champ?.name ??
-												`Champion ${m.championId}`}
+											{champ?.name ?? `Champion ${m.championId}`}
 										</p>
 										<p className="text-sm text-muted-foreground">
 											Mastery {m.championLevel} ·{" "}
-											<CountUp to={m.championPoints} duration={0.5} separator="," />{" "}
+											<CountUp
+												to={m.championPoints}
+												duration={0.5}
+												separator=","
+											/>{" "}
 											pts
 										</p>
 									</div>

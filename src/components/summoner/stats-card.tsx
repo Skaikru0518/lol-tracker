@@ -1,7 +1,11 @@
 "use client";
 
 import { type Match } from "@/lib/validators/match";
-import { type Champion, getChampionIcon, getChampionDisplayName } from "@/lib/icon-helpers";
+import {
+	type Champion,
+	getChampionIcon,
+	getChampionDisplayName,
+} from "@/lib/icon-helpers";
 import { calculateStats } from "@/lib/match-stats";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import CountUp from "@/components/CountUp";
@@ -15,7 +19,13 @@ interface StatsCardProps {
 	version?: string;
 }
 
-function StatBlock({ label, value }: { label: string; value: string | number }) {
+function StatBlock({
+	label,
+	value,
+}: {
+	label: string;
+	value: string | number;
+}) {
 	const numValue = typeof value === "string" ? parseFloat(value) : value;
 	const isNumber = !isNaN(numValue);
 	const suffix = typeof value === "string" ? value.replace(/[\d.-]/g, "") : "";
@@ -50,9 +60,7 @@ export default function StatsCard({
 
 	if (!stats || stats.totalGames === 0) return null;
 
-	const sortedRoles = Object.entries(stats.roles).sort(
-		([, a], [, b]) => b - a,
-	);
+	const sortedRoles = Object.entries(stats.roles).sort(([, a], [, b]) => b - a);
 	const maxRoleCount = sortedRoles[0]?.[1] ?? 1;
 
 	return (
@@ -70,13 +78,19 @@ export default function StatsCard({
 				<CardContent>
 					<div className="grid grid-cols-2 gap-4">
 						<div className="text-center">
-							<p className={`text-3xl font-bold ${
-								stats.winRate > 60 ? "text-yellow-400" :
-								stats.winRate >= 51 ? "text-win" :
-								stats.winRate === 50 ? "text-foreground" :
-								stats.winRate >= 40 ? "text-orange-400" :
-								"text-loss"
-							}`}>
+							<p
+								className={`text-3xl font-bold ${
+									stats.winRate > 60
+										? "text-yellow-400"
+										: stats.winRate >= 51
+											? "text-win"
+											: stats.winRate === 50
+												? "text-foreground"
+												: stats.winRate >= 40
+													? "text-orange-400"
+													: "text-loss"
+								}`}
+							>
 								<CountUp to={stats.winRate} duration={1.5} />%
 							</p>
 							<p className="text-sm text-muted-foreground">
@@ -90,8 +104,7 @@ export default function StatsCard({
 								</span>
 							</p>
 							<p className="text-sm text-muted-foreground">
-								{stats.avgKills}/{stats.avgDeaths}/
-								{stats.avgAssists}
+								{stats.avgKills}/{stats.avgDeaths}/{stats.avgAssists}
 							</p>
 						</div>
 					</div>
@@ -111,9 +124,7 @@ export default function StatsCard({
 
 					{/* Recent trend */}
 					<div className="mt-5">
-						<p className="mb-2 text-sm text-muted-foreground">
-							Recent
-						</p>
+						<p className="mb-2 text-sm text-muted-foreground">Recent</p>
 						<div className="flex gap-1">
 							{stats.recentTrend.map((win, i) => (
 								<div
@@ -139,9 +150,7 @@ export default function StatsCard({
 					{sortedRoles.map(([role, count]) => (
 						<div key={role}>
 							<div className="flex items-center justify-between mb-1">
-								<span className="text-sm font-medium">
-									{role}
-								</span>
+								<span className="text-sm font-medium">{role}</span>
 								<span className="text-sm text-muted-foreground">
 									{count} ({Math.round((count / stats.totalGames) * 100)}%)
 								</span>
@@ -172,32 +181,29 @@ export default function StatsCard({
 						const wr = Math.round((c.wins / c.games) * 100);
 
 						return (
-							<div
-								key={c.championName}
-								className="flex items-center gap-3"
-							>
+							<div key={c.championName} className="flex items-center gap-3">
 								{champ && version ? (
 									<Image
-										src={getChampionIcon(
-											version,
-											champ.id,
-										)}
+										src={getChampionIcon(version, champ.id)}
 										alt={c.championName}
-										width={40}
-										height={40}
+										width={45}
+										height={45}
 										className="rounded-xl"
 									/>
 								) : (
 									<div className="size-10 rounded-xl bg-muted" />
 								)}
 								<div className="flex-1 min-w-0">
-									<p className="text-sm font-semibold truncate">
-										{getChampionDisplayName(c.championName)}
+									<p className="text-sm flex flex-row gap-4 font-semibold truncate">
+										{getChampionDisplayName(c.championName)}{" "}
 									</p>
 									<p className="text-sm text-muted-foreground">
-										{c.avgKills.toFixed(1)}/
-										{c.avgDeaths.toFixed(1)}/
+										{c.avgKills.toFixed(1)}/{c.avgDeaths.toFixed(1)}/
 										{c.avgAssists.toFixed(1)} KDA
+										<p className="flex flex-row gap-1 text-accent">
+											{((c.avgKills + c.avgAssists) / c.avgDeaths).toFixed(1)}
+											<span>KDA</span>
+										</p>
 									</p>
 								</div>
 								<div className="text-right">
