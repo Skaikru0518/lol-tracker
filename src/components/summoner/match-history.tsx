@@ -2,7 +2,11 @@
 
 import { useState, useMemo } from "react";
 import { type Match } from "@/lib/validators/match";
-import { type RuneData, type RuneStyle, getChampionDisplayName } from "@/lib/icon-helpers";
+import {
+	type RuneData,
+	type RuneStyle,
+	getChampionDisplayName,
+} from "@/lib/icon-helpers";
 import { getQueueName } from "@/lib/queue-names";
 import MatchCard from "./match-card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -78,7 +82,7 @@ export function MatchList({
 }: MatchListProps) {
 	const [queueFilter, setQueueFilter] = useState<QueueFilter>("all");
 	const [championFilter, setChampionFilter] = useState<string | null>(null);
-	const [visibleCount, setVisibleCount] = useState(10);
+	const [visibleCount, setVisibleCount] = useState(20);
 
 	const playedChampions = useMemo<PlayedChampion[]>(() => {
 		if (!matches) return [];
@@ -86,7 +90,10 @@ export function MatchList({
 		for (const match of matches) {
 			const player = match.info.participants.find((p) => p.puuid === puuid);
 			if (player) {
-				champCount.set(player.championName, (champCount.get(player.championName) || 0) + 1);
+				champCount.set(
+					player.championName,
+					(champCount.get(player.championName) || 0) + 1,
+				);
 			}
 		}
 		return [...champCount.entries()]
@@ -117,7 +124,11 @@ export function MatchList({
 	}
 
 	const afterQueueFilter = filterMatchesByQueue(matches, queueFilter);
-	const filteredMatches = filterMatchesByChampion(afterQueueFilter, puuid, championFilter);
+	const filteredMatches = filterMatchesByChampion(
+		afterQueueFilter,
+		puuid,
+		championFilter,
+	);
 
 	return (
 		<div className="space-y-2 flex flex-col min-h-[400px] lg:min-w-[700px]">
@@ -141,12 +152,16 @@ export function MatchList({
 				<Select
 					value={championFilter ?? "all"}
 					onValueChange={(v) => setChampionFilter(v === "all" ? null : v)}
-					modal={false}
 				>
 					<SelectTrigger className="ml-auto rounded-full px-3 py-1">
 						<SelectValue placeholder="All Champions" />
 					</SelectTrigger>
-					<SelectContent className="rounded-xl" position="popper" side="bottom" sideOffset={4}>
+					<SelectContent
+						className="rounded-xl"
+						position="popper"
+						side="bottom"
+						sideOffset={4}
+					>
 						<SelectItem value="all">All Champions</SelectItem>
 						{playedChampions.map((c) => (
 							<SelectItem key={c.championName} value={c.championName}>
@@ -163,7 +178,9 @@ export function MatchList({
 			) : (
 				<>
 					{filteredMatches.slice(0, visibleCount).map((match, i) => {
-						const player = match.info.participants.find((p) => p.puuid === puuid);
+						const player = match.info.participants.find(
+							(p) => p.puuid === puuid,
+						);
 						if (!player) return null;
 
 						return (
@@ -172,7 +189,10 @@ export function MatchList({
 								matchId={match.metadata.matchId}
 								player={player}
 								participants={match.info.participants}
-								queueName={getQueueName(match.info.queueId, match.info.gameMode)}
+								queueName={getQueueName(
+									match.info.queueId,
+									match.info.gameMode,
+								)}
 								queueId={match.info.queueId}
 								gameDuration={match.info.gameDuration}
 								gameCreation={match.info.gameCreation}
