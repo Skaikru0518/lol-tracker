@@ -1,16 +1,20 @@
 "use client";
 
+import { useState } from "react";
 import { type Participant } from "@/lib/validators/match";
+import { type RankedEntry } from "@/lib/validators/ranked";
 import {
 	getChampionIcon,
 	getChampionDisplayName,
 	getItemIcon,
 	getSummonerSpellIcon,
 	getRuneIcon,
+	getRankEmblem,
 	type RuneData,
 	type RuneStyle,
 } from "@/lib/icon-helpers";
-import { motion } from "framer-motion";
+import { usePlayerRanks } from "@/hooks/usePlayerRanks";
+import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -44,6 +48,133 @@ function timeAgo(timestamp: number): string {
 	return `${days}d ago`;
 }
 
+function formatGold(gold: number): string {
+	return gold >= 1000 ? `${(gold / 1000).toFixed(1)}k` : gold.toString();
+}
+
+function getRankLabel(entry: RankedEntry): string {
+	const tier = entry.tier.charAt(0) + entry.tier.slice(1).toLowerCase();
+	const isApex = ["MASTER", "GRANDMASTER", "CHALLENGER"].includes(entry.tier);
+	return isApex ? `${tier} ${entry.leaguePoints} LP` : `${tier} ${entry.rank}`;
+}
+
+function PlayerRow({
+	p,
+	isCurrentPlayer,
+	version,
+	gameDuration,
+	rankEntry,
+	runeData,
+}: {
+	p: Participant;
+	isCurrentPlayer: boolean;
+	version?: string;
+	gameDuration: number;
+	rankEntry?: RankedEntry;
+	runeData?: { runes: Map<number, RuneData>; styles: Map<number, RuneStyle> };
+}) {
+	const primaryStyle = p.perks.styles[0];
+	const secondaryStyle = p.perks.styles[1];
+	const keystoneId = primaryStyle?.selections[0]?.perk;
+	const keystoneRune = keystoneId && runeData ? runeData.runes.get(keystoneId) : null;
+	const subStyle = secondaryStyle && runeData ? runeData.styles.get(secondaryStyle.style) : null;
+
+	return (
+		<div
+			className={`flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs ${
+				isCurrentPlayer ? "bg-primary/10 ring-1 ring-primary/30" : ""
+			}`}
+		>
+			{/* Champion icon */}
+			{version && (
+				<Image
+					src={getChampionIcon(version, p.championName)}
+					alt={getChampionDisplayName(p.championName)}
+					width={24}
+					height={24}
+					className="rounded shrink-0"
+				/>
+			)}
+			{/* Spells + Runes (desktop only) */}
+			{version && (
+				<div className="hidden sm:flex gap-0.5 shrink-0">
+					<div className="flex flex-col gap-0.5">
+						<Image
+							src={getSummonerSpellIcon(version, p.summoner1Id)}
+							alt="Spell 1"
+							width={14}
+							height={14}
+							className="rounded-sm"
+						/>
+						<Image
+							src={getSummonerSpellIcon(version, p.summoner2Id)}
+							alt="Spell 2"
+							width={14}
+							height={14}
+							className="rounded-sm"
+						/>
+					</div>
+					<div className="flex flex-col gap-0.5">
+						{keystoneRune && (
+							<Image
+								src={getRuneIcon(keystoneRune.icon)}
+								alt={keystoneRune.name}
+								width={14}
+								height={14}
+								className="rounded-sm"
+							/>
+						)}
+						{subStyle && (
+							<Image
+								src={getRuneIcon(subStyle.icon)}
+								alt={subStyle.name}
+								width={14}
+								height={14}
+								className="rounded-sm opacity-60"
+							/>
+						)}
+					</div>
+				</div>
+			)}
+			{/* Rank emblem */}
+			<div className="shrink-0 w-7 flex items-center justify-center">
+				{rankEntry ? (
+					<Image
+						src={getRankEmblem(rankEntry.tier)}
+						alt={getRankLabel(rankEntry)}
+						title={getRankLabel(rankEntry)}
+						width={28}
+						height={28}
+						className="shrink-0"
+					/>
+				) : (
+					<div className="size-7 rounded-full bg-muted/30" />
+				)}
+			</div>
+			{/* Player name */}
+			<span className="truncate min-w-0 flex-1 font-medium">
+				{p.riotIdGameName}
+			</span>
+			{/* KDA */}
+			<span className="font-mono shrink-0 w-16 text-right">
+				{p.kills}/{p.deaths}/{p.assists}
+			</span>
+			{/* CS (desktop) */}
+			<span className="hidden sm:block text-muted-foreground shrink-0 w-16 text-right">
+				{p.totalMinionsKilled + p.neutralMinionsKilled} ({((p.totalMinionsKilled + p.neutralMinionsKilled) / (gameDuration / 60)).toFixed(1)})
+			</span>
+			{/* Gold */}
+			<span className="text-muted-foreground shrink-0 w-12 text-right">
+				{formatGold(p.goldEarned)}
+			</span>
+			{/* Damage (desktop) */}
+			<span className="hidden sm:block text-muted-foreground shrink-0 w-12 text-right">
+				{formatGold(p.totalDamageDealtToChampions)}
+			</span>
+		</div>
+	);
+}
+
 export default function MatchCard({
 	matchId,
 	player,
@@ -56,6 +187,14 @@ export default function MatchCard({
 	index,
 	runeData,
 }: MatchCardProps) {
+	const [expanded, setExpanded] = useState(false);
+
+	// Only fetch ranks when expanded
+	const puuids = expanded ? participants.map((p) => p.puuid) : undefined;
+	const { data: playerRanks } = usePlayerRanks(puuids);
+
+	const relevantQueue = queueId === 440 ? "RANKED_FLEX_SR" : "RANKED_SOLO_5x5";
+
 	const kda =
 		player.deaths === 0
 			? "Perfect"
@@ -71,18 +210,28 @@ export default function MatchCard({
 		player.item6,
 	];
 
-	const blueTeam = participants.slice(0, 5);
-	const redTeam = participants.slice(5, 10);
+	const blueTeam = participants.filter((p) => p.teamId === 100);
+	const redTeam = participants.filter((p) => p.teamId === 200);
+
+	function getRankForPlayer(puuid: string): RankedEntry | undefined {
+		if (!playerRanks) return undefined;
+		const entries = playerRanks[puuid];
+		return entries?.find((e) => e.queueType === relevantQueue);
+	}
 
 	return (
-		<Link href={`/match/${matchId}`}>
-			<motion.div
-				initial={{ opacity: 0, y: 8 }}
-				animate={{ opacity: 1, y: 0 }}
-				transition={{ duration: 0.3, delay: index * 0.04 }}
-				className={`group rounded-xl border overflow-hidden transition-all hover:bg-accent/20 hover:scale-[1.01] duration-150 ${
-					player.win ? "border-win/15 bg-win/5" : "border-loss/15 bg-loss/5"
-				}`}
+		<motion.div
+			initial={{ opacity: 0, y: 8 }}
+			animate={{ opacity: 1, y: 0 }}
+			transition={{ duration: 0.3, delay: index * 0.04 }}
+			className={`rounded-xl border overflow-hidden transition-colors ${
+				player.win ? "border-win/15 bg-win/5" : "border-loss/15 bg-loss/5"
+			}`}
+		>
+			{/* Clickable card header */}
+			<div
+				onClick={() => setExpanded((prev) => !prev)}
+				className="cursor-pointer transition-all hover:bg-accent/20 hover:scale-[1.005] duration-150"
 			>
 				{/* Desktop: Three-section layout */}
 				<div className="hidden sm:flex items-stretch">
@@ -320,7 +469,83 @@ export default function MatchCard({
 						</div>
 					)}
 				</div>
-			</motion.div>
-		</Link>
+			</div>
+
+			{/* Expanded scoreboard */}
+			<AnimatePresence>
+				{expanded && (
+					<motion.div
+						initial={{ height: 0, opacity: 0 }}
+						animate={{ height: "auto", opacity: 1 }}
+						exit={{ height: 0, opacity: 0 }}
+						transition={{ duration: 0.2 }}
+						className="overflow-hidden"
+					>
+						<div className="border-t border-white/5 px-3 py-3 space-y-3">
+							{/* Column headers */}
+							<div className="flex items-center gap-1.5 px-2 text-[10px] uppercase tracking-wider text-muted-foreground">
+								<span className="w-6" />
+								<span className="hidden sm:block w-8" />
+								<span className="w-5" />
+								<span className="flex-1">Player</span>
+								<span className="w-16 text-right">KDA</span>
+								<span className="hidden sm:block w-16 text-right">CS (m)</span>
+								<span className="w-12 text-right">Gold</span>
+								<span className="hidden sm:block w-12 text-right">Dmg</span>
+							</div>
+
+							{/* Blue team */}
+							<div className="space-y-0.5">
+								<p className="text-sm uppercase tracking-wider font-semibold text-blue-400 px-2">
+									Blue Team · <span className={blueTeam[0]?.win ? "text-win" : "text-loss"}>
+										{blueTeam[0]?.win ? "Victory" : "Defeat"}
+									</span>
+								</p>
+								{blueTeam.map((p) => (
+									<PlayerRow
+										key={p.puuid}
+										p={p}
+										isCurrentPlayer={p.puuid === player.puuid}
+										version={version}
+										gameDuration={gameDuration}
+										rankEntry={getRankForPlayer(p.puuid)}
+										runeData={runeData}
+									/>
+								))}
+							</div>
+
+							{/* Red team */}
+							<div className="space-y-0.5">
+								<p className="text-sm uppercase tracking-wider font-semibold text-red-400 px-2">
+									Red Team · <span className={redTeam[0]?.win ? "text-win" : "text-loss"}>
+										{redTeam[0]?.win ? "Victory" : "Defeat"}
+									</span>
+								</p>
+								{redTeam.map((p) => (
+									<PlayerRow
+										key={p.puuid}
+										p={p}
+										isCurrentPlayer={p.puuid === player.puuid}
+										version={version}
+										gameDuration={gameDuration}
+										rankEntry={getRankForPlayer(p.puuid)}
+										runeData={runeData}
+									/>
+								))}
+							</div>
+
+							{/* View full details link */}
+							<Link
+								href={`/match/${matchId}`}
+								onClick={(e) => e.stopPropagation()}
+								className="block text-center text-xs text-primary hover:text-primary/80 font-medium py-1 transition-colors"
+							>
+								View Full Details →
+							</Link>
+						</div>
+					</motion.div>
+				)}
+			</AnimatePresence>
+		</motion.div>
 	);
 }

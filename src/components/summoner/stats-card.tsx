@@ -200,10 +200,10 @@ export default function StatsCard({
 									<p className="text-sm text-muted-foreground">
 										{c.avgKills.toFixed(1)}/{c.avgDeaths.toFixed(1)}/
 										{c.avgAssists.toFixed(1)} KDA
-										<p className="flex flex-row gap-1 text-accent">
+										<span className="flex flex-row gap-1 text-accent">
 											{((c.avgKills + c.avgAssists) / c.avgDeaths).toFixed(1)}
 											<span>KDA</span>
-										</p>
+										</span>
 									</p>
 								</div>
 								<div className="text-right">
