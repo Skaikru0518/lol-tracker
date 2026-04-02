@@ -20,6 +20,7 @@ model Account {
   rankedEntries     RankedEntry[]
   championMasteries ChampionMastery[]
   lpHistory         LPHistory[]
+  achievements      PlayerAchievement[]
 
   updatedAt DateTime @updatedAt
 
@@ -112,4 +113,16 @@ model LPHistory {
   createdAt DateTime @default(now())
 
   @@index([puuid, queueType])
+}
+
+model PlayerAchievement {
+  id            String   @id @default(cuid())
+  puuid         String
+  achievementId String
+  earnedAt      DateTime @default(now())
+
+  account Account @relation(fields: [puuid], references: [puuid])
+
+  @@unique([puuid, achievementId])
+  @@index([puuid])
 }

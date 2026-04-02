@@ -8,5 +8,6 @@ export interface ChangelogEntry {
 		title: string;
 		description: string;
 		img?: string;
+		table?: { name: string; requirement: string }[];
 	}[];
 }

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#8e44ad" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+  <circle cx="12" cy="12" r="10.5" fill="#8e44ad" fill-opacity="0.1"/>
+  <!-- Tower / turret -->
+  <rect x="9.5" y="6" width="5" height="3" rx="0.5" fill="#8e44ad" fill-opacity="0.25"/>
+  <rect x="10.5" y="9" width="3" height="6" fill="#8e44ad" fill-opacity="0.2"/>
+  <rect x="8" y="15" width="8" height="2.5" rx="0.5" fill="#8e44ad" fill-opacity="0.3"/>
+  <circle cx="12" cy="7.5" r="0.8" fill="#8e44ad" fill-opacity="0.5" stroke="none"/>
+</svg>

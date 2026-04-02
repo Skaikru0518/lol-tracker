@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/accordion";
 import { motion } from "framer-motion";
 import Image from "next/image";
+import { ChangelogTable } from "./changelog-table";
 
 interface ChangelogDetailProps {
 	entry: ChangelogEntry;
@@ -136,6 +137,9 @@ export default function ChangelogDetail({ entry }: ChangelogDetailProps) {
 												<p className="text-base text-muted-foreground leading-relaxed pb-2">
 													{change.description}
 												</p>
+												{change.table && (
+													<ChangelogTable rows={change.table} />
+												)}
 												{change.img && (
 													<div className="mt-3 overflow-hidden rounded-xl border border-border/30">
 														<Image

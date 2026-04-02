@@ -29,6 +29,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useLPHistory } from "@/hooks/useLPHistory";
 import LPHistoryChart from "@/components/summoner/lp-history-chart";
+import AchievementBar from "@/components/summoner/achievement-bar";
 
 export default function SummonerPage({
 	params,
@@ -100,6 +101,12 @@ export default function SummonerPage({
 					version={version}
 				/>
 			</motion.div>
+
+			<AchievementBar
+				puuid={account.puuid}
+				matches={matches}
+				ranked={ranked}
+			/>
 
 			{/* Content grid */}
 			<div className="grid grid-cols-1 gap-6 lg:gap-8 lg:grid-cols-[320px_1fr_280px]">
