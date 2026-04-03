@@ -166,6 +166,15 @@ export function detectAchievements(input: DetectionInput): string[] {
 		}
 	}
 
+	// --- Queue Enjoyer (last 25 matches) ---
+	const last25 = allMatches.slice(0, 25);
+	const soloqCount = last25.filter((m) => m.info.queueId === 420).length;
+	const flexCount = last25.filter((m) => m.info.queueId === 440).length;
+	const normalCount = last25.filter((m) => m.info.queueId !== 420 && m.info.queueId !== 440).length;
+	if (soloqCount >= 12) earned.push("soloq-enjoyer");
+	if (flexCount >= 12) earned.push("flex-enjoyer");
+	if (normalCount >= 12) earned.push("normal-enjoyer");
+
 	// --- Rank (always current, not match-based) ---
 	if (ranked) {
 		const tiers = ranked.map((e) => e.tier);

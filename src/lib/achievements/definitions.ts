@@ -173,6 +173,28 @@ export const ACHIEVEMENTS: AchievementDef[] = [
 		icon: "support-main",
 		category: "playstyle",
 	},
+	// Queue Enjoyer
+	{
+		id: "soloq-enjoyer",
+		name: "Solo/Duo Enjoyer",
+		description: "12+ Solo/Duo games in your last 25 matches",
+		icon: "soloq-enjoyer",
+		category: "playstyle",
+	},
+	{
+		id: "flex-enjoyer",
+		name: "Flex Enjoyer",
+		description: "12+ Flex games in your last 25 matches",
+		icon: "flex-enjoyer",
+		category: "playstyle",
+	},
+	{
+		id: "normal-enjoyer",
+		name: "Normal Enjoyer",
+		description: "12+ non-ranked games in your last 25 matches",
+		icon: "normal-enjoyer",
+		category: "playstyle",
+	},
 ];
 
 export function getAchievementById(id: string): AchievementDef | undefined {

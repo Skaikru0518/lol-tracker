@@ -63,6 +63,16 @@ const changelog: ChangelogEntry = {
 		},
 		{
 			category: "feature",
+			title: "Queue Enjoyer Achievements",
+			description: "Achievements based on your preferred queue type (last 25 matches).",
+			table: [
+				{ name: "Solo/Duo Enjoyer", requirement: "12+ Solo/Duo games" },
+				{ name: "Flex Enjoyer", requirement: "12+ Flex games" },
+				{ name: "Normal Enjoyer", requirement: "12+ non-ranked games" },
+			],
+		},
+		{
+			category: "feature",
 			title: "Rank Achievements",
 			description: "Based on your current ranked tier.",
 			table: [
