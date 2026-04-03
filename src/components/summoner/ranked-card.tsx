@@ -60,7 +60,7 @@ export default function RankedCard({ entries }: RankedCardProps) {
 											className="text-2xl font-bold tracking-tight"
 											style={{ color }}
 										>
-											{entry.tier} {entry.rank}
+											{entry.tier}{["MASTER", "GRANDMASTER", "CHALLENGER"].includes(entry.tier) ? "" : ` ${entry.rank}`}
 										</p>
 										<p className="text-base text-muted-foreground">
 											{entry.leaguePoints} LP
