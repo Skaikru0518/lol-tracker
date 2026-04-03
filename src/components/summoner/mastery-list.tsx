@@ -22,7 +22,7 @@ export default function MasteryList({
 		<Card>
 			<CardHeader>
 				<CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-					Top Champions
+					Champion Mastery
 				</CardTitle>
 			</CardHeader>
 			<CardContent>

@@ -30,6 +30,7 @@ import { Button } from "@/components/ui/button";
 import { useLPHistory } from "@/hooks/useLPHistory";
 import LPHistoryChart from "@/components/summoner/lp-history-chart";
 import AchievementBar from "@/components/summoner/achievement-bar";
+import RolesCard from "@/components/summoner/roles-card";
 
 export default function SummonerPage({
 	params,
@@ -110,6 +111,7 @@ export default function SummonerPage({
 
 			{/* Content grid */}
 			<div className="grid grid-cols-1 gap-6 lg:gap-8 lg:grid-cols-[320px_1fr_280px]">
+				{/* Left sidebar: Ranked, Overview, Most Played */}
 				<motion.div
 					initial={{ opacity: 0, x: -20 }}
 					animate={{ opacity: 1, x: 0 }}
@@ -133,6 +135,16 @@ export default function SummonerPage({
 								</div>
 							</CardContent>
 						</Card>
+					)}
+					{matchesLoading ? (
+						<StatsSkeleton />
+					) : (
+						<StatsCard
+							matches={matches}
+							puuid={account.puuid}
+							champions={champions}
+							version={version}
+						/>
 					)}
 					{masteries && champions ? (
 						<MasteryList
@@ -158,6 +170,38 @@ export default function SummonerPage({
 							</CardContent>
 						</Card>
 					)}
+				</motion.div>
+
+				{/* Center: Match History */}
+				<motion.div
+					initial={{ opacity: 0, y: 20 }}
+					animate={{ opacity: 1, y: 0 }}
+					transition={{ duration: 0.5, delay: 0.2 }}
+				>
+					<MatchList
+						matches={matches}
+						puuid={account.puuid}
+						version={version}
+						isLoading={matchesLoading}
+						runeData={runeData}
+					/>
+				</motion.div>
+
+				{/* Right sidebar: LP History, Recently Played */}
+				<motion.div
+					initial={{ opacity: 0, x: 20 }}
+					animate={{ opacity: 1, x: 0 }}
+					transition={{ duration: 0.5, delay: 0.3 }}
+					className="space-y-4 lg:sticky lg:top-[180px] lg:self-start"
+				>
+					<LPHistoryChart
+						soloHistory={soloHistory}
+						flexHistory={flexHistory}
+						ranked={ranked}
+					/>
+					{!matchesLoading && matches && (
+						<RolesCard matches={matches} puuid={account.puuid} />
+					)}
 					{matches ? (
 						<RecentPlayers
 							matches={matches}
@@ -181,43 +225,6 @@ export default function SummonerPage({
 								))}
 							</CardContent>
 						</Card>
-					)}
-				</motion.div>
-
-				<motion.div
-					initial={{ opacity: 0, y: 20 }}
-					animate={{ opacity: 1, y: 0 }}
-					transition={{ duration: 0.5, delay: 0.2 }}
-				>
-					<MatchList
-						matches={matches}
-						puuid={account.puuid}
-						version={version}
-						isLoading={matchesLoading}
-						runeData={runeData}
-					/>
-				</motion.div>
-
-				<motion.div
-					initial={{ opacity: 0, x: 20 }}
-					animate={{ opacity: 1, x: 0 }}
-					transition={{ duration: 0.5, delay: 0.3 }}
-					className="space-y-4 lg:sticky lg:top-[180px] lg:self-start"
-				>
-					<LPHistoryChart
-						soloHistory={soloHistory}
-						flexHistory={flexHistory}
-						ranked={ranked}
-					/>
-					{matchesLoading ? (
-						<StatsSkeleton />
-					) : (
-						<StatsCard
-							matches={matches}
-							puuid={account.puuid}
-							champions={champions}
-							version={version}
-						/>
 					)}
 				</motion.div>
 			</div>
