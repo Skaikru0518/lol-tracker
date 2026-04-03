@@ -22,11 +22,11 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
 	title: {
-		default: "Summon.gg",
+		default: "Summon.gg — League of Legends Summoner Tracker",
 		template: "%s | Summon.gg",
 	},
 	description:
-		"Track any League of Legends summoner — ranked stats, match history, champion mastery, live game detection, and detailed match breakdowns.",
+		"Track any League of Legends summoner — ranked stats, LP history, match history, champion mastery, live game detection, achievement badges, and detailed match breakdowns. Free and open alternative to op.gg.",
 	keywords: [
 		"League of Legends",
 		"LoL",
@@ -37,32 +37,53 @@ export const metadata: Metadata = {
 		"stats",
 		"op.gg",
 		"u.gg",
+		"LP tracker",
+		"live game",
+		"champion mastery",
+		"KDA",
+		"league tracker",
+		"summoner lookup",
+		"LoL stats",
 	],
 	authors: [{ name: "Skaikru0518" }],
 	creator: "Skaikru0518",
 	metadataBase: new URL("https://summon-gg.vercel.app"),
+	alternates: {
+		canonical: "/",
+	},
 	openGraph: {
 		type: "website",
 		locale: "en_US",
 		siteName: "Summon.gg",
-		title: "Summon.gg",
+		title: "Summon.gg — League of Legends Summoner Tracker",
 		description:
-			"Track any League of Legends summoner — ranked stats, match history, champion mastery, and live game detection.",
+			"Track any League of Legends summoner — ranked stats, LP history, match history, champion mastery, live game detection, and achievement badges.",
+		url: "https://summon-gg.vercel.app",
+		images: [{ url: "/icon.ico" }],
 	},
 	twitter: {
 		card: "summary",
-		title: "Summon.gg",
+		title: "Summon.gg — League of Legends Summoner Tracker",
 		description:
-			"League of Legends summoner tracker with ranked stats, match history, and live game detection.",
+			"Track any LoL summoner — ranked stats, LP history, match history, live game detection, and achievement badges.",
+		images: ["/icon.ico"],
 	},
 	robots: {
 		index: true,
 		follow: true,
+		googleBot: {
+			index: true,
+			follow: true,
+			"max-video-preview": -1,
+			"max-image-preview": "large",
+			"max-snippet": -1,
+		},
 	},
 	icons: {
 		icon: [
 			{ url: "/favicon.svg", type: "image/svg+xml" },
 			{ url: "/icon.ico", sizes: "any" },
+			{ url: "favicon.ico", sizes: "any" },
 		],
 	},
 };
