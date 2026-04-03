@@ -126,3 +126,14 @@ model PlayerAchievement {
   @@unique([puuid, achievementId])
   @@index([puuid])
 }
+
+model MatchBadge {
+  id String @id @default(cuid())
+  matchId String
+  puuid String
+  badgeId String
+
+  @@unique([matchId, puuid, badgeId])
+  @@index([matchId])
+  @@index([puuid])
+}

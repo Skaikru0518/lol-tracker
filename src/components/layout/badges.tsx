@@ -34,7 +34,7 @@ export function CategoryBadge({ category, className }: CategoryBadgeProps) {
 		<Badge
 			variant="outline"
 			className={cn(
-				"rounded-full font-semibold border",
+				"rounded-full font-semibold border text-sm",
 				CATEGORY_STYLES[category],
 				className,
 			)}
@@ -55,7 +55,7 @@ export function CategoryCountBadge({ category, count, className }: CategoryCount
 		<Badge
 			variant="outline"
 			className={cn(
-				"rounded-full font-semibold border",
+				"rounded-full font-semibold border text-sm",
 				CATEGORY_STYLES[category],
 				className,
 			)}

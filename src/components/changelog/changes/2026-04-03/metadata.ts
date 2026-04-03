@@ -5,7 +5,7 @@ const changelog: ChangelogEntry = {
 	title: "Achievement System",
 	date: "2026-04-03",
 	summary:
-		"Players now earn dynamic achievement badges based on their recent performance. Badges appear on the profile and update automatically — earn them, lose them.",
+		"Players now earn dynamic achievement badges based on their recent performance, and individual match badges highlight standout plays. Layout reworked with ranked in the header and reorganized sidebars.",
 	changes: [
 		{
 			category: "feature",
@@ -83,9 +83,43 @@ const changelog: ChangelogEntry = {
 		},
 		{
 			category: "feature",
+			title: "Match Performance Badges",
+			description: "Per-match badges awarded to standout players. Shown on collapsed match cards and in the expanded scoreboard next to each player.",
+			table: [
+				{ name: "MVP", requirement: "Most kills + assists on the winning team" },
+				{ name: "Damage King", requirement: "Most damage to champions" },
+				{ name: "Tank God", requirement: "Most damage taken" },
+				{ name: "Vision King", requirement: "Highest vision score" },
+				{ name: "CS King", requirement: "Most CS" },
+				{ name: "Gold Lead", requirement: "Most gold earned" },
+				{ name: "CC Machine", requirement: "Most crowd control time" },
+				{ name: "First Blood", requirement: "Got the first kill" },
+				{ name: "Pentakill", requirement: "Got a pentakill" },
+				{ name: "Quadrakill", requirement: "Got a quadrakill" },
+				{ name: "Unkillable", requirement: "0 deaths with 3+ K+A" },
+				{ name: "Solo Carry", requirement: "Most kills + fewest deaths on the team (5+ kills)" },
+				{ name: "Healer", requirement: "Most healing on teammates (5k+)" },
+				{ name: "Tower Destroyer", requirement: "Most turret kills (2+)" },
+				{ name: "Bad Luck", requirement: "Best performer on the losing team" },
+			],
+		},
+		{
+			category: "feature",
 			title: "Expandable Match Cards",
 			description:
-				"Click any match card to expand a mini scoreboard showing all 10 players with champion, rank, summoner spells, runes, KDA, CS/min, gold, and damage. A link at the bottom takes you to the full match detail page.",
+				"Click any match card to expand a mini scoreboard showing all 10 players with champion, rank, summoner spells, runes, items, badges, KDA, CS/min, gold, and damage. A link at the bottom takes you to the full match detail page.",
+		},
+		{
+			category: "improvement",
+			title: "Layout Rework",
+			description:
+				"Ranked cards moved to the profile header. Left sidebar now shows Stats overview and Champion Mastery. Right sidebar has LP History, Roles, and Recently Played.",
+		},
+		{
+			category: "improvement",
+			title: "SEO & Policy Updates",
+			description:
+				"Added robots.ts and dynamic sitemap.ts for better search engine indexing. Updated privacy policy with free-to-use disclaimer and GitHub contact link. Improved metadata with more keywords and OG image.",
 		},
 	],
 };

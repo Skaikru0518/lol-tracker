@@ -117,8 +117,9 @@
 
 	button,
 	input,
-	select {
-		@apply hover:cursor-pointer transition-all duration-150 ease-in-out;
+	select,
+	[data-slot="badge"] {
+		@apply hover:cursor-pointer! transition-all! duration-150! ease-in-out!;
 	}
 }
 
@@ -159,7 +160,8 @@
 }
 
 @keyframes smoke {
-	0%, 100% {
+	0%,
+	100% {
 		transform: scale(1) translateY(0);
 		opacity: 0.4;
 	}

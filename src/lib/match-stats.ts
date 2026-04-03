@@ -43,7 +43,12 @@ export function calculateStats(
 ): SummonerStats {
 	const players: Participant[] = [];
 
-	for (const match of matches) {
+	// Filter out ARAM (450) and Arena (1700, 1710)
+	const filtered = matches.filter(
+		(m) => ![450, 1700, 1710].includes(m.info.queueId),
+	);
+
+	for (const match of filtered) {
 		const p = match.info.participants.find((p) => p.puuid === puuid);
 		if (p) players.push(p);
 	}

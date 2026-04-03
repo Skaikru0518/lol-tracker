@@ -61,8 +61,8 @@ export default function AchievementBar({
 								<Badge
 									asChild
 									variant="outline"
-									className="h-auto cursor-default px-3 py-1.5 text-sm"
-									style={{ color: achievement.color, borderColor: `${achievement.color}33` }}
+									className="h-auto px-3 py-1.5 text-sm cursor-pointer"
+									style={{ color: achievement.color, borderColor: `${achievement.color}44`, backgroundColor: `${achievement.color}20` }}
 								>
 									<motion.span
 										initial={{ opacity: 0, scale: 0.8 }}
