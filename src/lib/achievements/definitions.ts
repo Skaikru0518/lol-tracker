@@ -3,6 +3,7 @@ export interface AchievementDef {
 	name: string;
 	description: string;
 	icon: string; // filename in public/achi/ → e.g. "pentakill" → /achi/pentakill.svg
+	color: string; // hex color for badge text
 	category: "combat" | "mastery" | "rank" | "playstyle";
 }
 
@@ -13,6 +14,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
 		name: "Pentakill",
 		description: "Got a pentakill in your last 10 matches",
 		icon: "pentakill",
+		color: "#e74c3c",
 		category: "combat",
 	},
 	{
@@ -20,6 +22,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
 		name: "Untouchable",
 		description: "0 deaths with 3+ K+A in your last 10 matches",
 		icon: "perfect-kda",
+		color: "#f1c40f",
 		category: "combat",
 	},
 	{
@@ -27,6 +30,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
 		name: "KDA God",
 		description: "Average KDA of 5+ over your last 10 matches",
 		icon: "kda-god",
+		color: "#9b59b6",
 		category: "combat",
 	},
 	{
@@ -34,6 +38,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
 		name: "First Blood Hunter",
 		description: "Got first blood in 5+ of your last 10 matches",
 		icon: "first-blood-hunter",
+		color: "#c0392b",
 		category: "combat",
 	},
 	{
@@ -41,6 +46,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
 		name: "Feeder",
 		description: "Averaging 10+ deaths per game in your last 10 matches",
 		icon: "feeder",
+		color: "#95a5a6",
 		category: "combat",
 	},
 	// Mastery
@@ -49,6 +55,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
 		name: "CS Machine",
 		description: "8+ CS/min in a 25+ min game (last 10 matches)",
 		icon: "cs-machine",
+		color: "#2ecc71",
 		category: "mastery",
 	},
 	{
@@ -56,6 +63,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
 		name: "Vision Pro",
 		description: "Vision score of 100+ in your last 5 matches",
 		icon: "vision-pro",
+		color: "#3498db",
 		category: "mastery",
 	},
 	{
@@ -63,6 +71,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
 		name: "Damage Dealer",
 		description: "40k+ damage to champions in your last 10 matches",
 		icon: "damage-dealer",
+		color: "#e67e22",
 		category: "mastery",
 	},
 	{
@@ -70,6 +79,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
 		name: "Carry",
 		description: "50%+ of team damage in a match (last 10)",
 		icon: "carry",
+		color: "#f39c12",
 		category: "mastery",
 	},
 	{
@@ -77,6 +87,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
 		name: "Tank",
 		description: "Took 50k+ damage in your last 10 matches",
 		icon: "tank",
+		color: "#7f8c8d",
 		category: "mastery",
 	},
 	{
@@ -84,6 +95,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
 		name: "Objective Hunter",
 		description: "3+ dragon kills in a match (last 10)",
 		icon: "objective-hunter",
+		color: "#8e44ad",
 		category: "mastery",
 	},
 	// Playstyle
@@ -92,6 +104,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
 		name: "One Trick",
 		description: "70%+ of your last 10 matches on one champion",
 		icon: "one-trick",
+		color: "#e91e63",
 		category: "playstyle",
 	},
 	{
@@ -99,6 +112,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
 		name: "Diverse Player",
 		description: "5+ different champions in your last 10 matches",
 		icon: "diverse-player",
+		color: "#1abc9c",
 		category: "playstyle",
 	},
 	{
@@ -106,6 +120,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
 		name: "On Fire",
 		description: "Won all of your last 5 matches",
 		icon: "win-streak",
+		color: "#e74c3c",
 		category: "playstyle",
 	},
 	{
@@ -113,6 +128,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
 		name: "Tilted",
 		description: "Lost all of your last 5 matches",
 		icon: "lose-streak",
+		color: "#3498db",
 		category: "playstyle",
 	},
 	// Rank
@@ -121,6 +137,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
 		name: "Diamond+",
 		description: "Reached Diamond rank or above",
 		icon: "diamond-plus",
+		color: "#5b8bf5",
 		category: "rank",
 	},
 	{
@@ -128,6 +145,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
 		name: "Master+",
 		description: "Reached Master rank or above",
 		icon: "master-plus",
+		color: "#9b59b6",
 		category: "rank",
 	},
 	{
@@ -135,6 +153,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
 		name: "Challenger",
 		description: "Reached Challenger rank",
 		icon: "challenger",
+		color: "#f1c40f",
 		category: "rank",
 	},
 	// Role
@@ -143,6 +162,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
 		name: "Top Main",
 		description: "Most played role is Top (last 50 matches)",
 		icon: "top-main",
+		color: "#e67e22",
 		category: "playstyle",
 	},
 	{
@@ -150,6 +170,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
 		name: "Jungle Main",
 		description: "Most played role is Jungle (last 50 matches)",
 		icon: "jungle-main",
+		color: "#27ae60",
 		category: "playstyle",
 	},
 	{
@@ -157,6 +178,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
 		name: "Mid Main",
 		description: "Most played role is Mid (last 50 matches)",
 		icon: "mid-main",
+		color: "#8e44ad",
 		category: "playstyle",
 	},
 	{
@@ -164,6 +186,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
 		name: "ADC Main",
 		description: "Most played role is ADC (last 50 matches)",
 		icon: "adc-main",
+		color: "#e74c3c",
 		category: "playstyle",
 	},
 	{
@@ -171,6 +194,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
 		name: "Support Main",
 		description: "Most played role is Support (last 50 matches)",
 		icon: "support-main",
+		color: "#2ecc71",
 		category: "playstyle",
 	},
 	// Queue Enjoyer
@@ -179,6 +203,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
 		name: "Solo/Duo Enjoyer",
 		description: "12+ Solo/Duo games in your last 25 matches",
 		icon: "soloq-enjoyer",
+		color: "#f39c12",
 		category: "playstyle",
 	},
 	{
@@ -186,6 +211,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
 		name: "Flex Enjoyer",
 		description: "12+ Flex games in your last 25 matches",
 		icon: "flex-enjoyer",
+		color: "#3498db",
 		category: "playstyle",
 	},
 	{
@@ -193,6 +219,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
 		name: "Normal Enjoyer",
 		description: "12+ non-ranked games in your last 25 matches",
 		icon: "normal-enjoyer",
+		color: "#2ecc71",
 		category: "playstyle",
 	},
 ];

@@ -9,7 +9,6 @@ import { ACHIEVEMENTS } from "@/lib/achievements/definitions";
 import { type Match } from "@/lib/validators/match";
 import { type RankedEntry } from "@/lib/validators/ranked";
 import { motion } from "framer-motion";
-import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import {
 	Tooltip,
@@ -62,20 +61,14 @@ export default function AchievementBar({
 								<Badge
 									asChild
 									variant="outline"
-									className="h-auto cursor-pointer gap-2 px-3 py-1.5 text-sm border border-primary/20! hover:ring-1 hover:ring-primary/60"
+									className="h-auto cursor-default px-3 py-1.5 text-sm"
+									style={{ color: achievement.color, borderColor: `${achievement.color}33` }}
 								>
 									<motion.span
 										initial={{ opacity: 0, scale: 0.8 }}
 										animate={{ opacity: 1, scale: 1 }}
 										transition={{ duration: 0.2, delay: i * 0.05 }}
 									>
-										<Image
-											src={`/achi/${achievement.icon}.svg`}
-											alt={achievement.name}
-											width={22}
-											height={22}
-											className="shrink-0"
-										/>
 										{achievement.name}
 									</motion.span>
 								</Badge>
