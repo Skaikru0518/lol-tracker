@@ -139,7 +139,7 @@ function PlayerRow({
 			{/* Rank emblem */}
 			<div className="shrink-0 w-7 flex items-center justify-center">
 				{rankEntry ? (
-					<Image
+					<img
 						src={getRankEmblem(rankEntry.tier)}
 						alt={getRankLabel(rankEntry)}
 						title={getRankLabel(rankEntry)}
@@ -148,7 +148,14 @@ function PlayerRow({
 						className="shrink-0"
 					/>
 				) : (
-					<div className="size-7 rounded-full bg-muted/30" />
+					<img
+						src={getRankEmblem("unranked")}
+						alt="Unranked"
+						title="Unranked"
+						width={28}
+						height={28}
+						className="shrink-0"
+					/>
 				)}
 			</div>
 			{/* Player name */}
@@ -356,7 +363,7 @@ export default function MatchCard({
 											className="rounded"
 										/>
 									) : (
-										<div key={i} className="size-6 rounded bg-muted/30" />
+										<div key={i} className="size-6 rounded bg-muted/60 border border-border/30" />
 									);
 								})}
 							</div>
@@ -463,7 +470,7 @@ export default function MatchCard({
 										className="rounded"
 									/>
 								) : (
-									<div key={i} className="size-[22px] rounded bg-muted/30" />
+									<div key={i} className="size-[22px] rounded bg-muted/60 border border-border/30" />
 								);
 							})}
 						</div>

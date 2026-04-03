@@ -7,7 +7,7 @@ export default function PolicyPage() {
 			<div className="mb-10">
 				<h1 className="text-4xl font-bold tracking-tight">Privacy & Data Policy</h1>
 				<p className="mt-2 text-lg text-muted-foreground">
-					Last updated: March 24, 2026
+					Last updated: April 3, 2026
 				</p>
 			</div>
 
@@ -15,9 +15,12 @@ export default function PolicyPage() {
 				<section>
 					<h2 className="text-2xl font-bold mb-3">What is Summon.gg?</h2>
 					<p>
-						Summon.gg is an open-source, community-driven League of Legends stat tracker.
-						It&apos;s a practice project built for fun — we&apos;re not a company, we don&apos;t sell anything,
-						and we&apos;re not trying to be the next op.gg. Just a couple of friends who like League and coding.
+						Summon.gg is a free-to-use League of Legends stat tracker.
+						We&apos;re not a company and we don&apos;t sell anything.
+						There may be occasional downtime, slower response times during peak usage,
+						or service interruptions. We do our best to keep things running smoothly,
+						but we can&apos;t guarantee 100% uptime. Use the site as-is, with no warranties.
+						As the site grows, we plan to migrate to a custom domain and more stable hosting.
 					</p>
 				</section>
 
@@ -54,7 +57,7 @@ export default function PolicyPage() {
 					<ul className="list-disc pl-6 space-y-2">
 						<li>No personal information (email, password, real name, IP address)</li>
 						<li>No cookies for tracking</li>
-						<li>No analytics or third-party trackers</li>
+						<li>No third-party trackers — we only use basic, anonymous page view analytics</li>
 						<li>No login or account system</li>
 						<li>No payment information</li>
 					</ul>
@@ -85,7 +88,16 @@ export default function PolicyPage() {
 					<h2 className="text-2xl font-bold mb-3">Questions?</h2>
 					<p>
 						If you have any questions about this policy or want your data removed,
-						reach out to us on GitHub. We&apos;re happy to help.
+						reach out on{" "}
+						<a
+							href="https://github.com/Skaikru0518"
+							target="_blank"
+							rel="noopener noreferrer"
+							className="font-semibold text-primary hover:underline"
+						>
+							GitHub — Skaikru0518
+						</a>
+						. Happy to help.
 					</p>
 				</section>
 			</div>
