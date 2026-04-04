@@ -53,7 +53,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
 	{
 		id: "cs-machine",
 		name: "CS Machine",
-		description: "8+ CS/min in a 25+ min game (last 10 matches)",
+		description: "Average 8+ CS/min across last 10 matches (25+ min games)",
 		icon: "cs-machine",
 		color: "#2ecc71",
 		category: "mastery",
@@ -69,7 +69,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
 	{
 		id: "damage-dealer",
 		name: "Damage Dealer",
-		description: "40k+ damage to champions in your last 10 matches",
+		description: "Average 40k+ damage to champions over your last 10 matches",
 		icon: "damage-dealer",
 		color: "#e67e22",
 		category: "mastery",

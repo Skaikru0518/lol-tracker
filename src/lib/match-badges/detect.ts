@@ -128,7 +128,7 @@ export function detectMatchBadges(
 
 	// Powerspike — Yasuo with 10+ deaths
 	for (const p of participants) {
-		if (p.championName === "Yasuo" && p.deaths >= 10) {
+		if ((p.championName === "Yasuo" || p.championId === 157) && p.deaths >= 10) {
 			badges.push({ puuid: p.puuid, badgeId: "powerspike" });
 		}
 	}

@@ -63,29 +63,29 @@ export function detectAchievements(input: DetectionInput): string[] {
 
 	// --- Mastery ---
 
-	// CS Machine (8+ CS/min in any match, 15+ min game)
+	// CS Machine (avg 8+ CS/min over last 10, only counting 25+ min games)
+	const csMinGames: number[] = [];
 	for (let i = 0; i < players.length; i++) {
-		const p = players[i];
 		const match = recentMatches[i];
-		if (match) {
-			const minutes = match.info.gameDuration / 60;
-			const csPerMin =
-				(p.totalMinionsKilled + p.neutralMinionsKilled) / minutes;
-			if (csPerMin >= 8 && minutes >= 25) {
-				earned.push("cs-machine");
-				break;
-			}
+		if (match && match.info.gameDuration / 60 >= 25) {
+			const p = players[i];
+			csMinGames.push((p.totalMinionsKilled + p.neutralMinionsKilled) / (match.info.gameDuration / 60));
 		}
 	}
+	if (csMinGames.length >= 3) {
+		const avgCsMin = csMinGames.reduce((s, v) => s + v, 0) / csMinGames.length;
+		if (avgCsMin >= 8) earned.push("cs-machine");
+	}
 
-	// Vision Pro (80+ vision score, last 5)
+	// Vision Pro (100+ vision score, last 5)
 	if (players.slice(0, 5).some((p) => p.visionScore >= 100)) {
 		earned.push("vision-pro");
 	}
 
-	// Damage Dealer (40k+ damage)
-	if (players.some((p) => p.totalDamageDealtToChampions >= 40000)) {
-		earned.push("damage-dealer");
+	// Damage Dealer (avg 40k+ damage over last 10)
+	if (players.length >= 3) {
+		const avgDmg = players.reduce((s, p) => s + p.totalDamageDealtToChampions, 0) / players.length;
+		if (avgDmg >= 40000) earned.push("damage-dealer");
 	}
 
 	// Carry (50%+ of team's total damage in a match)
