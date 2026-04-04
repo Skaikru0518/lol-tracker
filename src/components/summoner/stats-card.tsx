@@ -141,6 +141,9 @@ export default function StatsCard({
 				<CardHeader>
 					<CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
 						Most Played
+						<span className="block text-xs font-normal normal-case tracking-normal mt-0.5">
+							Last 50 matches · ARAM + Arena excluded
+						</span>
 					</CardTitle>
 				</CardHeader>
 				<CardContent className="space-y-3">
