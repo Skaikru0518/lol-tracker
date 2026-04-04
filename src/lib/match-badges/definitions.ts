@@ -112,6 +112,13 @@ export const MATCH_BADGES: MatchBadgeDef[] = [
 		icon: "bad-luck",
 		color: "#8e44ad",
 	},
+	{
+		id: "powerspike",
+		name: "Powerspike",
+		description: "Yasuo with 10+ deaths — the 0/10 powerspike is real",
+		icon: "powerspike",
+		color: "#e74c3c",
+	},
 ];
 
 export function getMatchBadgeById(id: string): MatchBadgeDef | undefined {
