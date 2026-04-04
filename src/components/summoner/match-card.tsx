@@ -173,9 +173,13 @@ function PlayerRow({
 					)}
 				</div>
 				{/* Player name */}
-				<span className="truncate min-w-0 font-medium">
+				<Link
+					href={`/summoner/${p.riotIdGameName}-${p.riotIdTagline}`}
+					onClick={(e) => e.stopPropagation()}
+					className="truncate min-w-0 font-medium hover:text-primary transition-colors"
+				>
 					{p.riotIdGameName}
-				</span>
+				</Link>
 				<span className="flex-1" />
 				{/* Items (desktop) */}
 				{version && (
