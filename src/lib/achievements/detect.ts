@@ -108,9 +108,10 @@ export function detectAchievements(input: DetectionInput): string[] {
 		earned.push("tank");
 	}
 
-	// Objective Hunter (3+ dragon kills)
-	if (players.some((p) => p.dragonKills >= 3)) {
-		earned.push("objective-hunter");
+	// Objective Hunter (avg 3+ dragon kills over last 10)
+	if (players.length >= 3) {
+		const avgDragons = players.reduce((s, p) => s + p.dragonKills, 0) / players.length;
+		if (avgDragons >= 3) earned.push("objective-hunter");
 	}
 
 	// --- Playstyle ---

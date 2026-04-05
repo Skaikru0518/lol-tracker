@@ -78,11 +78,17 @@ export default function ChangelogDetail({ entry }: ChangelogDetailProps) {
 				</p>
 				<div className="mt-4 flex flex-wrap gap-2">
 					{Object.entries(categoryCounts).map(([cat, count]) => (
-						<CategoryCountBadge
+						<button
 							key={cat}
-							category={cat as CategoryType}
-							count={count}
-						/>
+							onClick={() => {
+								document.getElementById(`category-${cat}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+							}}
+						>
+							<CategoryCountBadge
+								category={cat as CategoryType}
+								count={count}
+							/>
+						</button>
 					))}
 				</div>
 			</motion.div>
@@ -91,10 +97,11 @@ export default function ChangelogDetail({ entry }: ChangelogDetailProps) {
 			{grouped.map((group, gi) => (
 				<motion.div
 					key={group.category}
+					id={`category-${group.category}`}
 					initial={{ opacity: 0 }}
 					animate={{ opacity: 1 }}
 					transition={{ duration: 0.4, delay: 0.1 + gi * 0.08 }}
-					className="mb-8"
+					className="mb-8 scroll-mt-20"
 				>
 					{/* Category heading */}
 					<div className="flex items-center gap-2 mb-4">

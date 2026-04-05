@@ -30,12 +30,12 @@ const changelog: ChangelogEntry = {
 			title: "Mastery Achievements",
 			description: "Achievements rewarding mechanical skill and game knowledge.",
 			table: [
-				{ name: "CS Machine", requirement: "8+ CS/min in a 25+ min game (last 10)" },
-				{ name: "Vision Pro", requirement: "100+ vision score (last 5)" },
-				{ name: "Damage Dealer", requirement: "40k+ damage to champions (last 10)" },
+				{ name: "CS Machine", requirement: "Avg 8+ CS/min in 25+ min games (last 10)" },
+				{ name: "Vision Pro", requirement: "100+ vision score in a match (last 5)" },
+				{ name: "Damage Dealer", requirement: "Avg 40k+ damage to champions (last 10)" },
 				{ name: "Carry", requirement: "50%+ of team damage in a match (last 10)" },
-				{ name: "Tank", requirement: "50k+ damage taken (last 10)" },
-				{ name: "Objective Hunter", requirement: "3+ dragon kills in one game (last 10)" },
+				{ name: "Tank", requirement: "50k+ damage taken in a match (last 10)" },
+				{ name: "Objective Hunter", requirement: "Avg 3+ dragon kills (last 10)" },
 			],
 		},
 		{

@@ -93,7 +93,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
 	{
 		id: "objective-hunter",
 		name: "Objective Hunter",
-		description: "3+ dragon kills in a match (last 10)",
+		description: "Average 3+ dragon kills over your last 10 matches",
 		icon: "objective-hunter",
 		color: "#8e44ad",
 		category: "mastery",
