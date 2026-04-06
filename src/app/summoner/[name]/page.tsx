@@ -184,6 +184,8 @@ export default function SummonerPage({
 						version={version}
 						isLoading={matchesLoading}
 						runeData={runeData}
+						soloHistory={soloHistory}
+						flexHistory={flexHistory}
 					/>
 				</motion.div>
 

@@ -9,6 +9,7 @@ import {
 } from "@/lib/icon-helpers";
 import { getQueueName } from "@/lib/queue-names";
 import MatchCard from "./match-card";
+import { type LPSnapshot } from "@/hooks/useLPHistory";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import {
@@ -65,12 +66,61 @@ interface PlayedChampion {
 	games: number;
 }
 
+function calculateLPChange(
+	snapshots: LPSnapshot[] | undefined,
+	matchEndTime: number,
+): number | null {
+	if (!snapshots || snapshots.length < 2) return null;
+
+	// Find the closest snapshot AFTER the match ended, and the one BEFORE
+	const sorted = [...snapshots].sort(
+		(a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+	);
+
+	let before: LPSnapshot | null = null;
+	let after: LPSnapshot | null = null;
+
+	for (const snap of sorted) {
+		const snapTime = new Date(snap.createdAt).getTime();
+		if (snapTime <= matchEndTime) {
+			before = snap;
+		} else if (!after) {
+			after = snap;
+		}
+	}
+
+	if (!before || !after) return null;
+
+	// Simple LP diff — same tier
+	if (before.tier === after.tier && before.rank === after.rank) {
+		return after.lp - before.lp;
+	}
+
+	// Tier/rank change — estimate based on tier points
+	const TIERS = ["IRON", "BRONZE", "SILVER", "GOLD", "PLATINUM", "EMERALD", "DIAMOND", "MASTER", "GRANDMASTER", "CHALLENGER"];
+	const DIVS = ["IV", "III", "II", "I"];
+
+	function toAbsoluteLP(tier: string, rank: string, lp: number): number {
+		const tierIdx = TIERS.indexOf(tier);
+		if (tierIdx === -1) return 0;
+		if (tierIdx >= 7) return tierIdx * 400 + lp; // Master+
+		const divIdx = DIVS.indexOf(rank);
+		return tierIdx * 400 + (divIdx >= 0 ? divIdx : 0) * 100 + lp;
+	}
+
+	const beforeLP = toAbsoluteLP(before.tier, before.rank, before.lp);
+	const afterLP = toAbsoluteLP(after.tier, after.rank, after.lp);
+	return afterLP - beforeLP;
+}
+
 interface MatchListProps {
 	matches?: Match[];
 	puuid: string;
 	version?: string;
 	isLoading?: boolean;
 	runeData?: { runes: Map<number, RuneData>; styles: Map<number, RuneStyle> };
+	soloHistory?: LPSnapshot[];
+	flexHistory?: LPSnapshot[];
 }
 
 export function MatchList({
@@ -79,6 +129,8 @@ export function MatchList({
 	version,
 	isLoading,
 	runeData,
+	soloHistory,
+	flexHistory,
 }: MatchListProps) {
 	const [queueFilter, setQueueFilter] = useState<QueueFilter>("all");
 	const [championFilter, setChampionFilter] = useState<string | null>(null);
@@ -183,6 +235,12 @@ export function MatchList({
 						);
 						if (!player) return null;
 
+						const matchEndTime = match.info.gameCreation + match.info.gameDuration * 1000;
+						const history = match.info.queueId === 440 ? flexHistory : soloHistory;
+						const lpChange = (match.info.queueId === 420 || match.info.queueId === 440)
+							? calculateLPChange(history, matchEndTime)
+							: null;
+
 						return (
 							<MatchCard
 								key={match.metadata.matchId}
@@ -199,6 +257,7 @@ export function MatchList({
 								version={version}
 								index={i}
 								runeData={runeData}
+								lpChange={lpChange}
 							/>
 						);
 					})}

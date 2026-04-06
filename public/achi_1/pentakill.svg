@@ -1,5 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
-  <circle cx="12" cy="12" r="11" stroke="#e74c3c" stroke-width="1.5" fill="#e74c3c" fill-opacity="0.15"/>
-  <text x="12" y="16.5" text-anchor="middle" font-family="Arial, sans-serif" font-weight="bold" font-size="14" fill="#e74c3c">5</text>
-  <path d="M12 2.5l1.5 3.5 3.5.5-2.5 2.5.5 3.5L12 10.5l-3 2 .5-3.5L7 6.5l3.5-.5z" fill="#e74c3c" fill-opacity="0.3" stroke="#e74c3c" stroke-width="0.5"/>
-</svg>

@@ -100,7 +100,7 @@ export async function getItemMap(
 }
 
 export function getRankEmblem(tier: string) {
-	return `https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-shared-components/global/default/images/${tier.toLowerCase()}.png`;
+	return `/icons/rank/${tier.toLowerCase()}.png`;
 }
 
 export const RANK_COLORS: Record<string, string> = {
