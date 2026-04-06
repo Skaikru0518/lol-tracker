@@ -32,8 +32,9 @@ export function detectAchievements(input: DetectionInput): string[] {
 		earned.push("pentakill");
 	}
 
-	// Perfect KDA (0 deaths, at least 3 K+A)
-	if (players.some((p) => p.deaths === 0 && p.kills + p.assists >= 3)) {
+	// Untouchable (0 deaths + 3+ K+A, last 5)
+	const last5ForKda = players.slice(0, 5);
+	if (last5ForKda.some((p) => p.deaths === 0 && p.kills + p.assists >= 3)) {
 		earned.push("perfect-kda");
 	}
 
@@ -77,9 +78,10 @@ export function detectAchievements(input: DetectionInput): string[] {
 		if (avgCsMin >= 8) earned.push("cs-machine");
 	}
 
-	// Vision Pro (100+ vision score, last 5)
-	if (players.slice(0, 5).some((p) => p.visionScore >= 100)) {
-		earned.push("vision-pro");
+	// Vision Pro (avg 80+ vision score, last 10)
+	if (players.length >= 3) {
+		const avgVision = players.reduce((s, p) => s + p.visionScore, 0) / players.length;
+		if (avgVision >= 60) earned.push("vision-pro");
 	}
 
 	// Damage Dealer (avg 40k+ damage over last 10)
@@ -103,9 +105,9 @@ export function detectAchievements(input: DetectionInput): string[] {
 		}
 	}
 
-	// Tank (50k+ damage taken)
+	// Meatshield (50k+ damage taken)
 	if (players.some((p) => p.totalDamageTaken >= 50000)) {
-		earned.push("tank");
+		earned.push("meatshield");
 	}
 
 	// Objective Hunter (avg 3+ dragon kills over last 10)
@@ -116,18 +118,28 @@ export function detectAchievements(input: DetectionInput): string[] {
 
 	// --- Playstyle ---
 
-	// One-Trick (70%+ on one champ)
+	// One-Trick (70%+ on one champ, last 20)
+	const last20 = allMatches.slice(0, 20);
+	const last20Players: Participant[] = [];
+	for (const match of last20) {
+		const p = match.info.participants.find((p) => p.puuid === puuid);
+		if (p) last20Players.push(p);
+	}
 	const champCounts = new Map<string, number>();
-	for (const p of players) {
+	for (const p of last20Players) {
 		champCounts.set(p.championName, (champCounts.get(p.championName) || 0) + 1);
 	}
 	const maxChampGames = Math.max(...champCounts.values());
-	if (players.length >= 5 && maxChampGames / players.length >= 0.7) {
+	if (last20Players.length >= 10 && maxChampGames / last20Players.length >= 0.7) {
 		earned.push("one-trick");
 	}
 
 	// Diverse Player (5+ different champs in 10 games)
-	if (champCounts.size >= 5) {
+	const champCounts10 = new Map<string, number>();
+	for (const p of players) {
+		champCounts10.set(p.championName, (champCounts10.get(p.championName) || 0) + 1);
+	}
+	if (champCounts10.size >= 5) {
 		earned.push("diverse-player");
 	}
 
@@ -172,9 +184,9 @@ export function detectAchievements(input: DetectionInput): string[] {
 	const soloqCount = last25.filter((m) => m.info.queueId === 420).length;
 	const flexCount = last25.filter((m) => m.info.queueId === 440).length;
 	const normalCount = last25.filter((m) => m.info.queueId !== 420 && m.info.queueId !== 440).length;
-	if (soloqCount >= 12) earned.push("soloq-enjoyer");
-	if (flexCount >= 12) earned.push("flex-enjoyer");
-	if (normalCount >= 12) earned.push("normal-enjoyer");
+	if (soloqCount >= 13) earned.push("soloq-enjoyer");
+	if (flexCount >= 13) earned.push("flex-enjoyer");
+	if (normalCount >= 13) earned.push("normal-enjoyer");
 
 	// --- Rank (always current, not match-based) ---
 	if (ranked) {

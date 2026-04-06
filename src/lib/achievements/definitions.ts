@@ -20,7 +20,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
 	{
 		id: "perfect-kda",
 		name: "Untouchable",
-		description: "0 deaths with 3+ K+A in your last 10 matches",
+		description: "0 deaths with 3+ K+A in your last 5 matches",
 		icon: "perfect-kda",
 		color: "#f1c40f",
 		category: "combat",
@@ -61,7 +61,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
 	{
 		id: "vision-pro",
 		name: "Vision Pro",
-		description: "Vision score of 100+ in your last 5 matches",
+		description: "Average 60+ vision score over your last 10 matches",
 		icon: "vision-pro",
 		color: "#3498db",
 		category: "mastery",
@@ -83,8 +83,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
 		category: "mastery",
 	},
 	{
-		id: "tank",
-		name: "Tank",
+		id: "meatshield",
+		name: "Meatshield",
 		description: "Took 50k+ damage in your last 10 matches",
 		icon: "tank",
 		color: "#7f8c8d",
@@ -102,7 +102,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
 	{
 		id: "one-trick",
 		name: "One Trick",
-		description: "70%+ of your last 10 matches on one champion",
+		description: "70%+ of your last 20 matches on one champion",
 		icon: "one-trick",
 		color: "#e91e63",
 		category: "playstyle",
@@ -201,7 +201,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
 	{
 		id: "soloq-enjoyer",
 		name: "Solo/Duo Enjoyer",
-		description: "12+ Solo/Duo games in your last 25 matches",
+		description: "13+ Solo/Duo games in your last 25 matches",
 		icon: "soloq-enjoyer",
 		color: "#f39c12",
 		category: "playstyle",
@@ -209,7 +209,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
 	{
 		id: "flex-enjoyer",
 		name: "Flex Enjoyer",
-		description: "12+ Flex games in your last 25 matches",
+		description: "13+ Flex games in your last 25 matches",
 		icon: "flex-enjoyer",
 		color: "#3498db",
 		category: "playstyle",
@@ -217,7 +217,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
 	{
 		id: "normal-enjoyer",
 		name: "Normal Enjoyer",
-		description: "12+ non-ranked games in your last 25 matches",
+		description: "13+ non-ranked games in your last 25 matches",
 		icon: "normal-enjoyer",
 		color: "#2ecc71",
 		category: "playstyle",

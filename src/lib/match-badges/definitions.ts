@@ -119,6 +119,34 @@ export const MATCH_BADGES: MatchBadgeDef[] = [
 		icon: "powerspike",
 		color: "#e74c3c",
 	},
+	{
+		id: "honorable",
+		name: "Honorable",
+		description: "MVP of the losing team — most kills + assists",
+		icon: "honorable",
+		color: "#3498db",
+	},
+	{
+		id: "soulless",
+		name: "Soulless",
+		description: "Picked Teemo — you monster",
+		icon: "soulless",
+		color: "#95a5a6",
+	},
+	{
+		id: "glass-cannon",
+		name: "Glass Cannon",
+		description: "Most damage dealt AND most deaths in the match",
+		icon: "glass-cannon",
+		color: "#e74c3c",
+	},
+	{
+		id: "afk-farmer",
+		name: "AFK Farmer",
+		description: "200+ CS but 0 kills and 0 assists",
+		icon: "afk-farmer",
+		color: "#27ae60",
+	},
 ];
 
 export function getMatchBadgeById(id: string): MatchBadgeDef | undefined {

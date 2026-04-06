@@ -102,9 +102,9 @@ export function detectMatchBadges(
 		}
 	}
 
-	// Healer — most healing on teammates (min 5k)
+	// Healer — most healing on teammates (min 10k)
 	const healer = maxBy((p) => p.totalHealsOnTeammates);
-	if (healer.totalHealsOnTeammates >= 5000) {
+	if (healer.totalHealsOnTeammates >= 10000) {
 		badges.push({ puuid: healer.puuid, badgeId: "healer" });
 	}
 
@@ -130,6 +130,37 @@ export function detectMatchBadges(
 	for (const p of participants) {
 		if ((p.championName === "Yasuo" || p.championId === 157) && p.deaths >= 10) {
 			badges.push({ puuid: p.puuid, badgeId: "powerspike" });
+		}
+	}
+
+	// Honorable — MVP of the losing team (most K+A)
+	if (losers.length > 0) {
+		const honorable = losers.reduce((best, p) =>
+			p.kills + p.assists > best.kills + best.assists ? p : best,
+		);
+		if (honorable.kills + honorable.assists >= 5) {
+			badges.push({ puuid: honorable.puuid, badgeId: "honorable" });
+		}
+	}
+
+	// Soulless — picked Teemo
+	for (const p of participants) {
+		if (p.championName === "Teemo" || p.championId === 17) {
+			badges.push({ puuid: p.puuid, badgeId: "soulless" });
+		}
+	}
+
+	// Glass Cannon — most damage AND most deaths
+	const mostDmg = maxBy((p) => p.totalDamageDealtToChampions);
+	const mostDeaths = maxBy((p) => p.deaths);
+	if (mostDmg.puuid === mostDeaths.puuid && mostDmg.deaths >= 5) {
+		badges.push({ puuid: mostDmg.puuid, badgeId: "glass-cannon" });
+	}
+
+	// AFK Farmer — 200+ CS but 0 kills and 0 assists
+	for (const p of participants) {
+		if (p.totalMinionsKilled + p.neutralMinionsKilled >= 200 && p.kills === 0 && p.assists === 0) {
+			badges.push({ puuid: p.puuid, badgeId: "afk-farmer" });
 		}
 	}
 
