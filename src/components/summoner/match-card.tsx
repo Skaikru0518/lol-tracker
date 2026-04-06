@@ -16,6 +16,7 @@ import {
 import { usePlayerRanks } from "@/hooks/usePlayerRanks";
 import { useMatchBadges } from "@/hooks/useMatchBadges";
 import { getMatchBadgeById } from "@/lib/match-badges/definitions";
+import { calculateAvgRank, formatRankLabel } from "@/lib/rank-calculator";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
@@ -248,7 +249,7 @@ function PlayerRow({
 							<Tooltip key={id}>
 								<TooltipTrigger asChild>
 									<span
-										className="rounded-full px-2 py-0.5 text-[10px] font-semibold border cursor-pointer"
+										className="rounded-full px-1.5 py-0.5 text-[8px] lg:text-[10px] lg:px-2 font-semibold border cursor-pointer"
 										style={{
 											color: def.color,
 											borderColor: `${def.color}44`,
@@ -480,7 +481,7 @@ export default function MatchCard({
 											<Tooltip key={id}>
 												<TooltipTrigger asChild>
 													<span
-														className="rounded-full px-2 py-0.5 text-[10px] font-semibold border cursor-pointer"
+														className="rounded-full px-1.5 py-0.5 text-[8px] lg:text-[10px] lg:px-2 font-semibold border cursor-pointer"
 														style={{
 															color: def.color,
 															borderColor: `${def.color}44`,
@@ -619,7 +620,7 @@ export default function MatchCard({
 									return (
 										<span
 											key={id}
-											className="rounded-full px-2 py-0.5 text-[10px] font-semibold border cursor-pointer"
+											className="rounded-full px-1.5 py-0.5 text-[8px] lg:text-[10px] lg:px-2 font-semibold border cursor-pointer"
 											style={{
 												color: def.color,
 												borderColor: `${def.color}44`,

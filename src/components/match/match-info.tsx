@@ -41,8 +41,8 @@ export default function MatchInfo({
 
 	return (
 		<div className="rounded-xl border bg-card px-4 py-4 sm:px-8 sm:py-6">
-			{/* Top row: Queue name + Duration */}
-			<div className="flex items-start justify-between">
+			<div className="flex items-center justify-between">
+				{/* Left: Queue name + date */}
 				<div>
 					<h1 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight">
 						{getQueueName(queueId, gameMode)}
@@ -51,6 +51,54 @@ export default function MatchInfo({
 						{formatDate(gameCreation)}
 					</p>
 				</div>
+
+				{/* Center: Avg Rank */}
+				<div className="flex items-center gap-2">
+					{avgRank ? (
+						<>
+							<Image
+								src={getRankEmblem(avgRank.tier)}
+								alt={formatRankLabel(avgRank.tier, avgRank.rank)}
+								width={40}
+								height={40}
+								className="shrink-0"
+							/>
+							<div className="text-center">
+								<p
+									className="text-base sm:text-lg font-bold"
+									style={{
+										color: RANK_COLORS[avgRank.tier] ?? "#888",
+									}}
+								>
+									{formatRankLabel(avgRank.tier, avgRank.rank)}
+								</p>
+								<p className="text-xs text-muted-foreground">
+									Avg Lobby Rank
+								</p>
+							</div>
+						</>
+					) : (
+						<>
+							<img
+								src={getRankEmblem("unranked")}
+								alt="Unranked"
+								width={40}
+								height={40}
+								className="shrink-0 opacity-40"
+							/>
+							<div className="text-center">
+								<p className="text-base sm:text-lg font-bold text-muted-foreground">
+									—
+								</p>
+								<p className="text-xs text-muted-foreground">
+									Avg Lobby Rank
+								</p>
+							</div>
+						</>
+					)}
+				</div>
+
+				{/* Right: Duration */}
 				<div className="text-right">
 					<p className="text-xl sm:text-2xl lg:text-3xl font-bold font-mono">
 						{formatDuration(gameDuration)}
@@ -58,32 +106,6 @@ export default function MatchInfo({
 					<p className="text-sm text-muted-foreground">Duration</p>
 				</div>
 			</div>
-
-			{/* Bottom center: Avg Rank */}
-			{avgRank && (
-				<div className="flex items-center justify-center gap-2 mt-4 pt-4 border-t border-border/30">
-					<Image
-						src={getRankEmblem(avgRank.tier)}
-						alt={formatRankLabel(avgRank.tier, avgRank.rank)}
-						width={40}
-						height={40}
-						className="shrink-0"
-					/>
-					<div>
-						<p
-							className="text-base sm:text-lg font-bold"
-							style={{
-								color: RANK_COLORS[avgRank.tier] ?? "#888",
-							}}
-						>
-							{formatRankLabel(avgRank.tier, avgRank.rank)}
-						</p>
-						<p className="text-sm text-muted-foreground">
-							Avg Lobby Rank
-						</p>
-					</div>
-				</div>
-			)}
 		</div>
 	);
 }

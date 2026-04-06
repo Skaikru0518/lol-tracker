@@ -3,7 +3,16 @@
 import { Fragment, useState } from "react";
 import { type Participant } from "@/lib/validators/match";
 import { type RankedEntry } from "@/lib/validators/ranked";
-import { getChampionIcon, getChampionDisplayName, getItemIcon, getSummonerSpellIcon, getRuneIcon, getRankEmblem, type RuneData, type RuneStyle } from "@/lib/icon-helpers";
+import {
+	getChampionIcon,
+	getChampionDisplayName,
+	getItemIcon,
+	getSummonerSpellIcon,
+	getRuneIcon,
+	getRankEmblem,
+	type RuneData,
+	type RuneStyle,
+} from "@/lib/icon-helpers";
 import IconTooltip from "@/components/ui/icon-tooltip";
 import {
 	Table,
@@ -18,6 +27,18 @@ import Link from "next/link";
 import PlayerDetails from "./player-details";
 
 import { type Timeline } from "@/lib/validators/timeline";
+import { getMatchBadgeById } from "@/lib/match-badges/definitions";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipProvider,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
+
+interface MatchBadge {
+	puuid: string;
+	badgeId: string;
+}
 
 interface TeamTableProps {
 	participants: Participant[];
@@ -32,6 +53,7 @@ interface TeamTableProps {
 	champions?: Record<number, { id: string; name: string }>;
 	playerRanks?: Record<string, RankedEntry[]>;
 	queueId?: number;
+	matchBadges?: MatchBadge[];
 }
 
 export default function TeamTable({
@@ -47,6 +69,7 @@ export default function TeamTable({
 	champions,
 	playerRanks,
 	queueId,
+	matchBadges,
 }: TeamTableProps) {
 	const [expanded, setExpanded] = useState<string | null>(null);
 	const itemSlots = [0, 1, 2, 3, 4, 5, 6] as const;
@@ -59,7 +82,11 @@ export default function TeamTable({
 						teamLabel === "Blue Team" ? "bg-cyan-500" : "bg-red-500"
 					}`}
 				/>
-				<span className={teamLabel === "Blue Team" ? "text-cyan-400" : "text-red-400"}>
+				<span
+					className={
+						teamLabel === "Blue Team" ? "text-cyan-400" : "text-red-400"
+					}
+				>
 					{teamLabel}
 				</span>
 				<span className="text-muted-foreground">—</span>
@@ -69,16 +96,19 @@ export default function TeamTable({
 			</div>
 			{bans && bans.length > 0 && version && champions && (
 				<div className="mb-3 flex items-center gap-2">
-					<span className="text-sm font-semibold text-muted-foreground">Bans:</span>
+					<span className="text-sm font-semibold text-muted-foreground">
+						Bans:
+					</span>
 					<div className="flex flex-wrap items-center gap-1.5">
 						{bans.map((ban) => {
 							const champ = champions[ban.championId];
-							if (!champ) return (
-								<div
-									key={ban.pickTurn}
-									className="size-9 rounded-lg bg-muted/50"
-								/>
-							);
+							if (!champ)
+								return (
+									<div
+										key={ban.pickTurn}
+										className="size-9 rounded-lg bg-muted/50"
+									/>
+								);
 							return (
 								<Image
 									key={ban.pickTurn}
@@ -112,7 +142,9 @@ export default function TeamTable({
 							<TableHead className="text-center w-[100px] text-sm hidden md:table-cell">
 								Damage
 							</TableHead>
-							<TableHead className="text-sm hidden md:table-cell">Items</TableHead>
+							<TableHead className="text-sm hidden md:table-cell">
+								Items
+							</TableHead>
 						</TableRow>
 					</TableHeader>
 					<TableBody>
@@ -120,29 +152,29 @@ export default function TeamTable({
 							const kda =
 								p.deaths === 0
 									? "Perfect"
-									: (
-											(p.kills + p.assists) /
-											p.deaths
-										).toFixed(1);
+									: ((p.kills + p.assists) / p.deaths).toFixed(1);
 							const isExpanded = expanded === p.puuid;
 
 							return (
 								<Fragment key={p.puuid}>
 									<TableRow
-										className="cursor-pointer transition-colors hover:bg-accent/30 h-16"
-										onClick={() =>
-											setExpanded(
-												isExpanded ? null : p.puuid,
-											)
-										}
+										className={`cursor-pointer transition-colors hover:bg-accent/30 h-16 ${
+											matchBadges?.some((b) => b.puuid === p.puuid) ? "!border-b-0" : ""
+										}`}
+										onClick={() => setExpanded(isExpanded ? null : p.puuid)}
 									>
 										<TableCell>
 											<div className="flex items-center gap-3">
 												{(() => {
 													if (!playerRanks) return null;
 													const entries = playerRanks[p.puuid];
-													const relevantQueue = queueId === 440 ? "RANKED_FLEX_SR" : "RANKED_SOLO_5x5";
-													const entry = entries?.find(e => e.queueType === relevantQueue);
+													const relevantQueue =
+														queueId === 440
+															? "RANKED_FLEX_SR"
+															: "RANKED_SOLO_5x5";
+													const entry = entries?.find(
+														(e) => e.queueType === relevantQueue,
+													);
 													if (!entry) {
 														return (
 															<IconTooltip label="Unranked">
@@ -156,7 +188,11 @@ export default function TeamTable({
 															</IconTooltip>
 														);
 													}
-													const isApex = ["MASTER", "GRANDMASTER", "CHALLENGER"].includes(entry.tier);
+													const isApex = [
+														"MASTER",
+														"GRANDMASTER",
+														"CHALLENGER",
+													].includes(entry.tier);
 													const label = isApex
 														? `${entry.tier.charAt(0) + entry.tier.slice(1).toLowerCase()} ${entry.leaguePoints} LP`
 														: `${entry.tier.charAt(0) + entry.tier.slice(1).toLowerCase()} ${entry.rank}`;
@@ -174,10 +210,7 @@ export default function TeamTable({
 												})()}
 												{version && (
 													<Image
-														src={getChampionIcon(
-															version,
-															p.championName,
-														)}
+														src={getChampionIcon(version, p.championName)}
 														alt={p.championName}
 														width={44}
 														height={44}
@@ -188,14 +221,20 @@ export default function TeamTable({
 													<div className="flex items-center gap-1 shrink-0">
 														<div className="flex flex-col gap-0.5">
 															<Image
-																src={getSummonerSpellIcon(version, p.summoner1Id)}
+																src={getSummonerSpellIcon(
+																	version,
+																	p.summoner1Id,
+																)}
 																alt="Spell 1"
 																width={20}
 																height={20}
 																className="rounded size-5 min-w-5 min-h-5"
 															/>
 															<Image
-																src={getSummonerSpellIcon(version, p.summoner2Id)}
+																src={getSummonerSpellIcon(
+																	version,
+																	p.summoner2Id,
+																)}
 																alt="Spell 2"
 																width={20}
 																height={20}
@@ -205,9 +244,16 @@ export default function TeamTable({
 														{(() => {
 															const primaryStyle = p.perks.styles[0];
 															const secondaryStyle = p.perks.styles[1];
-															const keystoneId = primaryStyle?.selections[0]?.perk;
-															const keystoneRune = keystoneId && runeData ? runeData.runes.get(keystoneId) : null;
-															const subStyle = secondaryStyle && runeData ? runeData.styles.get(secondaryStyle.style) : null;
+															const keystoneId =
+																primaryStyle?.selections[0]?.perk;
+															const keystoneRune =
+																keystoneId && runeData
+																	? runeData.runes.get(keystoneId)
+																	: null;
+															const subStyle =
+																secondaryStyle && runeData
+																	? runeData.styles.get(secondaryStyle.style)
+																	: null;
 															return (
 																<div className="flex flex-col gap-0.5">
 																	{keystoneRune && (
@@ -254,47 +300,29 @@ export default function TeamTable({
 										<TableCell className="text-center">
 											<p className="text-sm font-mono font-bold">
 												{p.kills}
-												<span className="text-muted-foreground">
-													/
-												</span>
+												<span className="text-muted-foreground">/</span>
 												{p.deaths}
-												<span className="text-muted-foreground">
-													/
-												</span>
+												<span className="text-muted-foreground">/</span>
 												{p.assists}
 											</p>
-											<p className="text-sm text-muted-foreground">
-												{kda} KDA
-											</p>
+											<p className="text-sm text-muted-foreground">{kda} KDA</p>
 										</TableCell>
 										<TableCell className="text-center text-sm font-medium hidden sm:table-cell">
-											{p.totalMinionsKilled +
-												p.neutralMinionsKilled}
+											{p.totalMinionsKilled + p.neutralMinionsKilled}
 										</TableCell>
 										<TableCell className="text-center text-sm font-medium hidden md:table-cell">
-											{(
-												p.goldEarned / 1000
-											).toFixed(1)}
-											k
+											{(p.goldEarned / 1000).toFixed(1)}k
 										</TableCell>
 										<TableCell className="text-center text-sm font-medium hidden md:table-cell">
-											{(
-												p.totalDamageDealtToChampions /
-												1000
-											).toFixed(1)}
-											k
+											{(p.totalDamageDealtToChampions / 1000).toFixed(1)}k
 										</TableCell>
 										<TableCell className="hidden md:table-cell">
 											<div className="flex gap-1">
 												{itemSlots.map((slot) => {
-													const itemId =
-														p[`item${slot}`];
+													const itemId = p[`item${slot}`];
 													const iconUrl =
 														version && itemId
-															? getItemIcon(
-																	version,
-																	itemId,
-																)
+															? getItemIcon(version, itemId)
 															: null;
 													return iconUrl ? (
 														<Image
@@ -315,22 +343,56 @@ export default function TeamTable({
 											</div>
 										</TableCell>
 									</TableRow>
+									{matchBadges && (() => {
+										const badges = matchBadges.filter((b) => b.puuid === p.puuid);
+										if (badges.length === 0) return null;
+										return (
+											<TableRow
+												className="hover:bg-transparent cursor-pointer"
+												onClick={() => setExpanded(isExpanded ? null : p.puuid)}
+											>
+												<TableCell colSpan={6} className="pt-0 pb-2 pl-4">
+													<TooltipProvider delayDuration={200}>
+														<div className="flex gap-1.5 flex-wrap">
+															{badges.map((b) => {
+																const def = getMatchBadgeById(b.badgeId);
+																if (!def) return null;
+																return (
+																	<Tooltip key={b.badgeId}>
+																		<TooltipTrigger asChild>
+																			<span
+																				className="rounded-full px-2.5 py-0.5 text-xs font-semibold border cursor-pointer"
+																				style={{ color: def.color, borderColor: `${def.color}33`, backgroundColor: `${def.color}10` }}
+																			>
+																				{def.name}
+																			</span>
+																		</TooltipTrigger>
+																		<TooltipContent><p>{def.description}</p></TooltipContent>
+																	</Tooltip>
+																);
+															})}
+														</div>
+													</TooltipProvider>
+												</TableCell>
+											</TableRow>
+										);
+									})()}
 									{isExpanded && (
 										<TableRow
 											key={`${p.puuid}-details`}
 											className="hover:bg-transparent"
 										>
-											<TableCell
-												colSpan={6}
-												className="p-0 bg-accent/10"
-											>
+											<TableCell colSpan={6} className="p-0 bg-accent/10">
 												<PlayerDetails
 													player={p}
 													gameDuration={gameDuration}
 													runeData={runeData}
 													timeline={timeline}
 													version={version}
-													participantId={participants.indexOf(p) + (teamLabel === "Blue Team" ? 1 : 6)}
+													participantId={
+														participants.indexOf(p) +
+														(teamLabel === "Blue Team" ? 1 : 6)
+													}
 													itemNames={itemNames}
 												/>
 											</TableCell>

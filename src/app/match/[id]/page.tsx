@@ -8,6 +8,7 @@ import { useRunes } from "@/hooks/useRunes";
 import { useItems } from "@/hooks/useItems";
 import { useChampions } from "@/hooks/useChampions";
 import { usePlayerRanks } from "@/hooks/usePlayerRanks";
+import { useMatchBadges } from "@/hooks/useMatchBadges";
 import MatchInfo from "@/components/match/match-info";
 import TeamTable from "@/components/match/team-table";
 import TeamSummary from "@/components/match/team-summary";
@@ -39,6 +40,7 @@ export default function MatchPage({
 
 	const puuids = match?.info.participants.map(p => p.puuid);
 	const { data: playerRanks } = usePlayerRanks(puuids);
+	const { data: matchBadges } = useMatchBadges(id);
 
 	useEffect(() => {
 		if (error) toast.error("Match not found");
@@ -89,6 +91,7 @@ export default function MatchPage({
 						champions={champions}
 						playerRanks={playerRanks}
 						queueId={match.info.queueId}
+						matchBadges={matchBadges}
 					/>
 				</motion.div>
 
@@ -110,6 +113,7 @@ export default function MatchPage({
 						champions={champions}
 						playerRanks={playerRanks}
 						queueId={match.info.queueId}
+						matchBadges={matchBadges}
 					/>
 				</motion.div>
 			</div>
