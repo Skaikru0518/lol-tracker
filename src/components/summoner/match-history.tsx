@@ -10,6 +10,7 @@ import {
 import { getQueueName } from "@/lib/queue-names";
 import MatchCard from "./match-card";
 import { type LPSnapshot } from "@/hooks/useLPHistory";
+import { useMatchBadgesBatch } from "@/hooks/useMatchBadges";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import {
@@ -136,6 +137,12 @@ export function MatchList({
 	const [championFilter, setChampionFilter] = useState<string | null>(null);
 	const [visibleCount, setVisibleCount] = useState(20);
 
+	const matchIds = useMemo(
+		() => matches?.map((m) => m.metadata.matchId),
+		[matches],
+	);
+	const { data: allBadges } = useMatchBadgesBatch(matchIds);
+
 	const playedChampions = useMemo<PlayedChampion[]>(() => {
 		if (!matches) return [];
 		const champCount = new Map<string, number>();
@@ -258,6 +265,7 @@ export function MatchList({
 								index={i}
 								runeData={runeData}
 								lpChange={lpChange}
+								matchBadges={allBadges?.[match.metadata.matchId]}
 							/>
 						);
 					})}

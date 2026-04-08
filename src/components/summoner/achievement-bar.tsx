@@ -6,8 +6,6 @@ import {
 	useDetectAchievements,
 } from "@/hooks/useAchievements";
 import { ACHIEVEMENTS } from "@/lib/achievements/definitions";
-import { type Match } from "@/lib/validators/match";
-import { type RankedEntry } from "@/lib/validators/ranked";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -19,25 +17,19 @@ import {
 
 interface AchievementBarProps {
 	puuid: string;
-	matches?: Match[];
-	ranked?: RankedEntry[];
 }
 
-export default function AchievementBar({
-	puuid,
-	matches,
-	ranked,
-}: AchievementBarProps) {
+export default function AchievementBar({ puuid }: AchievementBarProps) {
 	const { data: savedAchievements } = useAchievements(puuid);
 	const detect = useDetectAchievements();
 
-	// Trigger detection when matches load
+	// Trigger detection on mount
 	useEffect(() => {
-		if (matches && matches.length > 0 && puuid) {
-			detect.mutate({ puuid, matches, ranked });
+		if (puuid) {
+			detect.mutate({ puuid });
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [puuid, matches?.length]);
+	}, [puuid]);
 
 	const earnedIds = new Set(
 		savedAchievements?.map((a) => a.achievementId) ?? [],

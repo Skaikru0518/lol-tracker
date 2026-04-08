@@ -1,11 +1,9 @@
 import type { MetadataRoute } from "next";
-import { prisma } from "@/lib/db";
 
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+export default function sitemap(): MetadataRoute.Sitemap {
 	const baseUrl = "https://summon-gg.vercel.app";
 
-	// Static pages
-	const staticPages: MetadataRoute.Sitemap = [
+	return [
 		{
 			url: baseUrl,
 			lastModified: new Date(),
@@ -25,19 +23,4 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 			priority: 0.3,
 		},
 	];
-
-	// Dynamic summoner pages from tracked accounts
-	const accounts = await prisma.account.findMany({
-		where: { gameName: { not: "" } },
-		select: { gameName: true, tagLine: true, updatedAt: true },
-	});
-
-	const summonerPages: MetadataRoute.Sitemap = accounts.map((account) => ({
-		url: `${baseUrl}/summoner/${account.gameName}-${account.tagLine}`,
-		lastModified: account.updatedAt,
-		changeFrequency: "daily" as const,
-		priority: 0.8,
-	}));
-
-	return [...staticPages, ...summonerPages];
 }

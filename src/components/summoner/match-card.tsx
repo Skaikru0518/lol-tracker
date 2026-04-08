@@ -14,7 +14,6 @@ import {
 	type RuneStyle,
 } from "@/lib/icon-helpers";
 import { usePlayerRanks } from "@/hooks/usePlayerRanks";
-import { useMatchBadges } from "@/hooks/useMatchBadges";
 import { getMatchBadgeById } from "@/lib/match-badges/definitions";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
@@ -39,6 +38,7 @@ interface MatchCardProps {
 	index: number;
 	runeData?: { runes: Map<number, RuneData>; styles: Map<number, RuneStyle> };
 	lpChange?: number | null;
+	matchBadges?: { puuid: string; badgeId: string }[];
 }
 
 function formatDuration(seconds: number): string {
@@ -249,12 +249,12 @@ export default function MatchCard({
 	index,
 	runeData,
 	lpChange,
+	matchBadges,
 }: MatchCardProps) {
 	const [expanded, setExpanded] = useState(false);
 
 	const puuids = expanded ? participants.map((p) => p.puuid) : undefined;
 	const { data: playerRanks } = usePlayerRanks(puuids);
-	const { data: matchBadges } = useMatchBadges(matchId);
 
 	const relevantQueue = queueId === 440 ? "RANKED_FLEX_SR" : "RANKED_SOLO_5x5";
 

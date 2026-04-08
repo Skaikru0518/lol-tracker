@@ -1,6 +1,4 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { type Match } from "@/lib/validators/match";
-import { type RankedEntry } from "@/lib/validators/ranked";
 
 interface SavedAchievement {
 	achievementId: string;
@@ -13,15 +11,11 @@ async function fetchAchievements(puuid: string): Promise<SavedAchievement[]> {
 	return res.json();
 }
 
-async function detectAndSave(
-	puuid: string,
-	matches: Match[],
-	ranked?: RankedEntry[],
-): Promise<SavedAchievement[]> {
+async function detectAndSave(puuid: string): Promise<SavedAchievement[]> {
 	const res = await fetch("/api/achievements", {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
-		body: JSON.stringify({ puuid, matches, ranked }),
+		body: JSON.stringify({ puuid }),
 	});
 	if (!res.ok) throw new Error("Failed to detect achievements");
 	return res.json();
@@ -40,15 +34,7 @@ export function useDetectAchievements() {
 	const queryClient = useQueryClient();
 
 	return useMutation({
-		mutationFn: ({
-			puuid,
-			matches,
-			ranked,
-		}: {
-			puuid: string;
-			matches: Match[];
-			ranked?: RankedEntry[];
-		}) => detectAndSave(puuid, matches, ranked),
+		mutationFn: ({ puuid }: { puuid: string }) => detectAndSave(puuid),
 		onSuccess: (data, { puuid }) => {
 			queryClient.setQueryData(["achievements", puuid], data);
 		},

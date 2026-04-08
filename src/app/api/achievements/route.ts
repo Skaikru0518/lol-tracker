@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { detectAchievements } from "@/lib/achievements/detect";
+import { matchSchema } from "@/lib/validators/match";
 
 export async function GET(
 	req: NextRequest,
@@ -28,18 +29,33 @@ export async function POST(
 	| NextResponse<{ achievementId: string; earnedAt: Date }[]>
 > {
 	const body = await req.json();
-	const { puuid, matches, ranked } = body;
+	const { puuid } = body;
 
-	if (!puuid || !matches) {
+	if (!puuid) {
 		return NextResponse.json(
-			{ error: "puuid and matches are required" },
+			{ error: "puuid is required" },
 			{ status: 400 },
 		);
 	}
 
+	// Load matches from DB instead of receiving them in the body
+	const dbMatches: { data: unknown }[] = await prisma.$queryRaw`
+		SELECT data FROM "Match"
+		WHERE data->'info'->'participants' @> ${JSON.stringify([{ puuid }])}::jsonb
+		ORDER BY "gameCreation" DESC
+		LIMIT 50
+	`;
+
+	const matches = dbMatches.map((m) => matchSchema.parse(m.data));
+
+	// Load ranked from DB
+	const ranked = await prisma.rankedEntry.findMany({
+		where: { puuid },
+	});
+
 	const earnedIds = detectAchievements({ matches, puuid, ranked });
 
-	// upsert each earned achievement (skip duplicates)
+	// Upsert each earned achievement (skip duplicates)
 	for (const achievementId of earnedIds) {
 		try {
 			await prisma.playerAchievement.upsert({
@@ -48,7 +64,6 @@ export async function POST(
 				create: { puuid, achievementId },
 			});
 		} catch (e: unknown) {
-			// Skip unique constraint violations (P2002) from race conditions
 			if (e instanceof Error && "code" in e && (e as { code: string }).code === "P2002") continue;
 			throw e;
 		}
@@ -62,7 +77,7 @@ export async function POST(
 		},
 	});
 
-	// return all achievement for players
+	// Return all achievements
 	const all = await prisma.playerAchievement.findMany({
 		where: { puuid },
 		select: { achievementId: true, earnedAt: true },

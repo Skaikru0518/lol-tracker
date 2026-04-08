@@ -105,8 +105,6 @@ export default function SummonerPage({
 
 			<AchievementBar
 				puuid={account.puuid}
-				matches={matches}
-				ranked={ranked}
 			/>
 
 			{/* Content grid */}

@@ -5,17 +5,21 @@ interface MatchBadge {
 	badgeId: string;
 }
 
-async function fetchMatchBadges(matchId: string): Promise<MatchBadge[]> {
-	const res = await fetch(`/api/match-badges?matchId=${matchId}`);
+async function fetchMatchBadgesBatch(
+	matchIds: string[],
+): Promise<Record<string, MatchBadge[]>> {
+	const res = await fetch(
+		`/api/match-badges/batch?matchIds=${matchIds.join(",")}`,
+	);
 	if (!res.ok) throw new Error("Failed to fetch match badges");
 	return res.json();
 }
 
-export function useMatchBadges(matchId: string | undefined) {
-	return useQuery<MatchBadge[]>({
-		queryKey: ["matchBadges", matchId],
-		queryFn: () => fetchMatchBadges(matchId!),
+export function useMatchBadgesBatch(matchIds: string[] | undefined) {
+	return useQuery<Record<string, MatchBadge[]>>({
+		queryKey: ["matchBadgesBatch", matchIds],
+		queryFn: () => fetchMatchBadgesBatch(matchIds!),
 		staleTime: Infinity,
-		enabled: !!matchId,
+		enabled: !!matchIds && matchIds.length > 0,
 	});
 }
