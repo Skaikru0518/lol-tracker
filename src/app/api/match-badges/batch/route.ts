@@ -9,8 +9,7 @@ export async function GET(req: NextRequest) {
 		return NextResponse.json({ error: "matchIds required" }, { status: 400 });
 
 	const matchIds = matchIdsParam.split(",").filter(Boolean);
-	if (matchIds.length === 0)
-		return NextResponse.json({});
+	if (matchIds.length === 0) return NextResponse.json({});
 
 	// Fetch all existing badges in one query
 	const existing = await prisma.matchBadge.findMany({
@@ -37,30 +36,28 @@ export async function GET(req: NextRequest) {
 			where: { matchId: { in: missingIds } },
 		});
 
+		// Detect badges for all missing matches in parallel
+		const allNewBadges: { matchId: string; puuid: string; badgeId: string }[] = [];
+
 		for (const match of matches) {
 			try {
 				const parsed = matchSchema.parse(match.data);
 				const badges = detectMatchBadges(parsed.info.participants, parsed.info.gameDuration);
-
 				result[match.matchId] = badges;
-
-				// Save to DB
-				for (const badge of badges) {
-					try {
-						await prisma.matchBadge.create({
-							data: {
-								matchId: match.matchId,
-								puuid: badge.puuid,
-								badgeId: badge.badgeId,
-							},
-						});
-					} catch {
-						// Skip duplicates
-					}
+				for (const b of badges) {
+					allNewBadges.push({ matchId: match.matchId, puuid: b.puuid, badgeId: b.badgeId });
 				}
 			} catch {
 				result[match.matchId] = [];
 			}
+		}
+
+		// Bulk insert all new badges at once
+		if (allNewBadges.length > 0) {
+			await prisma.matchBadge.createMany({
+				data: allNewBadges,
+				skipDuplicates: true,
+			});
 		}
 	}
 
