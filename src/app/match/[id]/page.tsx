@@ -11,6 +11,8 @@ import { usePlayerRanks } from "@/hooks/usePlayerRanks";
 import { useMatchBadgesBatch } from "@/hooks/useMatchBadges";
 import MatchInfo from "@/components/match/match-info";
 import TeamTable from "@/components/match/team-table";
+import ArenaLeaderboard from "@/components/match/arena-leaderboard";
+import { isArenaMatch } from "@/lib/arena-helpers";
 import TeamSummary from "@/components/match/team-summary";
 import GoldChart from "@/components/match/gold-chart";
 import DamageChart from "@/components/match/damage-chart";
@@ -26,10 +28,13 @@ import BackButton from "@/components/ui/back-button";
 
 export default function MatchPage({
 	params,
+	searchParams,
 }: {
 	params: Promise<{ id: string }>;
+	searchParams: Promise<{ puuid?: string }>;
 }) {
 	const { id } = use(params);
+	const { puuid: currentPuuid } = use(searchParams);
 	const router = useRouter();
 	const { data: match, isLoading, error } = useMatch(id);
 	const { data: timeline } = useTimeline(id);
@@ -51,6 +56,7 @@ export default function MatchPage({
 	if (isLoading || !allLoaded) return <Loader fullScreen />;
 	if (!match) return null;
 
+	const arena = isArenaMatch(match.info.queueId);
 	const blueTeam = match.info.participants.slice(0, 5);
 	const redTeam = match.info.participants.slice(5, 10);
 	const blueWon = blueTeam[0]?.win ?? false;
@@ -74,95 +80,114 @@ export default function MatchPage({
 
 			{/* Teams */}
 			<div className="mt-6 space-y-6">
-				<motion.div
-					initial={{ opacity: 0, y: 15 }}
-					animate={{ opacity: 1, y: 0 }}
-					transition={{ duration: 0.5, delay: 0.1 }}
-				>
-					<TeamTable
-						participants={blueTeam}
-						teamLabel="Blue Team"
-						won={blueWon}
-						version={version}
-						gameDuration={match.info.gameDuration}
-						runeData={runeData}
-						timeline={timeline}
-						itemNames={itemNames}
-						bans={match.info.teams[0].bans}
-						champions={champions}
-						playerRanks={playerRanks}
-						queueId={match.info.queueId}
-						matchBadges={matchBadges}
-					/>
-				</motion.div>
+				{arena ? (
+					<motion.div
+						initial={{ opacity: 0, y: 15 }}
+						animate={{ opacity: 1, y: 0 }}
+						transition={{ duration: 0.5, delay: 0.1 }}
+					>
+						<ArenaLeaderboard
+							participants={match.info.participants}
+							version={version}
+							currentPuuid={currentPuuid}
+							matchBadges={matchBadges}
+						/>
+					</motion.div>
+				) : (
+					<>
+						<motion.div
+							initial={{ opacity: 0, y: 15 }}
+							animate={{ opacity: 1, y: 0 }}
+							transition={{ duration: 0.5, delay: 0.1 }}
+						>
+							<TeamTable
+								participants={blueTeam}
+								teamLabel="Blue Team"
+								won={blueWon}
+								version={version}
+								gameDuration={match.info.gameDuration}
+								runeData={runeData}
+								timeline={timeline}
+								itemNames={itemNames}
+								bans={match.info.teams[0].bans}
+								champions={champions}
+								playerRanks={playerRanks}
+								queueId={match.info.queueId}
+								matchBadges={matchBadges}
+							/>
+						</motion.div>
 
-				<motion.div
-					initial={{ opacity: 0, y: 15 }}
-					animate={{ opacity: 1, y: 0 }}
-					transition={{ duration: 0.5, delay: 0.15 }}
-				>
-					<TeamTable
-						participants={redTeam}
-						teamLabel="Red Team"
-						won={!blueWon}
-						version={version}
-						gameDuration={match.info.gameDuration}
-						runeData={runeData}
-						timeline={timeline}
-						itemNames={itemNames}
-						bans={match.info.teams[1].bans}
-						champions={champions}
-						playerRanks={playerRanks}
-						queueId={match.info.queueId}
-						matchBadges={matchBadges}
-					/>
-				</motion.div>
+						<motion.div
+							initial={{ opacity: 0, y: 15 }}
+							animate={{ opacity: 1, y: 0 }}
+							transition={{ duration: 0.5, delay: 0.15 }}
+						>
+							<TeamTable
+								participants={redTeam}
+								teamLabel="Red Team"
+								won={!blueWon}
+								version={version}
+								gameDuration={match.info.gameDuration}
+								runeData={runeData}
+								timeline={timeline}
+								itemNames={itemNames}
+								bans={match.info.teams[1].bans}
+								champions={champions}
+								playerRanks={playerRanks}
+								queueId={match.info.queueId}
+								matchBadges={matchBadges}
+							/>
+						</motion.div>
+					</>
+				)}
 			</div>
 
-			{/* Details section */}
-			<motion.div
-				initial={{ opacity: 0 }}
-				animate={{ opacity: 1 }}
-				transition={{ duration: 0.5, delay: 0.25 }}
-				className="mt-10"
-			>
-				<h2 className="mb-6 text-lg font-bold tracking-tight">
-					Details
-				</h2>
+			{/* Details section — not available for Arena */}
+			{!arena && (
+				<motion.div
+					initial={{ opacity: 0 }}
+					animate={{ opacity: 1 }}
+					transition={{ duration: 0.5, delay: 0.25 }}
+					className="mt-10"
+				>
+					<h2 className="mb-6 text-lg font-bold tracking-tight">
+						Details
+					</h2>
 
-				<div className="space-y-6">
-					{/* Gold Advantage */}
-					<GoldChart timeline={timeline} />
+					<div className="space-y-6">
+						{/* Gold Advantage */}
+						<GoldChart timeline={timeline} />
 
-					{/* Damage + Vision side by side */}
-					<div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-						<DamageChart
-							participants={match.info.participants}
-						/>
-						<VisionChart
-							participants={match.info.participants}
-						/>
+						{/* Damage + Vision side by side */}
+						<div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+							<DamageChart
+								participants={match.info.participants}
+							/>
+							<VisionChart
+								participants={match.info.participants}
+							/>
+						</div>
+
+						{/* Kill Timeline + Team Summary side by side */}
+						<div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+							<KillTimeline
+								timeline={timeline}
+								participants={match.info.participants}
+							/>
+							<TeamSummary
+								blueTeam={blueTeam}
+								redTeam={redTeam}
+							/>
+						</div>
+
+						{/* CS & Gold over time */}
+						<CsGoldChart timeline={timeline} />
+
+						{/* Objectives */}
+						<ObjectivesTimeline timeline={timeline} participants={match.info.participants} version={version} />
 					</div>
-
-					{/* Kill Timeline + Team Summary side by side */}
-					<div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-						<KillTimeline
-							timeline={timeline}
-							participants={match.info.participants}
-						/>
-						<TeamSummary
-							blueTeam={blueTeam}
-							redTeam={redTeam}
-						/>
-					</div>
-
-					{/* CS & Gold over time */}
-					<CsGoldChart timeline={timeline} />
-
-					{/* Objectives */}
-					<ObjectivesTimeline timeline={timeline} participants={match.info.participants} version={version} />
-				</div>
-			</motion.div>
+				</motion.div>
+			)}
 		</div>
 	);
 }

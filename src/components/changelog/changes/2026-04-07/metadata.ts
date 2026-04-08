@@ -69,6 +69,12 @@ const changelog: ChangelogEntry = {
 			description:
 				"Overview stats (last 50 games) now exclude ARAM and Arena matches for more relevant ranked/normal statistics.",
 		},
+		{
+			category: "feature",
+			title: "Arena Match Support",
+			description:
+				"Full Arena (2v2v2v2v2v2v2v2) match support. Match cards show placement (1st-8th) with color coding — gold, silver, bronze for top 3, green for 4th, red for 5th-8th. Expanded dropdown shows all 8 teams in a placement leaderboard. Match detail page renders a dedicated Arena leaderboard instead of the standard team tables.",
+		},
 	],
 };
 

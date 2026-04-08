@@ -15,6 +15,7 @@ import {
 } from "@/lib/icon-helpers";
 import { usePlayerRanks } from "@/hooks/usePlayerRanks";
 import { getMatchBadgeById } from "@/lib/match-badges/definitions";
+import { isArenaMatch, getArenaTeams, getPlacementColor, getPlacementSuffix, isArenaWin } from "@/lib/arena-helpers";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
@@ -272,6 +273,8 @@ export default function MatchCard({
 	const playerBadges = getBadgesForPlayer(player.puuid);
 	const queueLabel = formatQueueLabel(queueName);
 	const ranked = isRankedQueue(queueId);
+	const arena = isArenaMatch(queueId);
+	const placement = player.placement ?? (player.win ? 1 : 5);
 
 	const kda =
 		player.deaths === 0
@@ -289,7 +292,7 @@ export default function MatchCard({
 				animate={{ opacity: 1, y: 0 }}
 				transition={{ duration: 0.3, delay: index * 0.04 }}
 				className={`rounded-xl border overflow-hidden transition-colors ${
-					player.win ? "border-win/25 bg-win/10" : "border-loss/25 bg-loss/10"
+					(arena ? isArenaWin(placement) : player.win) ? "border-win/25 bg-win/10" : "border-loss/25 bg-loss/10"
 				}`}
 			>
 				{/* Clickable card */}
@@ -301,14 +304,25 @@ export default function MatchCard({
 					<div className="hidden lg:flex items-center py-2.5 pl-3">
 						{/* Result block */}
 						<div className="text-center min-w-[62px] px-1">
-							<p className={`text-sm font-bold ${player.win ? "text-win" : "text-loss"}`}>
-								{player.win ? "Victory" : "Defeat"}
-							</p>
-							<p className="text-sm text-muted-foreground">{formatDuration(gameDuration)}</p>
-							{ranked && (
-								<p className={`text-sm font-bold ${lpChange != null ? (lpChange >= 0 ? "text-win" : "text-loss") : "text-muted-foreground"}`}>
-									{lpChange != null ? `${lpChange >= 0 ? "+" : ""}${lpChange}` : "—"}
-								</p>
+							{arena ? (
+								<>
+									<p className="text-lg font-extrabold" style={{ color: getPlacementColor(placement) }}>
+										{placement}<span className="text-xs align-super">{getPlacementSuffix(placement)}</span>
+									</p>
+									<p className="text-sm text-muted-foreground">{formatDuration(gameDuration)}</p>
+								</>
+							) : (
+								<>
+									<p className={`text-sm font-bold ${player.win ? "text-win" : "text-loss"}`}>
+										{player.win ? "Victory" : "Defeat"}
+									</p>
+									<p className="text-sm text-muted-foreground">{formatDuration(gameDuration)}</p>
+									{ranked && (
+										<p className={`text-sm font-bold ${lpChange != null ? (lpChange >= 0 ? "text-win" : "text-loss") : "text-muted-foreground"}`}>
+											{lpChange != null ? `${lpChange >= 0 ? "+" : ""}${lpChange}` : "—"}
+										</p>
+									)}
+								</>
 							)}
 						</div>
 						<VerticalSep />
@@ -378,10 +392,12 @@ export default function MatchCard({
 						<VerticalSep />
 						{/* CS/min + Damage */}
 						<div className="flex gap-3 px-2.5">
-							<div className="text-center">
-								<p className="text-sm font-medium">{player.totalMinionsKilled + player.neutralMinionsKilled}</p>
-								<p className="text-xs text-muted-foreground">{((player.totalMinionsKilled + player.neutralMinionsKilled) / (gameDuration / 60)).toFixed(1)}/m</p>
-							</div>
+							{!arena && (
+								<div className="text-center">
+									<p className="text-sm font-medium">{player.totalMinionsKilled + player.neutralMinionsKilled}</p>
+									<p className="text-xs text-muted-foreground">{((player.totalMinionsKilled + player.neutralMinionsKilled) / (gameDuration / 60)).toFixed(1)}/m</p>
+								</div>
+							)}
 							<div className="text-center">
 								<p className="text-sm font-medium">{formatGold(player.totalDamageDealtToChampions)}</p>
 								<p className="text-xs text-muted-foreground">dmg</p>
@@ -405,7 +421,15 @@ export default function MatchCard({
 					{/* Mobile layout */}
 					<div className="flex lg:hidden flex-col gap-2 p-3">
 						<div className="flex items-center gap-3">
-							<div className={`w-1 self-stretch rounded-full shrink-0 ${player.win ? "bg-win" : "bg-loss"}`} />
+							{arena ? (
+								<div className="min-w-[28px] text-center">
+									<span className="text-base font-extrabold" style={{ color: getPlacementColor(placement) }}>
+										{placement}<span className="text-[9px] align-super">{getPlacementSuffix(placement)}</span>
+									</span>
+								</div>
+							) : (
+								<div className={`w-1 self-stretch rounded-full shrink-0 ${player.win ? "bg-win" : "bg-loss"}`} />
+							)}
 							{version && (
 								<Image
 									src={getChampionIcon(version, player.championName)}
@@ -466,72 +490,146 @@ export default function MatchCard({
 							transition={{ duration: 0.2 }}
 							className="overflow-hidden"
 						>
-							<div className="border-t border-white/5 px-3 py-3 space-y-3">
-								{/* Column headers */}
-								<div className="hidden lg:flex items-center gap-2 px-2 text-[10px] uppercase tracking-wider text-muted-foreground">
-									<span className="w-8" />
-									<span className="w-10" />
-									<span className="w-9" />
-									<span className="flex-1">Player</span>
-									<span style={{ width: "190px" }}>Items</span>
-									<span className="w-18 text-right">KDA</span>
-									<span className="w-18 text-right">CS (m)</span>
-									<span className="w-14 text-right">Gold</span>
-									<span className="w-14 text-right">Dmg</span>
+							{arena ? (
+								<div className="border-t border-white/5 px-3 py-3 space-y-1">
+									{getArenaTeams(participants).map((team) => {
+										const isPlayerTeam = team.players.some((p) => p.puuid === player.puuid);
+										const isTopHalf = team.placement <= 4;
+										return (
+											<div key={team.placement}>
+												<div
+													className={`flex gap-2 px-2 py-2 rounded-lg ${
+														isPlayerTeam ? "bg-primary/10 ring-1 ring-primary/30" : ""
+													} ${!isTopHalf ? "opacity-60" : ""}`}
+												>
+													<div className="min-w-[28px] flex items-center justify-center">
+														<span className="text-sm font-bold" style={{ color: getPlacementColor(team.placement) }}>
+															{team.placement}<span className="text-[9px] align-super">{getPlacementSuffix(team.placement)}</span>
+														</span>
+													</div>
+													<div className="flex-1 space-y-1">
+														{team.players.map((p) => (
+															<div key={p.puuid} className="flex items-center gap-2 text-xs">
+																{version && (
+																	<Image
+																		src={getChampionIcon(version, p.championName)}
+																		alt={p.championName}
+																		width={24}
+																		height={24}
+																		className="rounded shrink-0"
+																	/>
+																)}
+																<Link
+																	href={`/summoner/${p.riotIdGameName}-${p.riotIdTagline}`}
+																	onClick={(e) => e.stopPropagation()}
+																	className={`font-medium hover:text-primary transition-colors truncate min-w-0 ${
+																		p.puuid === player.puuid ? "text-primary" : ""
+																	}`}
+																>
+																	{p.riotIdGameName}
+																</Link>
+																<span className="text-muted-foreground">{getChampionDisplayName(p.championName)}</span>
+																<span className="flex-1" />
+																{version && (
+																	<div className="hidden lg:flex gap-0.5">
+																		{[p.item0, p.item1, p.item2, p.item3, p.item4, p.item5, p.item6].map((itemId, idx) => {
+																			const icon = getItemIcon(version, itemId);
+																			return icon ? (
+																				<Image key={idx} src={icon} alt="" width={20} height={20} className="rounded-sm" />
+																			) : (
+																				<div key={idx} className="size-5 rounded-sm bg-muted/60 border border-border/30" />
+																			);
+																		})}
+																	</div>
+																)}
+																<span className="font-mono w-16 text-right">{p.kills}/{p.deaths}/{p.assists}</span>
+																<span className="text-muted-foreground w-12 text-right">{formatGold(p.totalDamageDealtToChampions)}</span>
+															</div>
+														))}
+													</div>
+												</div>
+												{team.placement === 4 && (
+													<Separator className="my-2 mx-2 bg-black dark:bg-white/50" />
+												)}
+											</div>
+										);
+									})}
+									<Link
+										href={`/match/${matchId}?puuid=${player.puuid}`}
+										onClick={(e) => e.stopPropagation()}
+										className="block text-center text-xs text-primary hover:text-primary/80 font-medium py-1 transition-colors"
+									>
+										View Full Details →
+									</Link>
 								</div>
-								{/* Blue team */}
-								<div className="space-y-0.5">
-									<p className="text-sm uppercase tracking-wider font-semibold text-blue-400 px-2">
-										Blue Team · <span className={blueTeam[0]?.win ? "text-win" : "text-loss"}>
-											{blueTeam[0]?.win ? "Victory" : "Defeat"}
-										</span>
-									</p>
-									{blueTeam.map((p) => (
-										<PlayerRow
-											key={p.puuid}
-											p={p}
-											isCurrentPlayer={p.puuid === player.puuid}
-											version={version}
-											gameDuration={gameDuration}
-											rankEntry={getRankForPlayer(p.puuid)}
-											runeData={runeData}
-											badgeIds={getBadgesForPlayer(p.puuid)}
-										/>
-									))}
+							) : (
+								<div className="border-t border-white/5 px-3 py-3 space-y-3">
+									{/* Column headers */}
+									<div className="hidden lg:flex items-center gap-2 px-2 text-[10px] uppercase tracking-wider text-muted-foreground">
+										<span className="w-8" />
+										<span className="w-10" />
+										<span className="w-9" />
+										<span className="flex-1">Player</span>
+										<span style={{ width: "190px" }}>Items</span>
+										<span className="w-18 text-right">KDA</span>
+										<span className="w-18 text-right">CS (m)</span>
+										<span className="w-14 text-right">Gold</span>
+										<span className="w-14 text-right">Dmg</span>
+									</div>
+									{/* Blue team */}
+									<div className="space-y-0.5">
+										<p className="text-sm uppercase tracking-wider font-semibold text-blue-400 px-2">
+											Blue Team · <span className={blueTeam[0]?.win ? "text-win" : "text-loss"}>
+												{blueTeam[0]?.win ? "Victory" : "Defeat"}
+											</span>
+										</p>
+										{blueTeam.map((p) => (
+											<PlayerRow
+												key={p.puuid}
+												p={p}
+												isCurrentPlayer={p.puuid === player.puuid}
+												version={version}
+												gameDuration={gameDuration}
+												rankEntry={getRankForPlayer(p.puuid)}
+												runeData={runeData}
+												badgeIds={getBadgesForPlayer(p.puuid)}
+											/>
+										))}
+									</div>
+
+									<Separator className="mx-2 bg-black dark:bg-white/50" />
+
+									{/* Red team */}
+									<div className="space-y-0.5">
+										<p className="text-sm uppercase tracking-wider font-semibold text-red-400 px-2">
+											Red Team · <span className={redTeam[0]?.win ? "text-win" : "text-loss"}>
+												{redTeam[0]?.win ? "Victory" : "Defeat"}
+											</span>
+										</p>
+										{redTeam.map((p) => (
+											<PlayerRow
+												key={p.puuid}
+												p={p}
+												isCurrentPlayer={p.puuid === player.puuid}
+												version={version}
+												gameDuration={gameDuration}
+												rankEntry={getRankForPlayer(p.puuid)}
+												runeData={runeData}
+												badgeIds={getBadgesForPlayer(p.puuid)}
+											/>
+										))}
+									</div>
+
+									{/* View full details */}
+									<Link
+										href={`/match/${matchId}?puuid=${player.puuid}`}
+										onClick={(e) => e.stopPropagation()}
+										className="block text-center text-xs text-primary hover:text-primary/80 font-medium py-1 transition-colors"
+									>
+										View Full Details →
+									</Link>
 								</div>
-
-								<Separator className="mx-2 bg-black dark:bg-white/50" />
-
-								{/* Red team */}
-								<div className="space-y-0.5">
-									<p className="text-sm uppercase tracking-wider font-semibold text-red-400 px-2">
-										Red Team · <span className={redTeam[0]?.win ? "text-win" : "text-loss"}>
-											{redTeam[0]?.win ? "Victory" : "Defeat"}
-										</span>
-									</p>
-									{redTeam.map((p) => (
-										<PlayerRow
-											key={p.puuid}
-											p={p}
-											isCurrentPlayer={p.puuid === player.puuid}
-											version={version}
-											gameDuration={gameDuration}
-											rankEntry={getRankForPlayer(p.puuid)}
-											runeData={runeData}
-											badgeIds={getBadgesForPlayer(p.puuid)}
-										/>
-									))}
-								</div>
-
-								{/* View full details */}
-								<Link
-									href={`/match/${matchId}`}
-									onClick={(e) => e.stopPropagation()}
-									className="block text-center text-xs text-primary hover:text-primary/80 font-medium py-1 transition-colors"
-								>
-									View Full Details →
-								</Link>
-							</div>
+							)}
 						</motion.div>
 					)}
 				</AnimatePresence>

@@ -81,6 +81,10 @@ export const participantSchema = z.object({
 	teamPosition: z.string(),
 	individualPosition: z.string(),
 	teamId: z.number(),
+	// Arena
+	placement: z.number().optional(),
+	playerSubteamId: z.number().optional(),
+	subteamPlacement: z.number().optional(),
 });
 
 export const matchSchema = z.object({
