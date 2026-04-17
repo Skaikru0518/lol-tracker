@@ -64,6 +64,7 @@ export async function GET(req: NextRequest) {
 				{ status: error.status },
 			);
 		}
+		console.error("[api/account] Unhandled error:", error);
 		return NextResponse.json(
 			{ error: "Internal server error" },
 			{ status: 500 },

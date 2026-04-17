@@ -93,6 +93,8 @@ export default function RootLayout({
 }: Readonly<{
 	children: React.ReactNode;
 }>) {
+	const maintenance = process.env.MAINTENANCE_MODE === "true";
+
 	return (
 		<html
 			lang="en"
@@ -106,23 +108,39 @@ export default function RootLayout({
 		>
 			<body className="min-h-full flex flex-col font-sans scroll-smooth">
 				<ThemeProvider>
-					<AuroraBackground />
-					<QueryProvider>
-						<Toaster
-							toastOptions={{
-								style: {
-									background: "hsl(220 20% 12%)",
-									color: "hsl(40 20% 90%)",
-									border: "1px solid hsl(220 15% 20%)",
-									fontSize: "14px",
-								},
-							}}
-						/>
-						<Navbar />
-						<main className="flex-1 pt-14 pb-12">{children}</main>
-						<Analytics />
-						<Footer />
-					</QueryProvider>
+					{maintenance ? (
+						<div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-background">
+							<div className="text-center space-y-4 px-6">
+								<div className="text-6xl">🔧</div>
+								<h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
+									Under Maintenance
+								</h1>
+								<p className="text-lg text-muted-foreground max-w-md">
+									We&apos;re migrating to a new database. Be right back!
+								</p>
+							</div>
+						</div>
+					) : (
+						<>
+							<AuroraBackground />
+							<QueryProvider>
+								<Toaster
+									toastOptions={{
+										style: {
+											background: "hsl(220 20% 12%)",
+											color: "hsl(40 20% 90%)",
+											border: "1px solid hsl(220 15% 20%)",
+											fontSize: "14px",
+										},
+									}}
+								/>
+								<Navbar />
+								<main className="flex-1 pt-14 pb-12">{children}</main>
+								<Analytics />
+								<Footer />
+							</QueryProvider>
+						</>
+					)}
 				</ThemeProvider>
 			</body>
 		</html>

@@ -4,11 +4,13 @@ import "dotenv/config";
 import { defineConfig } from "prisma/config";
 
 export default defineConfig({
-  schema: "prisma/schema.prisma",
-  migrations: {
-    path: "prisma/migrations",
-  },
-  datasource: {
-    url: process.env["DATABASE_URL"],
-  },
+	schema: "prisma/schema.prisma",
+	migrations: {
+		path: "prisma/migrations",
+	},
+	datasource: {
+		// Runtime: pooler URL (pgbouncer, port 6543) for connection pooling
+		// Migrations: direct URL (port 5432) because pgbouncer can't handle migration commands
+		url: process.env["DIRECT_URL"] ?? process.env["DATABASE_URL"],
+	},
 });
