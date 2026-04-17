@@ -8,6 +8,7 @@ import { Toaster } from "react-hot-toast";
 import AuroraBackground from "@/components/ui/aurora-background";
 import Navbar from "@/components/layout/navbar";
 import Footer from "@/components/layout/footer";
+import MaintenanceScreen from "@/components/layout/maintenance-screen";
 import { Analytics } from "@vercel/analytics/next";
 
 const geistSans = Geist({
@@ -109,17 +110,10 @@ export default function RootLayout({
 			<body className="min-h-full flex flex-col font-sans scroll-smooth">
 				<ThemeProvider>
 					{maintenance ? (
-						<div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-background">
-							<div className="text-center space-y-4 px-6">
-								<div className="text-6xl">🔧</div>
-								<h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
-									Under Maintenance
-								</h1>
-								<p className="text-lg text-muted-foreground max-w-md">
-									We&apos;re migrating to a new database. Be right back!
-								</p>
-							</div>
-						</div>
+						<>
+							<AuroraBackground />
+							<MaintenanceScreen />
+						</>
 					) : (
 						<>
 							<AuroraBackground />
