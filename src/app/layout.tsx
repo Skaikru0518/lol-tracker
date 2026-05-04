@@ -10,6 +10,7 @@ import Navbar from "@/components/layout/navbar";
 import Footer from "@/components/layout/footer";
 import MaintenanceScreen from "@/components/layout/maintenance-screen";
 import { Analytics } from "@vercel/analytics/next";
+import { isMaintenanceMode } from "@/lib/app-settings";
 
 const geistSans = Geist({
 	variable: "--font-geist-sans",
@@ -89,12 +90,12 @@ export const metadata: Metadata = {
 	},
 };
 
-export default function RootLayout({
+export default async function RootLayout({
 	children,
 }: Readonly<{
 	children: React.ReactNode;
 }>) {
-	const maintenance = process.env.MAINTENANCE_MODE === "true";
+	const maintenance = await isMaintenanceMode();
 
 	return (
 		<html
