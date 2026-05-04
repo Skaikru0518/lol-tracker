@@ -22,6 +22,8 @@ const geistMono = Geist_Mono({
 	subsets: ["latin"],
 });
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
 	title: {
 		default: "Summon.gg — League of Legends Summoner Tracker",
