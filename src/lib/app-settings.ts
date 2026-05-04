@@ -23,5 +23,6 @@ export async function setAppSetting(key: string, value: string): Promise<void> {
 
 export async function isMaintenanceMode(): Promise<boolean> {
 	const value = await getAppSetting("MAINTENANCE_MODE");
+	if (value == null) return true;
 	return value === "true";
 }
