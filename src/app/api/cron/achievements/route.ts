@@ -1,15 +1,11 @@
 import { prisma } from "@/lib/db";
 import { detectAchievements } from "@/lib/achievements/detect";
 import { matchSchema } from "@/lib/validators/match";
+import { isAuthorizedCronRequest } from "@/lib/cron-auth";
 import { NextResponse } from "next/server";
 
 export async function GET(req: Request) {
-	const url = new URL(req.url);
-	const authHeader = req.headers.get("authorization");
-	const querySecret = url.searchParams.get("secret");
-	const secret = process.env.CRON_SECRET;
-
-	if (authHeader !== `Bearer ${secret}` && querySecret !== secret) {
+	if (!isAuthorizedCronRequest(req)) {
 		return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 	}
 
@@ -75,7 +71,7 @@ export async function GET(req: Request) {
 			accounts: accounts.length,
 			totalAwarded,
 		});
-	} catch (error) {
+	} catch {
 		return NextResponse.json(
 			{ error: "Internal server error" },
 			{ status: 500 },

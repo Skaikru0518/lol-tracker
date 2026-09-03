@@ -1,15 +1,10 @@
 import { prisma } from "@/lib/db";
 import { getRankedByPuuid } from "@/lib/riot/ranked";
+import { isAuthorizedCronRequest } from "@/lib/cron-auth";
 import { NextResponse } from "next/server";
 
 export async function GET(req: Request) {
-	// Verify cron secret via header or query param
-	const url = new URL(req.url);
-	const authHeader = req.headers.get("authorization");
-	const querySecret = url.searchParams.get("secret");
-	const secret = process.env.CRON_SECRET;
-
-	if (authHeader !== `Bearer ${secret}` && querySecret !== secret) {
+	if (!isAuthorizedCronRequest(req)) {
 		return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 	}
 
@@ -100,7 +95,7 @@ export async function GET(req: Request) {
 			accounts: accounts.length,
 			snapshotsCreated,
 		});
-	} catch (error) {
+	} catch {
 		return NextResponse.json(
 			{ error: "Internal server error" },
 			{ status: 500 },

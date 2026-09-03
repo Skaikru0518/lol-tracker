@@ -10,18 +10,18 @@ export async function getMatchIdsByPuuid(
 	const params = new URLSearchParams({ count: count.toString() });
 	if (championId) params.set("champion", championId.toString());
 	return riotFetch<string[]>(
-		`${EURPOE_URL}/lol/match/v5/matches/by-puuid/${puuid}/ids?${params}`,
+		`${EURPOE_URL}/lol/match/v5/matches/by-puuid/${encodeURIComponent(puuid)}/ids?${params}`,
 	);
 }
 
 export async function getMatchById(matchId: string) {
 	return riotFetch<Match>(
-		`${EURPOE_URL}/lol/match/v5/matches/${matchId}`,
+		`${EURPOE_URL}/lol/match/v5/matches/${encodeURIComponent(matchId)}`,
 	);
 }
 
 export async function getMatchTimeline(matchId: string) {
 	return riotFetch<Timeline>(
-		`${EURPOE_URL}/lol/match/v5/matches/${matchId}/timeline`,
+		`${EURPOE_URL}/lol/match/v5/matches/${encodeURIComponent(matchId)}/timeline`,
 	);
 }
