@@ -22,7 +22,7 @@ export async function GET(req: Request) {
 				// Load matches from DB using JSONB containment query
 				const dbMatches: { data: unknown }[] = await prisma.$queryRaw`
 					SELECT data FROM "Match"
-					WHERE data->'info'->'participants' @> ${JSON.stringify([{ puuid: account.puuid }])}::jsonb
+					WHERE data->'metadata'->'participants' @> ${JSON.stringify(account.puuid)}::jsonb
 					ORDER BY "gameCreation" DESC
 					LIMIT 50
 				`;

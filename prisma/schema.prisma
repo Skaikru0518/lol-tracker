@@ -71,6 +71,8 @@ model Match {
   timeLine MatchTimeline?
 
   updatedAt DateTime @updatedAt
+
+  @@index([gameCreation(sort: Desc)])
 }
 
 model MatchTimeline {
@@ -128,9 +130,9 @@ model PlayerAchievement {
 }
 
 model MatchBadge {
-  id String @id @default(cuid())
+  id      String @id @default(cuid())
   matchId String
-  puuid String
+  puuid   String
   badgeId String
 
   @@unique([matchId, puuid, badgeId])
@@ -138,9 +140,9 @@ model MatchBadge {
   @@index([puuid])
 }
 
-model AppSettings{
-  id String @id @default(cuid())
-  key String @unique
+model AppSettings {
+  id    String @id @default(cuid())
+  key   String @unique
   value String
 
   createdAt DateTime @default(now())

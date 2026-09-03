@@ -41,7 +41,7 @@ export async function POST(
 	// Load matches from DB instead of receiving them in the body
 	const dbMatches: { data: unknown }[] = await prisma.$queryRaw`
 		SELECT data FROM "Match"
-		WHERE data->'info'->'participants' @> ${JSON.stringify([{ puuid }])}::jsonb
+		WHERE data->'metadata'->'participants' @> ${JSON.stringify(puuid)}::jsonb
 		ORDER BY "gameCreation" DESC
 		LIMIT 50
 	`;
