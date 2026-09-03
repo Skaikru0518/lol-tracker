@@ -14,7 +14,7 @@ COPY . .
 
 # Install dependencies and build
 RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
-    CI=true pnpm install --ignore-scripts
+    CI=true pnpm install --ignore-scripts --frozen-lockfile
 RUN pnpm prisma generate 
 RUN pnpm run build
 
