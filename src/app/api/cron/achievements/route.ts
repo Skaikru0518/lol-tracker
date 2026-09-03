@@ -33,10 +33,6 @@ export async function GET(req: Request) {
 				});
 
 				if (earnedIds.length > 0) {
-					// One insert instead of a round trip per achievement. Rows that
-					// already exist keep their original earnedAt, so duplicates are
-					// skipped rather than updated, and the count reflects only what
-					// was newly granted this run.
 					const inserted = await prisma.playerAchievement.createMany({
 						data: earnedIds.map((achievementId) => ({
 							puuid: account.puuid,

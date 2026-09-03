@@ -2,6 +2,7 @@
 
 import { use } from "react";
 import { useAccount } from "@/hooks/useAccount";
+import { parseSummonerSlug } from "@/lib/riot-id";
 import { useSummoner } from "@/hooks/useSummoner";
 import { useRanked } from "@/hooks/useRanked";
 import { useMatches } from "@/hooks/useMatches";
@@ -38,7 +39,7 @@ export default function SummonerPage({
 	params: Promise<{ name: string }>;
 }) {
 	const { name } = use(params);
-	const [gameName, tagLine] = name.split("-");
+	const { gameName, tagLine } = parseSummonerSlug(name);
 	const router = useRouter();
 
 	const { data: version } = useDDragonVersion();

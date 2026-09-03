@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { Search } from "lucide-react";
 import { addSearchHistory } from "@/lib/search-history";
+import { parseRiotId, toSummonerSlug } from "@/lib/riot-id";
 
 export default function SummonerSearch({
 	compact,
@@ -21,14 +22,15 @@ export default function SummonerSearch({
 	function handleSubmit(e: React.FormEvent) {
 		e.preventDefault();
 
-		const [gameName, tagLine] = input.split("#");
-		if (!gameName || !tagLine) {
+		const riotId = parseRiotId(input);
+		if (!riotId) {
 			toast.error("Use format: GameName#TAG");
 			return;
 		}
 
+		const { gameName, tagLine } = riotId;
 		addSearchHistory(`${gameName}#${tagLine}`);
-		router.push(`/summoner/${gameName}-${tagLine}`);
+		router.push(`/summoner/${toSummonerSlug(gameName, tagLine)}`);
 	}
 
 	return (

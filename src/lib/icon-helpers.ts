@@ -1,14 +1,10 @@
-let cachedVersion: string | null = null;
-
 export async function getDDragonVersion(): Promise<string> {
-	if (cachedVersion) return cachedVersion;
-
 	const res = await fetch(
 		"https://ddragon.leagueoflegends.com/api/versions.json",
 	);
+	if (!res.ok) throw new Error("Failed to fetch Data Dragon versions");
 	const versions: string[] = await res.json();
-	cachedVersion = versions[0];
-	return cachedVersion;
+	return versions[0];
 }
 
 export function getSummonerIcon(version: string, iconId: number) {
@@ -78,12 +74,12 @@ export function getItemIcon(version: string, itemId: number) {
 	return `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/${itemId}.png`;
 }
 
-let cachedItems: Map<number, string> | null = null;
+let itemCache: { version: string; items: Map<number, string> } | null = null;
 
 export async function getItemMap(
 	version: string,
 ): Promise<Map<number, string>> {
-	if (cachedItems) return cachedItems;
+	if (itemCache?.version === version) return itemCache.items;
 
 	const res = await fetch(
 		`https://ddragon.leagueoflegends.com/cdn/${version}/data/en_US/item.json`,
@@ -95,7 +91,7 @@ export async function getItemMap(
 	for (const [id, item] of Object.entries(data.data) as [string, { name: string }][]) {
 		map.set(parseInt(id), item.name);
 	}
-	cachedItems = map;
+	itemCache = { version, items: map };
 	return map;
 }
 
@@ -122,7 +118,7 @@ export interface Champion {
 	name: string;
 }
 
-let cachedChampions: Record<number, Champion> | null = null;
+let championCache: { version: string; champions: Record<number, Champion> } | null = null;
 
 export interface RuneData {
 	id: number;
@@ -139,11 +135,15 @@ export interface RuneStyle {
 	runes: RuneData[];
 }
 
-let cachedRunes: Map<number, RuneData> | null = null;
-let cachedStyles: Map<number, RuneStyle> | null = null;
+let runeCache: {
+	version: string;
+	runes: Map<number, RuneData>;
+	styles: Map<number, RuneStyle>;
+} | null = null;
 
 export async function getRuneMap(version: string): Promise<{ runes: Map<number, RuneData>; styles: Map<number, RuneStyle> }> {
-	if (cachedRunes && cachedStyles) return { runes: cachedRunes, styles: cachedStyles };
+	if (runeCache?.version === version)
+		return { runes: runeCache.runes, styles: runeCache.styles };
 
 	const res = await fetch(`https://ddragon.leagueoflegends.com/cdn/${version}/data/en_US/runesReforged.json`);
 	if (!res.ok) throw new Error('Failed to fetch runes');
@@ -164,15 +164,14 @@ export async function getRuneMap(version: string): Promise<{ runes: Map<number, 
 		styleMap.set(style.id, { id: style.id, key: style.key, name: style.name, icon: style.icon, runes: allRunes });
 	}
 
-	cachedRunes = runeMap;
-	cachedStyles = styleMap;
+	runeCache = { version, runes: runeMap, styles: styleMap };
 	return { runes: runeMap, styles: styleMap };
 }
 
 export async function getChampionMap(
 	version: string,
 ): Promise<Record<number, Champion>> {
-	if (cachedChampions) return cachedChampions;
+	if (championCache?.version === version) return championCache.champions;
 
 	const res = await fetch(
 		`https://ddragon.leagueoflegends.com/cdn/${version}/data/en_US/champion.json`,
@@ -184,6 +183,6 @@ export async function getChampionMap(
 	for (const champ of Object.values(data.data) as Champion[]) {
 		map[parseInt(champ.key)] = champ;
 	}
-	cachedChampions = map;
+	championCache = { version, champions: map };
 	return map;
 }

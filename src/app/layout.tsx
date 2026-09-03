@@ -11,6 +11,7 @@ import Footer from "@/components/layout/footer";
 import MaintenanceScreen from "@/components/layout/maintenance-screen";
 import { Analytics } from "@vercel/analytics/next";
 import { isMaintenanceMode } from "@/lib/app-settings";
+import { SITE_URL } from "@/lib/site";
 
 const geistSans = Geist({
 	variable: "--font-geist-sans",
@@ -51,7 +52,7 @@ export const metadata: Metadata = {
 	],
 	authors: [{ name: "Skaikru0518" }],
 	creator: "Skaikru0518",
-	metadataBase: new URL("https://summon-gg.vercel.app"),
+	metadataBase: new URL(SITE_URL),
 	alternates: {
 		canonical: "/",
 	},
@@ -62,7 +63,7 @@ export const metadata: Metadata = {
 		title: "Summon.gg — League of Legends Summoner Tracker",
 		description:
 			"Track any League of Legends summoner — ranked stats, LP history, match history, champion mastery, live game detection, and achievement badges.",
-		url: "https://summon-gg.vercel.app",
+		url: SITE_URL,
 		images: [{ url: "/icon.ico" }],
 	},
 	twitter: {
@@ -124,9 +125,9 @@ export default async function RootLayout({
 								<Toaster
 									toastOptions={{
 										style: {
-											background: "hsl(220 20% 12%)",
-											color: "hsl(40 20% 90%)",
-											border: "1px solid hsl(220 15% 20%)",
+											background: "var(--card)",
+											color: "var(--card-foreground)",
+											border: "1px solid var(--border)",
 											fontSize: "14px",
 										},
 									}}

@@ -6,6 +6,7 @@ import { getChampionIcon, getChampionDisplayName, getItemIcon } from "@/lib/icon
 import { getMatchBadgeById } from "@/lib/match-badges/definitions";
 import Image from "next/image";
 import Link from "next/link";
+import { toSummonerSlug } from "@/lib/riot-id";
 import { Separator } from "@/components/ui/separator";
 import {
 	Tooltip,
@@ -86,7 +87,7 @@ export default function ArenaLeaderboard({
 													)}
 													<div className="flex-1 min-w-0">
 														<Link
-															href={`/summoner/${p.riotIdGameName}-${p.riotIdTagline}`}
+															href={`/summoner/${toSummonerSlug(p.riotIdGameName, p.riotIdTagline)}`}
 															className={`text-sm font-semibold hover:text-primary transition-colors ${
 																isSelf ? "text-primary" : ""
 															}`}

@@ -2,6 +2,7 @@
 
 import { use, useState, useEffect, useMemo } from "react";
 import { useAccount } from "@/hooks/useAccount";
+import { parseSummonerSlug, riotIdToSlug } from "@/lib/riot-id";
 import { useLiveGame } from "@/hooks/useLiveGame";
 import { useDDragonVersion } from "@/hooks/useDDragonVersion";
 import { useChampions } from "@/hooks/useChampions";
@@ -44,7 +45,7 @@ export default function LiveGamePage({
 	params: Promise<{ name: string }>;
 }) {
 	const { name } = use(params);
-	const [gameName, tagLine] = name.split("-");
+	const { gameName, tagLine } = parseSummonerSlug(name);
 
 	const { data: version } = useDDragonVersion();
 	const { data: champions } = useChampions();
@@ -394,7 +395,7 @@ function TeamTable({
 							{/* Player name */}
 							<TableCell>
 								<Link
-									href={`/summoner/${p.riotId.replace("#", "-")}`}
+									href={`/summoner/${riotIdToSlug(p.riotId)}`}
 									className="text-base font-semibold hover:text-primary transition-colors"
 								>
 									{p.riotId}

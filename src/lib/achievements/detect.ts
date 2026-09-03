@@ -20,9 +20,6 @@ export function detectAchievements(input: DetectionInput): string[] {
 	// Only look at last 10 matches
 	const recentMatches = allMatches.slice(0, WINDOW);
 
-	// Keep each match paired with the player's row in it. Matches the player is
-	// absent from are skipped, so a bare players[] array does not line up with
-	// recentMatches[] by index — the CS/min and Carry checks below read both.
 	const recent: {
 		match: AchievementMatch;
 		player: AchievementParticipant;

@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getSummonerIcon } from "@/lib/icon-helpers";
 import Image from "next/image";
 import Link from "next/link";
+import { toSummonerSlug } from "@/lib/riot-id";
 import { useMemo } from "react";
 
 interface RecentPlayersProps {
@@ -73,7 +74,7 @@ export default function RecentPlayers({
 					return (
 						<Link
 							key={p.puuid}
-							href={`/summoner/${p.gameName}-${p.tagLine}`}
+							href={`/summoner/${toSummonerSlug(p.gameName, p.tagLine)}`}
 							className="flex items-center gap-3 rounded-lg p-2 -mx-2 transition-colors hover:bg-accent/30"
 						>
 							{version ? (

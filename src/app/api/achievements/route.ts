@@ -40,7 +40,6 @@ export async function POST(
 
 	let earnedIds: string[];
 	try {
-		// Matches come from our own DB, projected to the detection fields
 		const matches = await loadAchievementMatches(puuid);
 		const ranked = await prisma.rankedEntry.findMany({ where: { puuid } });
 		earnedIds = detectAchievements({ matches, puuid, ranked });
@@ -52,8 +51,6 @@ export async function POST(
 		);
 	}
 
-	// One insert for everything newly earned; rows that already exist keep their
-	// original earnedAt, which is why duplicates are skipped rather than updated.
 	if (earnedIds.length > 0) {
 		await prisma.playerAchievement.createMany({
 			data: earnedIds.map((achievementId) => ({ puuid, achievementId })),

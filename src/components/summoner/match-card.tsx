@@ -19,6 +19,7 @@ import { isArenaMatch, getArenaTeams, getPlacementColor, getPlacementSuffix, isA
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
+import { toSummonerSlug } from "@/lib/riot-id";
 import { Separator } from "@/components/ui/separator";
 import {
 	Tooltip,
@@ -204,7 +205,7 @@ function PlayerRow({
 					/>
 				</div>
 				<Link
-					href={`/summoner/${p.riotIdGameName}-${p.riotIdTagline}`}
+					href={`/summoner/${toSummonerSlug(p.riotIdGameName, p.riotIdTagline)}`}
 					onClick={(e) => e.stopPropagation()}
 					className="truncate min-w-0 font-medium hover:text-primary transition-colors"
 				>
@@ -520,7 +521,7 @@ export default function MatchCard({
 																	/>
 																)}
 																<Link
-																	href={`/summoner/${p.riotIdGameName}-${p.riotIdTagline}`}
+																	href={`/summoner/${toSummonerSlug(p.riotIdGameName, p.riotIdTagline)}`}
 																	onClick={(e) => e.stopPropagation()}
 																	className={`font-medium hover:text-primary transition-colors truncate min-w-0 ${
 																		p.puuid === player.puuid ? "text-primary" : ""

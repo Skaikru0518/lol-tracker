@@ -19,8 +19,6 @@ export async function GET(req: NextRequest) {
 		});
 
 		return NextResponse.json(
-			// Newest 100 are fetched, then flipped back to chronological order
-			// for the chart, which plots the array as-is.
 			history.reverse().map((h) => ({
 				id: h.id,
 				tier: h.tier,

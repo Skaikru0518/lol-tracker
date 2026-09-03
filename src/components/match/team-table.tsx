@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/table";
 import Image from "next/image";
 import Link from "next/link";
+import { toSummonerSlug } from "@/lib/riot-id";
 import PlayerDetails from "./player-details";
 
 import { type Timeline } from "@/lib/validators/timeline";
@@ -281,7 +282,7 @@ export default function TeamTable({
 												)}
 												<div>
 													<Link
-														href={`/summoner/${p.riotIdGameName}-${p.riotIdTagline}`}
+														href={`/summoner/${toSummonerSlug(p.riotIdGameName, p.riotIdTagline)}`}
 														className="text-sm font-semibold hover:text-primary transition-colors"
 														onClick={(e) => e.stopPropagation()}
 													>

@@ -4,7 +4,6 @@ function safeEqual(a: string, b: string): boolean {
 	const bufA = Buffer.from(a);
 	const bufB = Buffer.from(b);
 
-	// timingSafeEqual throws on length mismatch, so compare lengths first
 	if (bufA.length !== bufB.length) return false;
 
 	return timingSafeEqual(bufA, bufB);

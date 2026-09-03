@@ -2,6 +2,7 @@
 
 import { use, useEffect, useMemo } from "react";
 import { useAccount } from "@/hooks/useAccount";
+import { parseSummonerSlug } from "@/lib/riot-id";
 import { useMatches } from "@/hooks/useMatches";
 import { useMastery } from "@/hooks/useMastery";
 import { useDDragonVersion } from "@/hooks/useDDragonVersion";
@@ -44,7 +45,7 @@ export default function ChampionPage({
 	params: Promise<{ name: string; champion: string }>;
 }) {
 	const { name, champion: championSlug } = use(params);
-	const [gameName, tagLine] = name.split("-");
+	const { gameName, tagLine } = parseSummonerSlug(name);
 
 	const { data: version } = useDDragonVersion();
 	const { data: champions } = useChampions();
