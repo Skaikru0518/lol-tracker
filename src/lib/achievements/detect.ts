@@ -1,8 +1,11 @@
-import { type Match, type Participant } from "@/lib/validators/match";
+import {
+	type AchievementMatch,
+	type AchievementParticipant,
+} from "@/lib/validators/match";
 import { type RankedEntry } from "@/lib/validators/ranked";
 
 interface DetectionInput {
-	matches: Match[];
+	matches: AchievementMatch[];
 	puuid: string;
 	ranked?: RankedEntry[];
 }
@@ -17,11 +20,19 @@ export function detectAchievements(input: DetectionInput): string[] {
 	// Only look at last 10 matches
 	const recentMatches = allMatches.slice(0, WINDOW);
 
-	const players: Participant[] = [];
+	// Keep each match paired with the player's row in it. Matches the player is
+	// absent from are skipped, so a bare players[] array does not line up with
+	// recentMatches[] by index — the CS/min and Carry checks below read both.
+	const recent: {
+		match: AchievementMatch;
+		player: AchievementParticipant;
+	}[] = [];
 	for (const match of recentMatches) {
-		const p = match.info.participants.find((p) => p.puuid === puuid);
-		if (p) players.push(p);
+		const player = match.info.participants.find((p) => p.puuid === puuid);
+		if (player) recent.push({ match, player });
 	}
+
+	const players = recent.map((entry) => entry.player);
 
 	if (players.length === 0) return earned;
 
@@ -66,11 +77,12 @@ export function detectAchievements(input: DetectionInput): string[] {
 
 	// CS Machine (avg 8+ CS/min over last 10, only counting 25+ min games)
 	const csMinGames: number[] = [];
-	for (let i = 0; i < players.length; i++) {
-		const match = recentMatches[i];
-		if (match && match.info.gameDuration / 60 >= 25) {
-			const p = players[i];
-			csMinGames.push((p.totalMinionsKilled + p.neutralMinionsKilled) / (match.info.gameDuration / 60));
+	for (const { match, player } of recent) {
+		if (match.info.gameDuration / 60 >= 25) {
+			csMinGames.push(
+				(player.totalMinionsKilled + player.neutralMinionsKilled) /
+					(match.info.gameDuration / 60),
+			);
 		}
 	}
 	if (csMinGames.length >= 3) {
@@ -91,17 +103,16 @@ export function detectAchievements(input: DetectionInput): string[] {
 	}
 
 	// Carry (50%+ of team's total damage in a match)
-	for (let i = 0; i < players.length; i++) {
-		const p = players[i];
-		const match = recentMatches[i];
-		if (match) {
-			const teamDamage = match.info.participants
-				.filter((pp) => pp.teamId === p.teamId)
-				.reduce((s, pp) => s + pp.totalDamageDealtToChampions, 0);
-			if (teamDamage > 0 && p.totalDamageDealtToChampions / teamDamage >= 0.5) {
-				earned.push("carry");
-				break;
-			}
+	for (const { match, player } of recent) {
+		const teamDamage = match.info.participants
+			.filter((pp) => pp.teamId === player.teamId)
+			.reduce((s, pp) => s + pp.totalDamageDealtToChampions, 0);
+		if (
+			teamDamage > 0 &&
+			player.totalDamageDealtToChampions / teamDamage >= 0.5
+		) {
+			earned.push("carry");
+			break;
 		}
 	}
 
@@ -120,7 +131,7 @@ export function detectAchievements(input: DetectionInput): string[] {
 
 	// One-Trick (70%+ on one champ, last 20)
 	const last20 = allMatches.slice(0, 20);
-	const last20Players: Participant[] = [];
+	const last20Players: AchievementParticipant[] = [];
 	for (const match of last20) {
 		const p = match.info.participants.find((p) => p.puuid === puuid);
 		if (p) last20Players.push(p);
@@ -153,7 +164,7 @@ export function detectAchievements(input: DetectionInput): string[] {
 	}
 
 	// --- Role Main (uses ALL matches, not just last 10) ---
-	const allPlayers: Participant[] = [];
+	const allPlayers: AchievementParticipant[] = [];
 	for (const match of allMatches) {
 		const p = match.info.participants.find((p) => p.puuid === puuid);
 		if (p) allPlayers.push(p);

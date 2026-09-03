@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 import { detectAchievements } from "@/lib/achievements/detect";
-import { matchSchema } from "@/lib/validators/match";
+import { loadAchievementMatches } from "@/lib/achievements/query";
 import { isAuthorizedCronRequest } from "@/lib/cron-auth";
 import { NextResponse } from "next/server";
 
@@ -19,15 +19,7 @@ export async function GET(req: Request) {
 
 		for (const account of accounts) {
 			try {
-				// Load matches from DB using JSONB containment query
-				const dbMatches: { data: unknown }[] = await prisma.$queryRaw`
-					SELECT data FROM "Match"
-					WHERE data->'metadata'->'participants' @> ${JSON.stringify(account.puuid)}::jsonb
-					ORDER BY "gameCreation" DESC
-					LIMIT 50
-				`;
-
-				const matches = dbMatches.map((m) => matchSchema.parse(m.data));
+				const matches = await loadAchievementMatches(account.puuid);
 
 				// Load ranked from DB
 				const ranked = await prisma.rankedEntry.findMany({
@@ -40,18 +32,19 @@ export async function GET(req: Request) {
 					ranked,
 				});
 
-				for (const achievementId of earnedIds) {
-					await prisma.playerAchievement.upsert({
-						where: {
-							puuid_achievementId: {
-								puuid: account.puuid,
-								achievementId,
-							},
-						},
-						update: {},
-						create: { puuid: account.puuid, achievementId },
+				if (earnedIds.length > 0) {
+					// One insert instead of a round trip per achievement. Rows that
+					// already exist keep their original earnedAt, so duplicates are
+					// skipped rather than updated, and the count reflects only what
+					// was newly granted this run.
+					const inserted = await prisma.playerAchievement.createMany({
+						data: earnedIds.map((achievementId) => ({
+							puuid: account.puuid,
+							achievementId,
+						})),
+						skipDuplicates: true,
 					});
-					totalAwarded++;
+					totalAwarded += inserted.count;
 				}
 
 				// Remove achievements no longer earned

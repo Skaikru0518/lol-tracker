@@ -111,3 +111,43 @@ export const matchSchema = z.object({
 export type Participant = z.infer<typeof participantSchema>;
 
 export type Match = z.infer<typeof matchSchema>;
+
+/**
+ * Narrow projection of a match, holding only what achievement detection reads.
+ *
+ * The achievement queries build this shape in SQL rather than selecting the
+ * whole stored match: a full match document is ~72 KB, and a cron run loads
+ * ~3000 of them. Projecting in Postgres keeps that around 1 KB per match.
+ *
+ * The shape mirrors `matchSchema` so detection can address `info.participants`
+ * the same way either way.
+ */
+export const achievementParticipantSchema = z.object({
+	puuid: z.string(),
+	teamId: z.number(),
+	championName: z.string(),
+	teamPosition: z.string(),
+	win: z.boolean(),
+	kills: z.number(),
+	deaths: z.number(),
+	assists: z.number(),
+	pentaKills: z.number(),
+	firstBloodKill: z.boolean(),
+	totalMinionsKilled: z.number(),
+	neutralMinionsKilled: z.number(),
+	visionScore: z.number(),
+	totalDamageDealtToChampions: z.number(),
+	totalDamageTaken: z.number(),
+	dragonKills: z.number(),
+});
+
+export const achievementMatchSchema = z.object({
+	info: z.object({
+		queueId: z.number(),
+		gameDuration: z.number(),
+		participants: z.array(achievementParticipantSchema),
+	}),
+});
+
+export type AchievementParticipant = z.infer<typeof achievementParticipantSchema>;
+export type AchievementMatch = z.infer<typeof achievementMatchSchema>;

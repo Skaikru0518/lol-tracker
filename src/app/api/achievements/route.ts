@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { detectAchievements } from "@/lib/achievements/detect";
-import { matchSchema } from "@/lib/validators/match";
+import { loadAchievementMatches } from "@/lib/achievements/query";
 
 export async function GET(
 	req: NextRequest,
@@ -38,35 +38,27 @@ export async function POST(
 		);
 	}
 
-	// Load matches from DB instead of receiving them in the body
-	const dbMatches: { data: unknown }[] = await prisma.$queryRaw`
-		SELECT data FROM "Match"
-		WHERE data->'metadata'->'participants' @> ${JSON.stringify(puuid)}::jsonb
-		ORDER BY "gameCreation" DESC
-		LIMIT 50
-	`;
+	let earnedIds: string[];
+	try {
+		// Matches come from our own DB, projected to the detection fields
+		const matches = await loadAchievementMatches(puuid);
+		const ranked = await prisma.rankedEntry.findMany({ where: { puuid } });
+		earnedIds = detectAchievements({ matches, puuid, ranked });
+	} catch (error) {
+		console.error("[api/achievements] detection failed:", error);
+		return NextResponse.json(
+			{ error: "Internal server error" },
+			{ status: 500 },
+		);
+	}
 
-	const matches = dbMatches.map((m) => matchSchema.parse(m.data));
-
-	// Load ranked from DB
-	const ranked = await prisma.rankedEntry.findMany({
-		where: { puuid },
-	});
-
-	const earnedIds = detectAchievements({ matches, puuid, ranked });
-
-	// Upsert each earned achievement (skip duplicates)
-	for (const achievementId of earnedIds) {
-		try {
-			await prisma.playerAchievement.upsert({
-				where: { puuid_achievementId: { puuid, achievementId } },
-				update: {},
-				create: { puuid, achievementId },
-			});
-		} catch (e: unknown) {
-			if (e instanceof Error && "code" in e && (e as { code: string }).code === "P2002") continue;
-			throw e;
-		}
+	// One insert for everything newly earned; rows that already exist keep their
+	// original earnedAt, which is why duplicates are skipped rather than updated.
+	if (earnedIds.length > 0) {
+		await prisma.playerAchievement.createMany({
+			data: earnedIds.map((achievementId) => ({ puuid, achievementId })),
+			skipDuplicates: true,
+		});
 	}
 
 	// Remove achievements no longer earned
