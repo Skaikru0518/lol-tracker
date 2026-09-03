@@ -14,7 +14,9 @@ COPY . .
 
 # Install dependencies and build
 RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
-    CI=true pnpm install && pnpm prisma generate && pnpm run build
+    CI=true pnpm install --ignore-scripts
+RUN pnpm prisma generate 
+RUN pnpm run build
 
 # ---------- Production Stage ----------
 FROM node:22-alpine
