@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getMatchIdsByPuuid, getMatchById } from "@/lib/riot/matches";
 import { RiotApiError } from "@/lib/riot/riot";
 import { prisma } from "@/lib/db";
+import { projectMatch } from "@/lib/match-projection";
 
 /**
  * Match ids already stored for a player, newest first. Used as a fallback when
@@ -84,7 +85,8 @@ export async function GET(req: NextRequest) {
 		// Return matches in original order
 		const matches = matchIds
 			.map((id) => cachedMap.get(id))
-			.filter(Boolean);
+			.filter(Boolean)
+			.map(projectMatch);
 
 		return NextResponse.json(matches);
 	} catch (error) {

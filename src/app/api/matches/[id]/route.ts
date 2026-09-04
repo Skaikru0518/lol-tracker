@@ -1,6 +1,7 @@
 import { getMatchById } from "@/lib/riot/matches";
 import { RiotApiError } from "@/lib/riot/riot";
 import { prisma } from "@/lib/db";
+import { projectMatch } from "@/lib/match-projection";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
@@ -11,7 +12,7 @@ export async function GET(
 	try {
 		const cached = await prisma.match.findUnique({ where: { matchId: id } });
 		if (cached) {
-			return NextResponse.json(cached.data);
+			return NextResponse.json(projectMatch(cached.data));
 		}
 
 		const matchData = await getMatchById(id);
@@ -25,7 +26,7 @@ export async function GET(
 				data: matchData as any,
 			},
 		});
-		return NextResponse.json(matchData);
+		return NextResponse.json(projectMatch(matchData));
 	} catch (error) {
 		if (error instanceof RiotApiError) {
 			return NextResponse.json(
