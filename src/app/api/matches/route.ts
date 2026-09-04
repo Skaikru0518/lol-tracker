@@ -12,12 +12,13 @@ import { projectMatch } from "@/lib/match-projection";
 async function getCachedMatchIds(
 	puuid: string,
 	count: number,
+	start: number,
 ): Promise<string[]> {
 	const rows = await prisma.$queryRaw<{ matchId: string }[]>`
 		SELECT "matchId" FROM "Match"
 		WHERE data->'metadata'->'participants' @> ${JSON.stringify(puuid)}::jsonb
 		ORDER BY "gameCreation" DESC
-		LIMIT ${count}
+		LIMIT ${count} OFFSET ${start}
 	`;
 
 	return rows.map((row) => row.matchId);
@@ -27,6 +28,7 @@ export async function GET(req: NextRequest) {
 	const puuid = req.nextUrl.searchParams.get("puuid");
 	const count = req.nextUrl.searchParams.get("count") ?? "20";
 	const championId = req.nextUrl.searchParams.get("championId");
+	const start = req.nextUrl.searchParams.get("start") ?? "0";
 
 	if (!puuid)
 		return NextResponse.json({ error: "puuid is required" }, { status: 400 });
@@ -40,11 +42,16 @@ export async function GET(req: NextRequest) {
 				puuid,
 				parseInt(count),
 				championId ? parseInt(championId) : undefined,
+				parseInt(start),
 			);
 		} catch (error) {
 			if (!(error instanceof RiotApiError) || championId) throw error;
 
-			matchIds = await getCachedMatchIds(puuid, parseInt(count));
+			matchIds = await getCachedMatchIds(
+				puuid,
+				parseInt(count),
+				parseInt(start),
+			);
 			if (matchIds.length === 0) throw error;
 			riotReachable = false;
 		}

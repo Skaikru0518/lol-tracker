@@ -1,6 +1,6 @@
 "use client";
 
-import { use } from "react";
+import { use, useMemo } from "react";
 import { useAccount } from "@/hooks/useAccount";
 import { parseSummonerSlug } from "@/lib/riot-id";
 import { useSummoner } from "@/hooks/useSummoner";
@@ -35,11 +35,12 @@ import RolesCard from "@/components/summoner/roles-card";
 
 /**
  * The match list renders 20 at a time, so only that many are needed to paint the
- * page. The rest is fetched straight after and feeds the aggregate cards — the
- * stats, roles and recently-played panels all summarise the full history.
+ * page. The remainder is fetched straight after, by offset so nothing is pulled
+ * twice, and feeds the aggregate cards — the stats, roles and recently-played
+ * panels all summarise the full history.
  */
 const INITIAL_MATCH_COUNT = 20;
-const FULL_MATCH_COUNT = 50;
+const REMAINING_MATCH_COUNT = 30;
 
 export default function SummonerPage({
 	params,
@@ -62,11 +63,16 @@ export default function SummonerPage({
 		account?.puuid,
 		INITIAL_MATCH_COUNT,
 	);
-	const { data: fullHistory } = useMatches(
+	const { data: remainingPage } = useMatches(
 		firstPage ? account?.puuid : undefined,
-		FULL_MATCH_COUNT,
+		REMAINING_MATCH_COUNT,
+		undefined,
+		INITIAL_MATCH_COUNT,
 	);
-	const matches = fullHistory ?? firstPage;
+	const matches = useMemo(
+		() => (firstPage ? [...firstPage, ...(remainingPage ?? [])] : undefined),
+		[firstPage, remainingPage],
+	);
 	const { data: masteries } = useMastery(account?.puuid);
 	const { data: champions } = useChampions();
 	const { data: runeData } = useRunes();

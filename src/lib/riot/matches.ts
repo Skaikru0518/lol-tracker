@@ -6,9 +6,11 @@ export async function getMatchIdsByPuuid(
 	puuid: string,
 	count: number = 20,
 	championId?: number,
+	start: number = 0,
 ) {
 	const params = new URLSearchParams({ count: count.toString() });
 	if (championId) params.set("champion", championId.toString());
+	if (start > 0) params.set("start", start.toString());
 	return riotFetch<string[]>(
 		`${EURPOE_URL}/lol/match/v5/matches/by-puuid/${encodeURIComponent(puuid)}/ids?${params}`,
 	);
