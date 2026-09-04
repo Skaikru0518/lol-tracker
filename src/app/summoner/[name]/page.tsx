@@ -33,6 +33,14 @@ import LPHistoryChart from "@/components/summoner/lp-history-chart";
 import AchievementBar from "@/components/summoner/achievement-bar";
 import RolesCard from "@/components/summoner/roles-card";
 
+/**
+ * The match list renders 20 at a time, so only that many are needed to paint the
+ * page. The rest is fetched straight after and feeds the aggregate cards — the
+ * stats, roles and recently-played panels all summarise the full history.
+ */
+const INITIAL_MATCH_COUNT = 20;
+const FULL_MATCH_COUNT = 50;
+
 export default function SummonerPage({
 	params,
 }: {
@@ -50,10 +58,15 @@ export default function SummonerPage({
 	} = useAccount(gameName, tagLine);
 	const { data: summoner } = useSummoner(account?.puuid);
 	const { data: ranked } = useRanked(account?.puuid);
-	const { data: matches, isLoading: matchesLoading } = useMatches(
+	const { data: firstPage, isLoading: matchesLoading } = useMatches(
 		account?.puuid,
-		50,
+		INITIAL_MATCH_COUNT,
 	);
+	const { data: fullHistory } = useMatches(
+		firstPage ? account?.puuid : undefined,
+		FULL_MATCH_COUNT,
+	);
+	const matches = fullHistory ?? firstPage;
 	const { data: masteries } = useMastery(account?.puuid);
 	const { data: champions } = useChampions();
 	const { data: runeData } = useRunes();

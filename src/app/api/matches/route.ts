@@ -58,8 +58,8 @@ export async function GET(req: NextRequest) {
 		// Find which matches are missing from DB
 		const missingIds = matchIds.filter((id) => !cachedMap.has(id));
 
-		// Fetch missing matches from Riot API in parallel batches of 10
-		const BATCH_SIZE = 10;
+		// Fetch missing matches from Riot API in parallel batches of 25
+		const BATCH_SIZE = 25;
 		for (let i = 0; riotReachable && i < missingIds.length; i += BATCH_SIZE) {
 			const batch = missingIds.slice(i, i + BATCH_SIZE);
 			await Promise.allSettled(
