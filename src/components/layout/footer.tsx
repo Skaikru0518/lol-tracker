@@ -9,7 +9,7 @@ export default function Footer() {
 
 	return (
 		<footer className="mt-auto border-t bg-nav">
-			<div className="mx-auto flex max-w-7xl flex-col items-center gap-1 px-4 py-4 text-[11px] text-muted-foreground sm:px-6">
+			<div className="mx-auto flex max-w-7xl flex-col items-center gap-1 px-4 py-4 text-2xs text-muted-foreground sm:px-6">
 				<div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
 					<span className="font-medium text-foreground">Summon.gg</span>
 					<span>Patch {version ?? "..."}</span>

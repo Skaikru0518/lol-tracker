@@ -48,7 +48,7 @@ export function LpSparkline({ snapshots }: { snapshots?: LPSnapshot[] }) {
 			</svg>
 			{active && (
 				<div
-					className="pointer-events-none absolute -top-7 whitespace-nowrap rounded-md border bg-popover px-1.5 py-0.5 text-[11px] text-popover-foreground shadow-sm"
+					className="pointer-events-none absolute -top-7 whitespace-nowrap rounded-md border bg-popover px-1.5 py-0.5 text-2xs text-popover-foreground shadow-sm"
 					style={{ left: `${ratio * 100}%`, transform: `translateX(${shift})` }}
 				>
 					{timeLabel(active.createdAt)} · {formatRankLabel(active.tier, active.rank)} {active.lp} LP

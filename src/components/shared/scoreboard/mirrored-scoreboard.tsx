@@ -14,6 +14,7 @@ export function MirroredScoreboard({
 	rankQueue = "RANKED_SOLO_5x5",
 	champions,
 	footer,
+	ranksLoading = false,
 }: {
 	data: ScoreboardData;
 	version: string;
@@ -22,14 +23,15 @@ export function MirroredScoreboard({
 	rankQueue?: string;
 	champions?: Record<number, Champion>;
 	footer?: React.ReactNode;
+	ranksLoading?: boolean;
 }) {
 	const rankOf = (puuid?: string) => (puuid ? ranks?.[puuid]?.find((e) => e.queueType === rankQueue) : undefined);
 
 	return (
 		<div className="bg-background/40">
 			<div className="flex items-start justify-between gap-4 border-b px-3 py-2">
-				<TeamHeader team={data.blue} side="blue" />
-				<TeamHeader team={data.red} side="red" />
+				<TeamHeader team={data.blue} side="blue" remake={data.remake} />
+				<TeamHeader team={data.red} side="red" remake={data.remake} />
 			</div>
 			<div className="grid grid-cols-1 md:grid-cols-2">
 				<div className="divide-y divide-border/50">
@@ -41,6 +43,7 @@ export function MirroredScoreboard({
 							version={version}
 							highlighted={!!row.blue && row.blue.puuid === highlightPuuid}
 							rank={rankOf(row.blue?.puuid)}
+							ranksLoading={ranksLoading}
 						/>
 					))}
 				</div>
@@ -53,6 +56,7 @@ export function MirroredScoreboard({
 							version={version}
 							highlighted={!!row.red && row.red.puuid === highlightPuuid}
 							rank={rankOf(row.red?.puuid)}
+							ranksLoading={ranksLoading}
 						/>
 					))}
 				</div>

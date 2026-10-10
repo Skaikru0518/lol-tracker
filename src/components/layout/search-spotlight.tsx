@@ -38,7 +38,7 @@ export function SearchSpotlight({
 							<SearchHistory />
 							<p className="text-center text-xs text-muted-foreground">
 								Press{" "}
-								<kbd className="rounded border px-1.5 py-0.5 text-[10px]">Esc</kbd>{" "}
+								<kbd className="rounded border px-1.5 py-0.5 text-3xs">Esc</kbd>{" "}
 								to close
 							</p>
 						</Panel>

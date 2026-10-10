@@ -34,7 +34,7 @@ export function SummonerHero({
 						height={80}
 						className="size-20 rounded-xl border-2 border-primary/70"
 					/>
-					<span className="absolute -bottom-2 left-1/2 -translate-x-1/2 rounded-full border bg-nav px-2 text-[11px] font-medium text-foreground">
+					<span className="absolute -bottom-2 left-1/2 -translate-x-1/2 rounded-full border bg-nav px-2 text-2xs font-medium text-foreground">
 						{summoner.summonerLevel}
 					</span>
 				</div>

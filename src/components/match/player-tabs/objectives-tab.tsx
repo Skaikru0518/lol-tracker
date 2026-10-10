@@ -1,7 +1,7 @@
-import ObjectivesTimeline from "@/components/match/objectives-timeline";
+import { ObjectivesPanel } from "@/components/match/objectives-panel";
 import { type PlayerTabProps } from "./player-tabs";
 
-/** The match's objective, tower and kill events. */
-export function ObjectivesTab({ match, timeline, version }: PlayerTabProps) {
-	return <ObjectivesTimeline timeline={timeline} participants={match.info.participants} version={version} />;
+/** The match's objectives timeline; `PlayerTabs` only renders this tab once the timeline is ready. */
+export function ObjectivesTab({ timeline }: PlayerTabProps) {
+	return timeline ? <ObjectivesPanel timeline={timeline} /> : null;
 }

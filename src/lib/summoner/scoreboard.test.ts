@@ -8,6 +8,11 @@ const red = (puuid: string, teamPosition: string) =>
 	makeParticipant({ puuid, teamId: 200, teamPosition, win: false });
 
 describe("buildScoreboard", () => {
+	it("flags games under five minutes as remakes", () => {
+		expect(buildScoreboard(makeMatch({ gameDuration: 240 })).remake).toBe(true);
+		expect(buildScoreboard(makeMatch({ gameDuration: 1800 })).remake).toBe(false);
+	});
+
 	it("pairs lane opponents by position, not by array order", () => {
 		const data = buildScoreboard(
 			makeMatch({ participants: [blue("b-sup", "UTILITY"), blue("b-top", "TOP"), red("r-top", "TOP"), red("r-sup", "UTILITY")] }),

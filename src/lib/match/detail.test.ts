@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { makeMatch, makeParticipant } from "@/test/factories";
 import { type Timeline } from "@/lib/validators/timeline";
-import { arenaPlacement, badgeIdsFor, defaultSelectedPuuid, findParticipant, hasChampionKillEvents, matchResult, participantIdOf, playerShares, playerStatGroups, timelineState } from "./detail";
+import { arenaPlacement, badgeIdsFor, defaultSelectedPuuid, findParticipant, matchResult, participantIdOf, playerShares, playerStatGroups, timelineState } from "./detail";
 
 const blue = [
 	makeParticipant({ puuid: "a", teamId: 100, kills: 4, assists: 2, totalDamageDealtToChampions: 20000, goldEarned: 10000, visionScore: 30 }),
@@ -115,22 +115,5 @@ describe("badgeIdsFor", () => {
 		];
 		expect(badgeIdsFor(badges, "a")).toEqual(["mvp", "farmer"]);
 		expect(badgeIdsFor(undefined, "a")).toEqual([]);
-	});
-});
-
-describe("hasChampionKillEvents", () => {
-	const timeline = (events: object[]) => ({ info: { frames: [{ events }] } }) as unknown as Timeline;
-
-	it("is true when the player killed or died with a position", () => {
-		expect(hasChampionKillEvents(timeline([{ type: "CHAMPION_KILL", killerId: 2, victimId: 7, position: { x: 1, y: 1 } }]), 7)).toBe(true);
-	});
-
-	it("ignores other players, other events and events without a position", () => {
-		const events = [
-			{ type: "CHAMPION_KILL", killerId: 2, victimId: 3, position: { x: 1, y: 1 } },
-			{ type: "WARD_PLACED", killerId: 7 },
-			{ type: "CHAMPION_KILL", killerId: 7, victimId: 3 },
-		];
-		expect(hasChampionKillEvents(timeline(events), 7)).toBe(false);
 	});
 });

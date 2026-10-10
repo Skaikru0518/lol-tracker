@@ -15,7 +15,7 @@ import { ArenaScoreboard } from "./arena-scoreboard";
 export function MatchRowExpanded({ match, puuid, version }: { match: Match; puuid: string; version: string }) {
 	const arena = isArenaMatch(match.info.queueId);
 	const puuids = useMemo(() => (arena ? undefined : match.info.participants.map((p) => p.puuid)), [arena, match]);
-	const { data: ranks } = usePlayerRanks(puuids);
+	const { data: ranks, isLoading: ranksLoading } = usePlayerRanks(puuids);
 	const { data: champions } = useChampions();
 	const data = useMemo(() => buildScoreboard(match), [match]);
 
@@ -45,6 +45,7 @@ export function MatchRowExpanded({ match, puuid, version }: { match: Match; puui
 				version={version}
 				highlightPuuid={puuid}
 				ranks={ranks}
+				ranksLoading={ranksLoading}
 				rankQueue={rankedQueueForQueueId(match.info.queueId) ?? "RANKED_SOLO_5x5"}
 				champions={champions}
 				footer={fullMatch}

@@ -2,13 +2,13 @@
 
 import { useMemo } from "react";
 import { Panel, PanelBody } from "@/components/ui/panel";
-import VisionChart from "@/components/match/vision-chart";
+import { ComparisonBars } from "@/components/match/charts/comparison-bars";
 import { playerStatGroups } from "@/lib/match/detail";
 import { StatList } from "./stat-list";
 import { type PlayerTabProps } from "./player-tabs";
 
-/** Vision stats of the player and every player's vision score. */
-export function VisionTab({ match, player }: PlayerTabProps) {
+/** Vision stats of the player and every player's vision score as comparison bars. */
+export function VisionTab({ match, player, version }: PlayerTabProps) {
 	const groups = useMemo(() => playerStatGroups(player, match.info.gameDuration), [player, match]);
 
 	return (
@@ -18,7 +18,7 @@ export function VisionTab({ match, player }: PlayerTabProps) {
 					<StatList title="Vision" stats={groups.vision} />
 				</PanelBody>
 			</Panel>
-			<VisionChart participants={match.info.participants} />
+			<ComparisonBars match={match} version={version} defaultMetric="vision" title="Vision" />
 		</div>
 	);
 }

@@ -16,6 +16,8 @@ export const timelineEventSchema = z.object({
 	killerTeamId: z.number().optional(),
 	teamId: z.number().optional(),
 	monsterType: z.string().optional(),
+	monsterSubType: z.string().optional(),
+	assistingParticipantIds: z.array(z.number()).optional(),
 	buildingType: z.string().optional(),
 	towerType: z.string().optional(),
 	laneType: z.string().optional(),

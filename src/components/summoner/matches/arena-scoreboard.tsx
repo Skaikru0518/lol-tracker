@@ -33,7 +33,7 @@ export function ArenaScoreboard({
 				>
 					<span className="w-8 text-sm font-bold" style={{ color: getPlacementColor(team.placement) }}>
 						{team.placement}
-						<span className="align-super text-[9px]">{getPlacementSuffix(team.placement)}</span>
+						<span className="align-super text-3xs">{getPlacementSuffix(team.placement)}</span>
 					</span>
 					<div className="grid flex-1 gap-1 sm:grid-cols-2">
 						{team.players.map((p) => (

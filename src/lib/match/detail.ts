@@ -1,9 +1,8 @@
 import { csPerMinute, formatDuration } from "@/lib/format";
 import { killParticipation } from "@/lib/summoner/match-row";
+import { isRemake } from "./remake";
 import { type Match, type Participant } from "@/lib/validators/match";
 import { type Timeline } from "@/lib/validators/timeline";
-
-const REMAKE_SECONDS = 300;
 
 export type MatchResult = "Victory" | "Defeat" | "Remake";
 
@@ -25,7 +24,7 @@ export function participantIdOf(match: Match, puuid: string): number | null {
 
 /** One player's result; games under five minutes are remakes. */
 export function matchResult(match: Match, player: Participant): MatchResult {
-	if (match.info.gameDuration < REMAKE_SECONDS) return "Remake";
+	if (isRemake(match.info.gameDuration)) return "Remake";
 	return player.win ? "Victory" : "Defeat";
 }
 
@@ -132,13 +131,4 @@ export function arenaPlacement(player: Participant): number {
 /** Badge ids one player earned in a match. */
 export function badgeIdsFor(badges: { puuid: string; badgeId: string }[] | undefined, puuid: string): string[] {
 	return (badges ?? []).filter((b) => b.puuid === puuid).map((b) => b.badgeId);
-}
-
-/** True when the player killed or died somewhere the kill map can plot. */
-export function hasChampionKillEvents(timeline: Timeline, participantId: number): boolean {
-	return timeline.info.frames.some((frame) =>
-		frame.events.some(
-			(e) => e.type === "CHAMPION_KILL" && !!e.position && (e.killerId === participantId || e.victimId === participantId),
-		),
-	);
 }

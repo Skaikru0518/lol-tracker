@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { killParticipation, participantItems, runeIcons, shortQueueName } from "./match-row";
+import { killParticipation, participantItems, rowResult, runeIcons, shortQueueName } from "./match-row";
 import { makeParticipant } from "@/test/factories";
 
 describe("participantItems", () => {
@@ -66,5 +66,21 @@ describe("runeIcons", () => {
 	it("returns nulls without rune data or perks", () => {
 		expect(runeIcons(withRunes, undefined)).toEqual([null, null]);
 		expect(runeIcons(makeParticipant(), runeData)).toEqual([null, null]);
+	});
+});
+
+describe("rowResult", () => {
+	it("calls games under five minutes a remake", () => {
+		expect(rowResult(420, 240, makeParticipant({ win: false }))).toBe("remake");
+	});
+
+	it("reads the win flag otherwise", () => {
+		expect(rowResult(420, 1800, makeParticipant({ win: true }))).toBe("win");
+		expect(rowResult(420, 1800, makeParticipant({ win: false }))).toBe("loss");
+	});
+
+	it("uses the top four for Arena", () => {
+		expect(rowResult(1700, 1200, makeParticipant({ placement: 3, win: false }))).toBe("win");
+		expect(rowResult(1700, 1200, makeParticipant({ placement: 6, win: false }))).toBe("loss");
 	});
 });

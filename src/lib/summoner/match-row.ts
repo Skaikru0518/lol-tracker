@@ -1,3 +1,5 @@
+import { isArenaMatch, isArenaWin } from "@/lib/arena-helpers";
+import { isRemake } from "@/lib/match/remake";
 import { getQueueName } from "@/lib/queue-names";
 import { RANKED_QUEUE_TITLES, rankedQueueForQueueId } from "@/lib/ranked-queues";
 import { getRuneIcon, type RuneData, type RuneStyle } from "@/lib/icon-helpers";
@@ -31,4 +33,13 @@ export function runeIcons(p: Participant, runeData?: RuneMaps): [string | null, 
 	const keystone = primary?.selections[0] ? runeData.runes.get(primary.selections[0].perk) : undefined;
 	const tree = secondary ? runeData.styles.get(secondary.style) : undefined;
 	return [keystone ? getRuneIcon(keystone.icon) : null, tree ? getRuneIcon(tree.icon) : null];
+}
+
+export type RowResult = "win" | "loss" | "remake";
+
+/** Result a match row shows: remakes first, then Arena top four or the win flag. */
+export function rowResult(queueId: number, durationSeconds: number, player: Participant): RowResult {
+	if (isRemake(durationSeconds)) return "remake";
+	const won = isArenaMatch(queueId) ? isArenaWin(player.placement ?? (player.win ? 1 : 5)) : player.win;
+	return won ? "win" : "loss";
 }

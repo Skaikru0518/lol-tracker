@@ -20,6 +20,16 @@ export function getChampionIcon(version: string, championName: string) {
 	return `https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/${fixedName}.png`;
 }
 
+/** Data Dragon champion id for a match `championName` (e.g. FiddleSticks → Fiddlesticks). */
+export function ddragonChampionId(championName: string): string {
+	return CHAMPION_ID_FIXES[championName] ?? championName;
+}
+
+/** Data Dragon ability icon from a champion JSON `image.full` file name. */
+export function getSpellIcon(version: string, file: string) {
+	return `https://ddragon.leagueoflegends.com/cdn/${version}/img/spell/${file}`;
+}
+
 /** Data Dragon splash URL; invalid skin numbers fall back to 0. */
 export function getChampionSplash(championName: string, skinNum = 0) {
 	const fixedName = CHAMPION_ID_FIXES[championName] ?? championName;

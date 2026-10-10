@@ -1,3 +1,4 @@
+import { isRemake } from "@/lib/match/remake";
 import { type Match, type Participant } from "@/lib/validators/match";
 
 export interface TeamObjectives {
@@ -24,6 +25,7 @@ export interface ScoreboardRowPair {
 }
 
 export interface ScoreboardData {
+	remake: boolean;
 	blue: TeamSummary;
 	red: TeamSummary;
 	rows: ScoreboardRowPair[];
@@ -74,5 +76,5 @@ export function buildScoreboard(match: Match): ScoreboardData {
 		red: red[i] ?? null,
 	}));
 
-	return { blue: summarize(match, 100, blue), red: summarize(match, 200, red), rows };
+	return { blue: summarize(match, 100, blue), red: summarize(match, 200, red), rows, remake: isRemake(match.info.gameDuration) };
 }

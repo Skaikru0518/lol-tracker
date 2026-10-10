@@ -35,7 +35,7 @@ export function MatchDetail({ matchId, puuid }: { matchId: string; puuid?: strin
 	const { data: itemNames } = useItems();
 	const { data: champions } = useChampions();
 	const puuids = useMemo(() => match?.info.participants.map((p) => p.puuid), [match]);
-	const { data: ranks } = usePlayerRanks(puuids);
+	const { data: ranks, isLoading: ranksLoading } = usePlayerRanks(puuids);
 	const { data: badges } = useMatchBadgesBatch([matchId]);
 	const [picked, setPicked] = useState<string | null>(null);
 
@@ -100,11 +100,12 @@ export function MatchDetail({ matchId, puuid }: { matchId: string; puuid?: strin
 						version={version}
 						highlightPuuid={puuid}
 						ranks={ranks}
+						ranksLoading={ranksLoading}
 						rankQueue={rankedQueueForQueueId(match.info.queueId) ?? "RANKED_SOLO_5x5"}
 						champions={champions}
 					/>
 				</Panel>
-				<TeamCharts match={match} timeline={timeline} timelineState={tlState} />
+				<TeamCharts match={match} version={version} timeline={timeline} timelineState={tlState} />
 				<PlayerSelector match={match} version={version} selected={selected} onSelect={setPicked} />
 				{player && participantId !== null && (
 					<PlayerTabs

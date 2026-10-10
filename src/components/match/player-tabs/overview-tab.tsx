@@ -6,6 +6,7 @@ import { StatRing } from "@/components/ui/stat-ring";
 import { MatchBadges } from "@/components/summoner/matches/match-badges";
 import ItemBuild from "@/components/match/item-build";
 import SkillOrder from "@/components/match/skill-order";
+import { usePerks } from "@/hooks/usePerks";
 import { playerShares } from "@/lib/match/detail";
 import { TimelinePart } from "@/components/match/timeline-slot";
 import { RunePage } from "./rune-page";
@@ -14,6 +15,7 @@ import { type PlayerTabProps } from "./player-tabs";
 /** Badges, share rings, item build, skill order and runes of the selected player. */
 export function OverviewTab({ match, timeline, timelineState, player, participantId, version, runeData, itemNames, badgeIds }: PlayerTabProps) {
 	const shares = useMemo(() => playerShares(match, player), [match, player]);
+	const { data: perks } = usePerks();
 
 	return (
 		<div className="space-y-4">
@@ -46,14 +48,14 @@ export function OverviewTab({ match, timeline, timelineState, player, participan
 					<PanelHeader title="Skill order" />
 					<PanelBody>
 						<TimelinePart state={timelineState}>
-							<SkillOrder timeline={timeline} participantId={participantId} />
+							<SkillOrder timeline={timeline} participantId={participantId} version={version} championName={player.championName} />
 						</TimelinePart>
 					</PanelBody>
 				</Panel>
 				<Panel>
 					<PanelHeader title="Runes" />
 					<PanelBody>
-						<RunePage player={player} runeData={runeData} />
+						<RunePage player={player} runeData={runeData} perks={perks} />
 					</PanelBody>
 				</Panel>
 			</div>

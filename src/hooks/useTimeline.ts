@@ -1,9 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
+import { HttpError, retryUnlessNotFound } from "@/lib/http-error";
 import { type Timeline } from "@/lib/validators/timeline";
 
 async function fetchTimeline(matchId: string) {
 	const res = await fetch(`/api/matches/${matchId}/timeline`);
-	if (!res.ok) throw new Error("Failed to fetch timeline");
+	if (!res.ok) throw new HttpError("Failed to fetch timeline", res.status);
 	return res.json();
 }
 
@@ -13,5 +14,6 @@ export function useTimeline(matchId: string | undefined) {
 		queryFn: () => fetchTimeline(matchId!),
 		staleTime: Infinity,
 		enabled: !!matchId,
+		retry: retryUnlessNotFound,
 	});
 }

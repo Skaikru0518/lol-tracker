@@ -67,13 +67,13 @@ export default function CsGoldChart({ timeline }: CsGoldChartProps) {
 									<XAxis
 										dataKey="minute"
 										tickFormatter={(v) => `${v}m`}
-										stroke="hsl(220 15% 30%)"
+										stroke="var(--muted-foreground)"
 										fontSize={11}
 										tickLine={false}
 										axisLine={false}
 									/>
 									<YAxis
-										stroke="hsl(220 15% 30%)"
+										stroke="var(--muted-foreground)"
 										fontSize={11}
 										tickLine={false}
 										axisLine={false}
@@ -93,8 +93,8 @@ export default function CsGoldChart({ timeline }: CsGoldChartProps) {
 												<div
 													style={{
 														backgroundColor:
-															"hsl(220 20% 12%)",
-														border: "1px solid hsl(220 15% 20%)",
+															"var(--card)",
+														border: "1px solid var(--border)",
 														borderRadius: "8px",
 														padding: "8px 12px",
 														fontSize: "13px",
@@ -102,21 +102,21 @@ export default function CsGoldChart({ timeline }: CsGoldChartProps) {
 												>
 													<p
 														style={{
-															color: "hsl(220 15% 60%)",
+															color: "var(--muted-foreground)",
 														}}
 													>
 														{label} min
 													</p>
 													<p
 														style={{
-															color: "#3b82f6",
+															color: "var(--team-blue)",
 														}}
 													>
 														Blue: {d.blueCS} CS
 													</p>
 													<p
 														style={{
-															color: "#ef4444",
+															color: "var(--team-red)",
 														}}
 													>
 														Red: {d.redCS} CS
@@ -128,14 +128,14 @@ export default function CsGoldChart({ timeline }: CsGoldChartProps) {
 									<Line
 										type="monotone"
 										dataKey="blueCS"
-										stroke="#3b82f6"
+										stroke="var(--team-blue)"
 										strokeWidth={2}
 										dot={false}
 									/>
 									<Line
 										type="monotone"
 										dataKey="redCS"
-										stroke="#ef4444"
+										stroke="var(--team-red)"
 										strokeWidth={2}
 										dot={false}
 									/>
@@ -155,7 +155,7 @@ export default function CsGoldChart({ timeline }: CsGoldChartProps) {
 									<XAxis
 										dataKey="minute"
 										tickFormatter={(v) => `${v}m`}
-										stroke="hsl(220 15% 30%)"
+										stroke="var(--muted-foreground)"
 										fontSize={11}
 										tickLine={false}
 										axisLine={false}
@@ -164,7 +164,7 @@ export default function CsGoldChart({ timeline }: CsGoldChartProps) {
 										tickFormatter={(v) =>
 											`${(v / 1000).toFixed(0)}k`
 										}
-										stroke="hsl(220 15% 30%)"
+										stroke="var(--muted-foreground)"
 										fontSize={11}
 										tickLine={false}
 										axisLine={false}
@@ -184,8 +184,8 @@ export default function CsGoldChart({ timeline }: CsGoldChartProps) {
 												<div
 													style={{
 														backgroundColor:
-															"hsl(220 20% 12%)",
-														border: "1px solid hsl(220 15% 20%)",
+															"var(--card)",
+														border: "1px solid var(--border)",
 														borderRadius: "8px",
 														padding: "8px 12px",
 														fontSize: "13px",
@@ -193,14 +193,14 @@ export default function CsGoldChart({ timeline }: CsGoldChartProps) {
 												>
 													<p
 														style={{
-															color: "hsl(220 15% 60%)",
+															color: "var(--muted-foreground)",
 														}}
 													>
 														{label} min
 													</p>
 													<p
 														style={{
-															color: "#3b82f6",
+															color: "var(--team-blue)",
 														}}
 													>
 														Blue:{" "}
@@ -209,7 +209,7 @@ export default function CsGoldChart({ timeline }: CsGoldChartProps) {
 													</p>
 													<p
 														style={{
-															color: "#ef4444",
+															color: "var(--team-red)",
 														}}
 													>
 														Red:{" "}
@@ -223,14 +223,14 @@ export default function CsGoldChart({ timeline }: CsGoldChartProps) {
 									<Line
 										type="monotone"
 										dataKey="blueGold"
-										stroke="#3b82f6"
+										stroke="var(--team-blue)"
 										strokeWidth={2}
 										dot={false}
 									/>
 									<Line
 										type="monotone"
 										dataKey="redGold"
-										stroke="#ef4444"
+										stroke="var(--team-red)"
 										strokeWidth={2}
 										dot={false}
 									/>

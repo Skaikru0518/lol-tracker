@@ -28,7 +28,7 @@ export function ChampionIcon({
 				className="size-full rounded-md object-cover"
 			/>
 			{level !== undefined && (
-				<span className="absolute -bottom-1 -right-1 rounded-md border bg-background px-1 text-[9px] leading-tight text-foreground">
+				<span className="absolute -bottom-1 -right-1 rounded-md border bg-background px-1 text-3xs leading-tight text-foreground">
 					{level}
 				</span>
 			)}

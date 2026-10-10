@@ -5,6 +5,10 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+	--text-2xs: 0.6875rem;
+	--text-2xs--line-height: 1rem;
+	--text-3xs: 0.625rem;
+	--text-3xs--line-height: 0.875rem;
 	--color-background: var(--background);
 	--color-foreground: var(--foreground);
 	--font-sans: var(--font-geist-sans);
@@ -124,6 +128,10 @@
 }
 
 @layer base {
+	html {
+		/* 16px up to 1920px wide, growing to 18px at 2560px (1440p) */
+		font-size: clamp(1rem, 0.625rem + 0.3125vw, 1.125rem);
+	}
 	* {
 		@apply border-border outline-ring/50;
 	}

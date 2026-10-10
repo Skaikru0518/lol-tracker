@@ -1,16 +1,15 @@
 "use client";
 
 import { useMemo } from "react";
-import { Panel, PanelBody, PanelHeader } from "@/components/ui/panel";
-import KillMap from "@/components/match/kill-map";
+import { Panel, PanelBody } from "@/components/ui/panel";
+import { FightMap } from "@/components/match/fight-map";
 import KillTimeline from "@/components/match/kill-timeline";
-import { EmptyState } from "@/components/ui/empty-state";
-import { TimelineChartSlot, TimelinePart } from "@/components/match/timeline-slot";
-import { hasChampionKillEvents, playerStatGroups } from "@/lib/match/detail";
+import { TimelineChartSlot } from "@/components/match/timeline-slot";
+import { playerStatGroups } from "@/lib/match/detail";
 import { StatList } from "./stat-list";
 import { type PlayerTabProps } from "./player-tabs";
 
-/** Damage, survivability and combat stats, team kills over time and the player's kill map. */
+/** Damage, survivability and combat stats, team kills over time and the player's kill map with its event list. */
 export function FightingTab({ match, timeline, timelineState, player, participantId, version }: PlayerTabProps) {
 	const groups = useMemo(() => playerStatGroups(player, match.info.gameDuration), [player, match]);
 
@@ -26,18 +25,9 @@ export function FightingTab({ match, timeline, timelineState, player, participan
 			<TimelineChartSlot title="Kills over time" state={timelineState}>
 				<KillTimeline timeline={timeline} participants={match.info.participants} />
 			</TimelineChartSlot>
-			<Panel>
-				<PanelHeader title="Kill map" />
-				<PanelBody className="flex justify-center">
-					<TimelinePart state={timelineState}>
-						{timeline && hasChampionKillEvents(timeline, participantId) ? (
-							<KillMap timeline={timeline} participantId={participantId} version={version} />
-						) : (
-							<EmptyState title="No kills or deaths" />
-						)}
-					</TimelinePart>
-				</PanelBody>
-			</Panel>
+			<TimelineChartSlot title="Kills & deaths" state={timelineState}>
+				{timeline && <FightMap timeline={timeline} participantId={participantId} participants={match.info.participants} version={version} />}
+			</TimelineChartSlot>
 		</div>
 	);
 }

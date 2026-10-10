@@ -7,9 +7,9 @@ import { cn } from "@/lib/utils";
 import { ChampionIcon } from "@/components/ui/champion-icon";
 import { ItemSlots } from "@/components/ui/item-slots";
 import { SpellRuneStack } from "@/components/ui/spell-rune-stack";
-import { getPlacementColor, getPlacementSuffix, isArenaMatch, isArenaWin } from "@/lib/arena-helpers";
+import { getPlacementColor, getPlacementSuffix, isArenaMatch } from "@/lib/arena-helpers";
 import { csPerMinute, formatDuration, kdaRatio, timeAgo } from "@/lib/format";
-import { killParticipation, participantItems, runeIcons, shortQueueName, type RuneMaps } from "@/lib/summoner/match-row";
+import { killParticipation, participantItems, rowResult, runeIcons, shortQueueName, type RuneMaps } from "@/lib/summoner/match-row";
 import { type Match, type Participant } from "@/lib/validators/match";
 import { MatchBadges } from "./match-badges";
 import { MatchRowExpanded } from "./match-row-expanded";
@@ -19,7 +19,7 @@ function Stat({ value, label, className }: { value: React.ReactNode; label: stri
 	return (
 		<div className="w-11 text-center leading-tight">
 			<p className={cn("text-sm font-semibold text-foreground", className)}>{value}</p>
-			<p className="text-[10px] text-muted-foreground">{label}</p>
+			<p className="text-3xs text-muted-foreground">{label}</p>
 		</div>
 	);
 }
@@ -44,7 +44,7 @@ export function MatchRow({
 	const { info } = match;
 	const arena = isArenaMatch(info.queueId);
 	const placement = player.placement ?? (player.win ? 1 : 5);
-	const won = arena ? isArenaWin(placement) : player.win;
+	const result = rowResult(info.queueId, info.gameDuration, player);
 	const kda = kdaRatio(player.kills, player.deaths, player.assists);
 	const cs = player.totalMinionsKilled + player.neutralMinionsKilled;
 	const ranked = rankedQueueForQueueId(info.queueId) !== null;
@@ -57,20 +57,22 @@ export function MatchRow({
 				aria-expanded={open}
 				className={cn(
 					"flex w-full flex-wrap items-center gap-x-3 gap-y-2 bg-gradient-to-r to-transparent to-60% px-3 py-2.5 text-left transition-colors hover:bg-accent/40 sm:flex-nowrap sm:px-4",
-					won ? "from-win/20" : "from-loss/20",
+					result === "win" ? "from-win/20" : result === "loss" ? "from-loss/20" : "from-muted/40",
 				)}
 			>
 				<div className="w-[4.75rem] shrink-0 leading-tight">
 					{arena ? (
 						<p className="text-sm font-bold" style={{ color: getPlacementColor(placement) }}>
 							{placement}
-							<span className="align-super text-[9px]">{getPlacementSuffix(placement)}</span>
+							<span className="align-super text-3xs">{getPlacementSuffix(placement)}</span>
 						</p>
 					) : (
-						<p className={cn("text-sm font-bold", won ? "text-win" : "text-loss")}>{won ? "Victory" : "Defeat"}</p>
+						<p className={cn("text-sm font-bold", result === "win" ? "text-win" : result === "loss" ? "text-loss" : "text-muted-foreground")}>
+							{result === "win" ? "Victory" : result === "loss" ? "Defeat" : "Remake"}
+						</p>
 					)}
-					<p className="truncate text-[11px] text-foreground">{shortQueueName(info.queueId, info.gameMode)}</p>
-					<p className="text-[10px] text-muted-foreground">
+					<p className="truncate text-2xs text-foreground">{shortQueueName(info.queueId, info.gameMode)}</p>
+					<p className="text-3xs text-muted-foreground">
 						{formatDuration(info.gameDuration)} · {timeAgo(info.gameCreation)}
 					</p>
 				</div>
@@ -87,7 +89,7 @@ export function MatchRow({
 					<p className="whitespace-nowrap text-base font-bold text-foreground">
 						{player.kills} / <span className="text-loss">{player.deaths}</span> / {player.assists}
 					</p>
-					<p className="text-[11px] text-muted-foreground">{kda === null ? "Perfect" : `${kda} KDA`}</p>
+					<p className="text-2xs text-muted-foreground">{kda === null ? "Perfect" : `${kda} KDA`}</p>
 				</div>
 
 				<div className="hidden gap-1 md:flex">

@@ -27,7 +27,7 @@ export function RolesPerformancePanel({ matches, puuid }: { matches: Match[]; pu
 				<PanelBody className="space-y-4">
 					<div className="flex items-center gap-4">
 						<div className="grid size-20 shrink-0 place-items-center rounded-full" style={{ background: donutGradient(shares, ROLE_COLORS) }}>
-							<div className="grid size-14 place-items-center rounded-full bg-card text-[11px] font-semibold text-foreground">
+							<div className="grid size-14 place-items-center rounded-full bg-card text-2xs font-semibold text-foreground">
 								{shares[0]?.role ?? "-"}
 							</div>
 						</div>
@@ -62,7 +62,7 @@ export function RolesPerformancePanel({ matches, puuid }: { matches: Match[]; pu
 						].map(([label, value]) => (
 							<div key={label}>
 								<dd className="text-sm font-semibold text-foreground">{value}</dd>
-								<dt className="text-[11px] text-muted-foreground">{label}</dt>
+								<dt className="text-2xs text-muted-foreground">{label}</dt>
 							</div>
 						))}
 					</dl>

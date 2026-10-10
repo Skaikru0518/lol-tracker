@@ -38,7 +38,7 @@ export function AchievementsTab() {
 											{a.name}
 										</p>
 										<p className="text-xs text-muted-foreground">{a.description}</p>
-										<p className="mt-1 text-[11px] text-muted-foreground">
+										<p className="mt-1 text-2xs text-muted-foreground">
 											{earnedAt ? `Earned ${new Date(earnedAt).toLocaleDateString()}` : "Locked"}
 										</p>
 									</div>

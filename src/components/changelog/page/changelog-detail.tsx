@@ -126,7 +126,7 @@ export default function ChangelogDetail({ entry }: ChangelogDetailProps) {
 								return (
 									<div key={idx} className="relative mb-1">
 										<div
-											className={`absolute -left-[37px] top-4 size-[22px] rounded-full flex items-center justify-center text-[10px] font-extrabold text-background ${getCategoryDotColor(change.category as CategoryType)}`}
+											className={`absolute -left-[37px] top-4 size-[22px] rounded-full flex items-center justify-center text-3xs font-extrabold text-background ${getCategoryDotColor(change.category as CategoryType)}`}
 										>
 											{idx + 1}
 										</div>

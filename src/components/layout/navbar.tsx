@@ -68,7 +68,7 @@ export default function Navbar() {
 						>
 							<Search className="size-3.5" />
 							<span>Search summoner...</span>
-							<kbd className="ml-auto hidden rounded border px-1.5 py-0.5 text-[10px] sm:inline">
+							<kbd className="ml-auto hidden rounded border px-1.5 py-0.5 text-3xs sm:inline">
 								/
 							</kbd>
 						</button>
