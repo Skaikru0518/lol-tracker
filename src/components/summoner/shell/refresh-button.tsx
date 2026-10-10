@@ -6,7 +6,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { RefreshCw } from "lucide-react";
 import toast from "react-hot-toast";
 import { Button } from "@/components/ui/button";
-import { refreshTick } from "@/lib/summoner/refresh-tick";
+import { refreshTick } from "@/lib/summoner/profile/refresh-tick";
 
 const REFRESH_INTERVAL = 300;
 const COOLDOWN = 180;

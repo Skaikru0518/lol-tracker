@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useDDragonVersion } from "./useDDragonVersion";
-import { type Champion, getChampionMap } from "@/lib/icon-helpers";
+import { type Champion, getChampionMap } from "@/lib/game/icon-helpers";
 
 export function useChampions() {
 	const { data: version } = useDDragonVersion();

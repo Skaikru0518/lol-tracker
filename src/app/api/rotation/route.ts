@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { RiotApiError } from "@/lib/riot/riot";
-import { getFreeRotation } from "@/lib/rotation";
+import { getFreeRotation } from "@/lib/home/rotation";
 import { type FreeRotation } from "@/lib/validators/rotation";
 
 export async function GET(): Promise<NextResponse<FreeRotation | { error: string }>> {

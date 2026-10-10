@@ -3,7 +3,7 @@ import {
 	parseSearchHistory,
 	readSearchHistoryRaw,
 	subscribeSearchHistory,
-} from "@/lib/search-history";
+} from "@/lib/home/search-history";
 
 /** Search history synced with localStorage, including other tabs. */
 export function useSearchHistory(): string[] {

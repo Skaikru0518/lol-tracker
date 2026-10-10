@@ -1,6 +1,6 @@
 import { ChampionIcon } from "@/components/ui/champion-icon";
-import { formatPoints } from "@/lib/format";
-import { type MasteryOnlyRow } from "@/lib/summoner/champion-rows";
+import { formatPoints } from "@/lib/shared/format";
+import { type MasteryOnlyRow } from "@/lib/summoner/champions/champion-rows";
 
 /** Champions with mastery but no stored games, as compact tiles. */
 export function MasteryOnlyList({ rows, version }: { rows: MasteryOnlyRow[]; version: string }) {

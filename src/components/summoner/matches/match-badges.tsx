@@ -1,6 +1,6 @@
 import { Chip } from "@/components/ui/chip";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { getMatchBadgeById } from "@/lib/match-badges/definitions";
+import { getMatchBadgeById } from "@/lib/achievements/badges/definitions";
 
 /** Badge chips with tooltips; `max` shows that many plus a `+X` chip. Needs a TooltipProvider above. */
 export function MatchBadges({ badgeIds, max }: { badgeIds: string[]; max?: number }) {

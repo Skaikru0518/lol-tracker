@@ -12,7 +12,7 @@ import { useLiveGame } from "@/hooks/useLiveGame";
 import { usePlayerRanks } from "@/hooks/usePlayerRanks";
 import { useRunes } from "@/hooks/useRunes";
 import { liveViewState } from "@/lib/live/live-game";
-import { queryFailed } from "@/lib/query-state";
+import { queryFailed } from "@/lib/shared/query-state";
 import { LiveHero } from "./live-hero";
 import { LiveScoreboard } from "./live-scoreboard";
 

@@ -1,4 +1,4 @@
-import { type ScoreboardData } from "@/lib/summoner/scoreboard";
+import { type ScoreboardData } from "@/lib/summoner/matches/scoreboard";
 import { type Participant } from "@/lib/validators/match";
 
 export type ComparisonMetric = "damage" | "gold" | "vision" | "cs" | "taken";

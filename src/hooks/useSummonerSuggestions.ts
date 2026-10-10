@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { z } from "zod";
-import { parseSearchTerms } from "@/lib/summoner/search-query";
+import { parseSearchTerms } from "@/lib/summoner/search/search-query";
 import { recentSearchSchema, type RecentSearch } from "@/lib/validators/recent-searches";
 
 const DEBOUNCE_MS = 500;

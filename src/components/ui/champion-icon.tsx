@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 import { remSize } from "@/lib/ui/size";
-import { getChampionDisplayName, getChampionIcon } from "@/lib/icon-helpers";
+import { getChampionDisplayName, getChampionIcon } from "@/lib/game/icon-helpers";
 
 /** Square champion portrait with an optional level badge in the corner. */
 export function ChampionIcon({

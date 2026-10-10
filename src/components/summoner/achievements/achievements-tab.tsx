@@ -4,8 +4,8 @@ import { cn } from "@/lib/utils";
 import { useSummonerContext } from "@/components/summoner/shell/summoner-provider";
 import { Panel, PanelHeader } from "@/components/ui/panel";
 import { useAchievements } from "@/hooks/useAchievements";
-import { earnedCount } from "@/lib/achievements/count";
-import { ACHIEVEMENTS, type AchievementDef } from "@/lib/achievements/definitions";
+import { earnedCount } from "@/lib/achievements/profile/count";
+import { ACHIEVEMENTS, type AchievementDef } from "@/lib/achievements/profile/definitions";
 
 const CATEGORIES: { id: AchievementDef["category"]; label: string }[] = [
 	{ id: "combat", label: "Combat" },

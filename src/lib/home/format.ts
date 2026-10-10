@@ -1,5 +1,5 @@
-import { type Champion } from "@/lib/icon-helpers";
-import { formatRankLabel } from "@/lib/rank-calculator";
+import { type Champion } from "@/lib/game/icon-helpers";
+import { formatRankLabel } from "@/lib/game/rank-calculator";
 import { type RecentSearch } from "@/lib/validators/recent-searches";
 
 /** Solo rank of a recently searched summoner, e.g. `Emerald I · 42 LP`; `Unranked` without one. */

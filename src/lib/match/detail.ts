@@ -1,5 +1,5 @@
-import { csPerMinute, formatDuration } from "@/lib/format";
-import { killParticipation } from "@/lib/summoner/match-row";
+import { csPerMinute, formatDuration } from "@/lib/shared/format";
+import { killParticipation } from "@/lib/summoner/matches/match-row";
 import { isRemake } from "./remake";
 import { type Match, type Participant } from "@/lib/validators/match";
 import { type Timeline } from "@/lib/validators/timeline";

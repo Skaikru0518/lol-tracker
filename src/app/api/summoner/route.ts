@@ -1,5 +1,5 @@
 import { RiotApiError } from "@/lib/riot/riot";
-import { resolveSummoner } from "@/lib/summoner/summoner";
+import { resolveSummoner } from "@/lib/summoner/profile/summoner";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {

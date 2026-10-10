@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
-import { getBuildingIcon, getObjectiveIcon } from "@/lib/icon-helpers";
-import { type TeamObjectives, type TeamSummary } from "@/lib/summoner/scoreboard";
+import { getBuildingIcon, getObjectiveIcon } from "@/lib/game/icon-helpers";
+import { type TeamObjectives, type TeamSummary } from "@/lib/summoner/matches/scoreboard";
 
 const OBJECTIVES: { key: keyof TeamObjectives; label: string; icon: string }[] = [
 	{ key: "towers", label: "Towers", icon: getBuildingIcon("TOWER_BUILDING") },

@@ -1,6 +1,6 @@
 import { getRankedByPuuid } from "@/lib/riot/ranked";
-import { prisma } from "@/lib/db";
-import { isRecent } from "@/lib/cache-utils";
+import { prisma } from "@/lib/server/db";
+import { isRecent } from "@/lib/server/cache-utils";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {

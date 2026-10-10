@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 import { remSize } from "@/lib/ui/size";
-import { getSummonerSpellIcon, getSummonerSpellName } from "@/lib/icon-helpers";
+import { getSummonerSpellIcon, getSummonerSpellName } from "@/lib/game/icon-helpers";
 
 /** 2x2 grid: summoner spells left, keystone + secondary tree right. */
 export function SpellRuneStack({

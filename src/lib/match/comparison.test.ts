@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { makeMatch, makeParticipant } from "@/test/factories";
-import { buildScoreboard } from "@/lib/summoner/scoreboard";
+import { buildScoreboard } from "@/lib/summoner/matches/scoreboard";
 import { comparisonRows } from "./comparison";
 
 const match = makeMatch({

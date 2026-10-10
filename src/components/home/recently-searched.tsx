@@ -7,8 +7,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useDDragonVersion } from "@/hooks/useDDragonVersion";
 import { useRecentSearches } from "@/hooks/useRecentSearches";
 import { recentSearchRank } from "@/lib/home/format";
-import { getSummonerIcon, RANK_COLORS } from "@/lib/icon-helpers";
-import { toSummonerSlug } from "@/lib/riot-id";
+import { getSummonerIcon, RANK_COLORS } from "@/lib/game/icon-helpers";
+import { toSummonerSlug } from "@/lib/game/riot-id";
 
 /** Last summoners anyone looked up, with profile icon and solo rank, linking to their profiles. */
 export function RecentlySearched() {

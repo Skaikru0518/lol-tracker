@@ -7,9 +7,9 @@ import { useChampions } from "@/hooks/useChampions";
 import { usePlayerRanks } from "@/hooks/usePlayerRanks";
 import { useItems } from "@/hooks/useItems";
 import { useRunes } from "@/hooks/useRunes";
-import { isArenaMatch } from "@/lib/arena-helpers";
-import { buildScoreboard } from "@/lib/summoner/scoreboard";
-import { rankedQueueForQueueId } from "@/lib/ranked-queues";
+import { isArenaMatch } from "@/lib/game/arena-helpers";
+import { buildScoreboard } from "@/lib/summoner/matches/scoreboard";
+import { rankedQueueForQueueId } from "@/lib/game/ranked-queues";
 import { type Match } from "@/lib/validators/match";
 import { ArenaScoreboard } from "./arena-scoreboard";
 

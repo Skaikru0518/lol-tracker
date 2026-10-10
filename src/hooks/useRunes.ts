@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useDDragonVersion } from "./useDDragonVersion";
-import { type RuneData, type RuneStyle, getRuneMap } from "@/lib/icon-helpers";
+import { type RuneData, type RuneStyle, getRuneMap } from "@/lib/game/icon-helpers";
 
 export function useRunes() {
 	const { data: version } = useDDragonVersion();

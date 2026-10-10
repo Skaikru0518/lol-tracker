@@ -1,7 +1,7 @@
-import { prisma } from "@/lib/db";
+import { prisma } from "@/lib/server/db";
 import { getRankedByPuuid } from "@/lib/riot/ranked";
-import { isAuthorizedCronRequest } from "@/lib/cron-auth";
-import { saveRankedEntries } from "@/lib/summoner/ranked";
+import { isAuthorizedCronRequest } from "@/lib/server/cron-auth";
+import { saveRankedEntries } from "@/lib/summoner/profile/ranked";
 import { NextResponse } from "next/server";
 
 export async function GET(req: Request) {

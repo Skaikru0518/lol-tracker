@@ -4,9 +4,9 @@ import { useMemo } from "react";
 import Link from "next/link";
 import { Panel, PanelBody, PanelHeader } from "@/components/ui/panel";
 import { EmptyState } from "@/components/ui/empty-state";
-import { getSummonerIcon } from "@/lib/icon-helpers";
-import { toSummonerSlug } from "@/lib/riot-id";
-import { getRecentTeammates } from "@/lib/summoner/teammates";
+import { getSummonerIcon } from "@/lib/game/icon-helpers";
+import { toSummonerSlug } from "@/lib/game/riot-id";
+import { getRecentTeammates } from "@/lib/summoner/matches/teammates";
 import { type Match } from "@/lib/validators/match";
 
 /** Teammates from at least two of the loaded games, linking to their profiles. */

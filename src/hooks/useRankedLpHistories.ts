@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useLPHistory } from "@/hooks/useLPHistory";
-import { type LpHistories } from "@/lib/ranked-queues";
+import { type LpHistories } from "@/lib/game/ranked-queues";
 
 /** Last 100 LP snapshots of each ranked queue, for match-row LP changes. */
 export function useRankedLpHistories(puuid: string | undefined): LpHistories {

@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { HttpError, retryUnlessNotFound } from "@/lib/http-error";
+import { HttpError, retryUnlessNotFound } from "@/lib/shared/http-error";
 import { type PerkInfo } from "@/lib/match/runes";
 
 const PERKS_URL = "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/perks.json";

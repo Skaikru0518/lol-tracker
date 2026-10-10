@@ -3,11 +3,11 @@ import { cn } from "@/lib/utils";
 import { ChampionIcon } from "@/components/ui/champion-icon";
 import { RankEmblem } from "@/components/ui/rank-emblem";
 import { Skeleton } from "@/components/ui/skeleton";
-import { type Champion, getRuneIcon, getSummonerSpellIcon, getSummonerSpellName, RANK_COLORS } from "@/lib/icon-helpers";
+import { type Champion, getRuneIcon, getSummonerSpellIcon, getSummonerSpellName, RANK_COLORS } from "@/lib/game/icon-helpers";
 import { type RankSummary } from "@/lib/live/live-game";
-import { formatRankLabel } from "@/lib/rank-calculator";
-import { riotIdToSlug } from "@/lib/riot-id";
-import { type RuneMaps } from "@/lib/summoner/match-row";
+import { formatRankLabel } from "@/lib/game/rank-calculator";
+import { riotIdToSlug } from "@/lib/game/riot-id";
+import { type RuneMaps } from "@/lib/summoner/matches/match-row";
 import { remSize } from "@/lib/ui/size";
 import { type LiveGameParticipant } from "@/lib/validators/live-game";
 

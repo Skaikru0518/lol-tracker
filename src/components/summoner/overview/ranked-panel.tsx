@@ -3,9 +3,9 @@
 import { Panel, PanelBody, PanelHeader } from "@/components/ui/panel";
 import { RankEmblem } from "@/components/ui/rank-emblem";
 import { useLPHistory } from "@/hooks/useLPHistory";
-import { RANK_COLORS } from "@/lib/icon-helpers";
-import { formatRankLabel } from "@/lib/rank-calculator";
-import { RANKED_QUEUE_TITLES, type RankedQueueType } from "@/lib/ranked-queues";
+import { RANK_COLORS } from "@/lib/game/icon-helpers";
+import { formatRankLabel } from "@/lib/game/rank-calculator";
+import { RANKED_QUEUE_TITLES, type RankedQueueType } from "@/lib/game/ranked-queues";
 import { type RankedEntry } from "@/lib/validators/ranked";
 import { LpSparkline } from "./lp-sparkline";
 

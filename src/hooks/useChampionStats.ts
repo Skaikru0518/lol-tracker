@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { type ChampionStat } from "@/lib/validators/champion-stats";
-import { type QueueFilter } from "@/lib/champion-stats/queue";
+import { type QueueFilter } from "@/lib/game/queue-filters";
 
 async function fetchChampionStats(puuid: string, queue: QueueFilter): Promise<ChampionStat[]> {
 	const params = new URLSearchParams({ puuid, queue });

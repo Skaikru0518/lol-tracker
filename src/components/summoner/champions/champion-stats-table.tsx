@@ -5,9 +5,9 @@ import { useRouter } from "next/navigation";
 import { ChampionIcon } from "@/components/ui/champion-icon";
 import { Chip } from "@/components/ui/chip";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { formatPoints, formatThousands } from "@/lib/format";
-import { getChampionDisplayName } from "@/lib/icon-helpers";
-import { type ChampionTableRow } from "@/lib/summoner/champion-rows";
+import { formatPoints, formatThousands } from "@/lib/shared/format";
+import { getChampionDisplayName } from "@/lib/game/icon-helpers";
+import { type ChampionTableRow } from "@/lib/summoner/champions/champion-rows";
 
 const MASTERY_COLOR = "var(--primary)";
 

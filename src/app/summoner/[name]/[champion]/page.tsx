@@ -1,5 +1,5 @@
 import { permanentRedirect } from "next/navigation";
-import { legacyChampionPath } from "@/lib/summoner/champion-slug";
+import { legacyChampionPath } from "@/lib/summoner/champions/champion-slug";
 
 /** Pre-redesign champion URLs moved under /champions. */
 export default async function LegacyChampionRedirect({ params }: { params: Promise<{ name: string; champion: string }> }) {

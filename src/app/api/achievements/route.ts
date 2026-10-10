@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
-import { detectAchievements } from "@/lib/achievements/detect";
-import { loadAchievementMatches } from "@/lib/achievements/query";
+import { prisma } from "@/lib/server/db";
+import { detectAchievements } from "@/lib/achievements/profile/detect";
+import { loadAchievementMatches } from "@/lib/achievements/profile/query";
 
 export async function GET(
 	req: NextRequest,

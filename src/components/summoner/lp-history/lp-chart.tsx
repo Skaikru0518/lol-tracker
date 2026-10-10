@@ -2,7 +2,7 @@
 
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { type DailyLpPoint, dayKeyToDate, lpAxisTickLabel, lpAxisTicks } from "@/lib/lp-history/summary";
-import { formatRankLabel } from "@/lib/rank-calculator";
+import { formatRankLabel } from "@/lib/game/rank-calculator";
 
 const dayLabel = (day: string) => dayKeyToDate(day).toLocaleDateString(undefined, { month: "short", day: "numeric" });
 

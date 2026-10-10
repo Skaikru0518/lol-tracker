@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getMatchIdsByPuuid, getMatchById } from "@/lib/riot/matches";
 import { RiotApiError } from "@/lib/riot/riot";
-import { prisma } from "@/lib/db";
-import { projectMatch } from "@/lib/match-projection";
-import { parseChampionId, parseMatchCount } from "@/lib/match-query";
-import { RIFT_QUEUE_IDS } from "@/lib/champion-stats/queue";
+import { prisma } from "@/lib/server/db";
+import { projectMatch } from "@/lib/match/projection";
+import { parseChampionId, parseMatchCount } from "@/lib/match/query";
+import { RIFT_QUEUE_IDS } from "@/lib/game/queue-filters";
 
 /**
  * Match ids already stored for a player, newest first. Used as a fallback when

@@ -5,9 +5,9 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { formatRankLabel } from "@/lib/rank-calculator";
+import { formatRankLabel } from "@/lib/game/rank-calculator";
 import { dayKeyToDate, groupChangesByDay, type LpChangeRow } from "@/lib/lp-history/summary";
-import { paginate } from "@/lib/pagination";
+import { paginate } from "@/lib/shared/pagination";
 
 const DAYS_PER_PAGE = 30;
 

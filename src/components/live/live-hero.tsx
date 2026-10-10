@@ -2,11 +2,11 @@
 
 import { HeroBanner } from "@/components/ui/hero-banner";
 import { useNow } from "@/hooks/useNow";
-import { formatDuration } from "@/lib/format";
-import { getChampionSplash } from "@/lib/icon-helpers";
+import { formatDuration } from "@/lib/shared/format";
+import { getChampionSplash } from "@/lib/game/icon-helpers";
 import { mapName } from "@/lib/live/live-game";
-import { getQueueName } from "@/lib/queue-names";
-import { liveElapsedSeconds } from "@/lib/summoner/live-elapsed";
+import { getQueueName } from "@/lib/game/queue-names";
+import { liveElapsedSeconds } from "@/lib/live/live-elapsed";
 
 /** The player's champion splash with a pulsing LIVE timer (or champ select), the queue and the map. */
 export function LiveHero({

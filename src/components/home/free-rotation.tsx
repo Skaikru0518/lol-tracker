@@ -9,7 +9,7 @@ import { useChampions } from "@/hooks/useChampions";
 import { useDDragonVersion } from "@/hooks/useDDragonVersion";
 import { useRotation } from "@/hooks/useRotation";
 import { rotationChampions } from "@/lib/home/format";
-import { queryFailed } from "@/lib/query-state";
+import { queryFailed } from "@/lib/shared/query-state";
 
 /** This week's free champions as icons with their names on hover. */
 export function FreeRotation() {

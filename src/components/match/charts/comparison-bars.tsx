@@ -4,9 +4,9 @@ import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import { ChampionIcon } from "@/components/ui/champion-icon";
 import { Panel, PanelHeader } from "@/components/ui/panel";
-import { formatThousands } from "@/lib/format";
+import { formatThousands } from "@/lib/shared/format";
 import { COMPARISON_METRICS, type ComparisonEntry, type ComparisonMetric, comparisonRows } from "@/lib/match/comparison";
-import { buildScoreboard } from "@/lib/summoner/scoreboard";
+import { buildScoreboard } from "@/lib/summoner/matches/scoreboard";
 import { type Match } from "@/lib/validators/match";
 import { TEAM_COLOR } from "./chart-theme";
 

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Chip } from "@/components/ui/chip";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAchievements, useDetectAchievements } from "@/hooks/useAchievements";
-import { ACHIEVEMENTS } from "@/lib/achievements/definitions";
+import { ACHIEVEMENTS } from "@/lib/achievements/profile/definitions";
 
 const PREVIEW_COUNT = 4;
 

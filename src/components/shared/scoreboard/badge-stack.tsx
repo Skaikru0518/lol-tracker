@@ -1,8 +1,8 @@
 import { cn } from "@/lib/utils";
 import { Chip } from "@/components/ui/chip";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { badgeColumn } from "@/lib/match-badges/column";
-import { getMatchBadgeById } from "@/lib/match-badges/definitions";
+import { badgeColumn } from "@/lib/achievements/badges/column";
+import { getMatchBadgeById } from "@/lib/achievements/badges/definitions";
 
 const COMPACT = "h-3.5 cursor-pointer px-1 leading-none";
 

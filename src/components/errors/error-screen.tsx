@@ -1,5 +1,5 @@
 import { HeroBanner } from "@/components/ui/hero-banner";
-import { getChampionSplash } from "@/lib/icon-helpers";
+import { getChampionSplash } from "@/lib/game/icon-helpers";
 
 /** Full-width message screen with an optional champion splash, a big code or title and action buttons below. */
 export function ErrorScreen({

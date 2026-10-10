@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { HttpError } from "@/lib/http-error";
-import { ddragonChampionId } from "@/lib/icon-helpers";
+import { HttpError } from "@/lib/shared/http-error";
+import { ddragonChampionId } from "@/lib/game/icon-helpers";
 
 interface ChampionJson {
 	data: Record<string, { spells: { image: { full: string } }[] }>;

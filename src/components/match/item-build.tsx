@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import Image from "next/image";
 import { type Timeline } from "@/lib/validators/timeline";
-import { getItemIcon } from "@/lib/icon-helpers";
+import { getItemIcon } from "@/lib/game/icon-helpers";
 import IconTooltip from "@/components/ui/icon-tooltip";
 
 interface ItemBuildProps {

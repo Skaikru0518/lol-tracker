@@ -1,7 +1,7 @@
-import { prisma } from "@/lib/db";
-import { detectAchievements } from "@/lib/achievements/detect";
-import { loadAchievementMatches } from "@/lib/achievements/query";
-import { isAuthorizedCronRequest } from "@/lib/cron-auth";
+import { prisma } from "@/lib/server/db";
+import { detectAchievements } from "@/lib/achievements/profile/detect";
+import { loadAchievementMatches } from "@/lib/achievements/profile/query";
+import { isAuthorizedCronRequest } from "@/lib/server/cron-auth";
 import { NextResponse } from "next/server";
 
 export async function GET(req: Request) {

@@ -3,7 +3,7 @@
 import { useId, useMemo } from "react";
 import { Area, AreaChart, CartesianGrid, ReferenceDot, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Panel, PanelBody, PanelHeader } from "@/components/ui/panel";
-import { formatThousands } from "@/lib/format";
+import { formatThousands } from "@/lib/shared/format";
 import { grubWaves, objectiveEvents } from "@/lib/match/timeline-events";
 import { type Timeline } from "@/lib/validators/timeline";
 import { AXIS, GRID, TEAM_COLOR, TOOLTIP_STYLE } from "./charts/chart-theme";

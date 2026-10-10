@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
+import { prisma } from "@/lib/server/db";
 import { ACHIEVEMENT_QUEUE_IDS, MIN_ACHIEVEMENT_GAME_SECONDS } from "@/lib/achievements/eligibility";
-import { detectMatchBadges } from "@/lib/match-badges/detect";
+import { detectMatchBadges } from "@/lib/achievements/badges/detect";
 import { matchSchema } from "@/lib/validators/match";
 
 export async function GET(req: NextRequest) {

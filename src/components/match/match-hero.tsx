@@ -1,13 +1,13 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { HeroBanner } from "@/components/ui/hero-banner";
-import { formatDuration } from "@/lib/format";
-import { getChampionSplash } from "@/lib/icon-helpers";
-import { getPlacementColor, getPlacementSuffix } from "@/lib/arena-helpers";
+import { formatDuration } from "@/lib/shared/format";
+import { getChampionSplash } from "@/lib/game/icon-helpers";
+import { getPlacementColor, getPlacementSuffix } from "@/lib/game/arena-helpers";
 import { type MatchResult } from "@/lib/match/detail";
-import { getQueueName } from "@/lib/queue-names";
-import { formatRankLabel } from "@/lib/rank-calculator";
-import { toSummonerSlug } from "@/lib/riot-id";
+import { getQueueName } from "@/lib/game/queue-names";
+import { formatRankLabel } from "@/lib/game/rank-calculator";
+import { toSummonerSlug } from "@/lib/game/riot-id";
 import { type Match, type Participant } from "@/lib/validators/match";
 
 const RESULT_TONE: Record<MatchResult, string> = {

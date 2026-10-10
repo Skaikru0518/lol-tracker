@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 import { remSize } from "@/lib/ui/size";
-import { getItemIcon } from "@/lib/icon-helpers";
+import { getItemIcon } from "@/lib/game/icon-helpers";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 /** Row of item icons; `0` renders as an empty slot. With `itemNames` each icon shows its name on hover (needs a TooltipProvider above). */

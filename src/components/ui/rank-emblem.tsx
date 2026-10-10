@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 import { remSize } from "@/lib/ui/size";
-import { getRankEmblem } from "@/lib/icon-helpers";
+import { getRankEmblem } from "@/lib/game/icon-helpers";
 
 /** Local rank emblem image; unknown or empty tiers show the unranked emblem. */
 export function RankEmblem({

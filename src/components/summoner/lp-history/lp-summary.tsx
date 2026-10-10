@@ -1,5 +1,5 @@
-import { formatRankLabel } from "@/lib/rank-calculator";
-import { RANK_COLORS } from "@/lib/icon-helpers";
+import { formatRankLabel } from "@/lib/game/rank-calculator";
+import { RANK_COLORS } from "@/lib/game/icon-helpers";
 import { type LpSummaryData } from "@/lib/lp-history/summary";
 import { type LPSnapshot } from "@/lib/validators/lp-history";
 

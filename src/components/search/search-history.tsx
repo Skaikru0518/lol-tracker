@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { X } from "lucide-react";
-import { clearSearchHistory } from "@/lib/search-history";
-import { parseRiotId, toSummonerSlug } from "@/lib/riot-id";
+import { clearSearchHistory } from "@/lib/home/search-history";
+import { parseRiotId, toSummonerSlug } from "@/lib/game/riot-id";
 import { useSearchHistory } from "@/hooks/useSearchHistory";
 
 /** Recent searches as chips linking to each profile, with a clear action. */

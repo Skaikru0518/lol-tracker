@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { Panel } from "@/components/ui/panel";
 import { TimelinePart } from "@/components/match/timeline-slot";
 import { type TimelineState } from "@/lib/match/detail";
-import { type RuneMaps } from "@/lib/summoner/match-row";
+import { type RuneMaps } from "@/lib/summoner/matches/match-row";
 import { type Match, type Participant } from "@/lib/validators/match";
 import { type Timeline } from "@/lib/validators/timeline";
 import { FarmingTab } from "./farming-tab";
