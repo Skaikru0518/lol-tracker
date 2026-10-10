@@ -8,8 +8,8 @@ import { ChampionIcon } from "@/components/ui/champion-icon";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useChampionStats } from "@/hooks/useChampionStats";
-import { getChampionDisplayName } from "@/lib/icon-helpers";
-import { type QueueFilter } from "@/lib/champion-stats/queue";
+import { getChampionDisplayName } from "@/lib/game/icon-helpers";
+import { type QueueFilter } from "@/lib/game/queue-filters";
 
 const QUEUE_OPTIONS: { value: QueueFilter; label: string }[] = [
 	{ value: "all", label: "All queues" },

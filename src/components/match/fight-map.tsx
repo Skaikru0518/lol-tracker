@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { ChampionIcon } from "@/components/ui/champion-icon";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Panel, PanelBody, PanelHeader } from "@/components/ui/panel";
-import { formatDuration } from "@/lib/format";
+import { formatDuration } from "@/lib/shared/format";
 import { type FightRole, playerFightEvents } from "@/lib/match/timeline-events";
 import { type Participant } from "@/lib/validators/match";
 import { type Timeline } from "@/lib/validators/timeline";

@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useDDragonVersion } from "./useDDragonVersion";
-import { getItemMap } from "@/lib/icon-helpers";
+import { getItemMap } from "@/lib/game/icon-helpers";
 
 export function useItems() {
 	const { data: version } = useDDragonVersion();

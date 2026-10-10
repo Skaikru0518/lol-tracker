@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getMatchTimeline } from "@/lib/riot/matches";
 import { RiotApiError } from "@/lib/riot/riot";
-import { prisma } from "@/lib/db";
+import { prisma } from "@/lib/server/db";
 
 export async function GET(
 	req: NextRequest,

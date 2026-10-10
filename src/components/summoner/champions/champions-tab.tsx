@@ -9,8 +9,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useAllMasteries } from "@/hooks/useAllMasteries";
 import { useChampionStats } from "@/hooks/useChampionStats";
 import { useChampions } from "@/hooks/useChampions";
-import { type QueueFilter } from "@/lib/champion-stats/queue";
-import { mergeChampionRows } from "@/lib/summoner/champion-rows";
+import { type QueueFilter } from "@/lib/game/queue-filters";
+import { mergeChampionRows } from "@/lib/summoner/champions/champion-rows";
 import { ChampionStatsTable } from "./champion-stats-table";
 import { MasteryOnlyList } from "./mastery-only-list";
 

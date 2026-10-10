@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getRecentSearches } from "@/lib/recent-searches";
+import { getRecentSearches } from "@/lib/home/recent-searches";
 import { type RecentSearch } from "@/lib/validators/recent-searches";
 
 export async function GET(): Promise<NextResponse<RecentSearch[] | { error: string }>> {

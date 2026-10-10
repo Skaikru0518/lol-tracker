@@ -1,8 +1,8 @@
 import { HeroBanner } from "@/components/ui/hero-banner";
 import { Chip } from "@/components/ui/chip";
-import { getChampionSplash, getSummonerIcon } from "@/lib/icon-helpers";
-import { rankPills } from "@/lib/summoner/rank-pills";
-import { type SummonerProfile } from "@/lib/summoner/get-profile";
+import { getChampionSplash, getSummonerIcon } from "@/lib/game/icon-helpers";
+import { rankPills } from "@/lib/summoner/profile/rank-pills";
+import { type SummonerProfile } from "@/lib/summoner/profile/get-profile";
 import { CopyRiotId } from "./copy-riot-id";
 import { RefreshButton } from "./refresh-button";
 

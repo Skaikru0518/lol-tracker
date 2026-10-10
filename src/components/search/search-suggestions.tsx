@@ -3,9 +3,9 @@
 import { Loader2, Search } from "lucide-react";
 import { useDDragonVersion } from "@/hooks/useDDragonVersion";
 import { recentSearchRank } from "@/lib/home/format";
-import { getSummonerIcon, RANK_COLORS } from "@/lib/icon-helpers";
-import { lookupCandidate } from "@/lib/summoner/search-query";
-import { suggestionStatus } from "@/lib/summoner/search-results";
+import { getSummonerIcon, RANK_COLORS } from "@/lib/game/icon-helpers";
+import { lookupCandidate } from "@/lib/summoner/search/search-query";
+import { suggestionStatus } from "@/lib/summoner/search/search-results";
 import { cn } from "@/lib/utils";
 import { type RecentSearch } from "@/lib/validators/recent-searches";
 

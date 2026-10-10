@@ -1,7 +1,7 @@
 import { HeroBanner } from "@/components/ui/hero-banner";
 import { Panel } from "@/components/ui/panel";
 import { Logo } from "@/components/layout/logo";
-import { getChampionSplash } from "@/lib/icon-helpers";
+import { getChampionSplash } from "@/lib/game/icon-helpers";
 
 const FEATURES = ["Ranked Stats", "Match History", "Champion Mastery"] as const;
 

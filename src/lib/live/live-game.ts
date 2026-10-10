@@ -1,5 +1,5 @@
-import { calculateAvgRank } from "@/lib/rank-calculator";
-import { rankedQueueForQueueId } from "@/lib/ranked-queues";
+import { calculateAvgRank } from "@/lib/game/rank-calculator";
+import { rankedQueueForQueueId } from "@/lib/game/ranked-queues";
 import { type LiveGameParticipant } from "@/lib/validators/live-game";
 import { type RankedEntry } from "@/lib/validators/ranked";
 

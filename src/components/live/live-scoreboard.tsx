@@ -1,10 +1,10 @@
 import { cn } from "@/lib/utils";
 import { BansRow } from "@/components/shared/scoreboard/bans-row";
 import { Panel } from "@/components/ui/panel";
-import { type Champion, RANK_COLORS } from "@/lib/icon-helpers";
+import { type Champion, RANK_COLORS } from "@/lib/game/icon-helpers";
 import { playerRankSummary, splitTeams, teamAvgRank } from "@/lib/live/live-game";
-import { formatRankLabel } from "@/lib/rank-calculator";
-import { type RuneMaps } from "@/lib/summoner/match-row";
+import { formatRankLabel } from "@/lib/game/rank-calculator";
+import { type RuneMaps } from "@/lib/summoner/matches/match-row";
 import { type LiveGame, type LiveGameParticipant } from "@/lib/validators/live-game";
 import { type RankedEntry } from "@/lib/validators/ranked";
 import { LiveRow } from "./live-row";

@@ -4,10 +4,10 @@ import Link from "next/link";
 import { useSelectedLayoutSegment } from "next/navigation";
 import { useLiveGame } from "@/hooks/useLiveGame";
 import { useNow } from "@/hooks/useNow";
-import { formatDuration } from "@/lib/format";
-import { getQueueName } from "@/lib/queue-names";
+import { formatDuration } from "@/lib/shared/format";
+import { getQueueName } from "@/lib/game/queue-names";
 import { showLiveBanner } from "@/lib/live/live-game";
-import { liveElapsedSeconds } from "@/lib/summoner/live-elapsed";
+import { liveElapsedSeconds } from "@/lib/live/live-elapsed";
 
 /** One-line banner shown while the player is in a game; links to the live page and is hidden on it. */
 export function LiveBanner({ puuid, basePath }: { puuid: string; basePath: string }) {

@@ -11,7 +11,7 @@ export const championStatSchema = z.object({
 	assists: z.number(),
 	kda: z.number(),
 	csPerMin: z.number(),
-	damagePerMin: z.number(),
+	avgDamage: z.number(),
 });
 
 export type ChampionStat = z.infer<typeof championStatSchema>;

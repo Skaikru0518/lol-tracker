@@ -1,7 +1,7 @@
 import { getMatchById } from "@/lib/riot/matches";
 import { RiotApiError } from "@/lib/riot/riot";
-import { prisma } from "@/lib/db";
-import { projectMatch } from "@/lib/match-projection";
+import { prisma } from "@/lib/server/db";
+import { projectMatch } from "@/lib/match/projection";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(

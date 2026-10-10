@@ -1,5 +1,5 @@
 import { RiotApiError } from "@/lib/riot/riot";
-import { resolveRankedEntries } from "@/lib/summoner/ranked";
+import { resolveRankedEntries } from "@/lib/summoner/profile/ranked";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {

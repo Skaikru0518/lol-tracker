@@ -1,6 +1,6 @@
-import { getRuneIcon } from "@/lib/icon-helpers";
+import { getRuneIcon } from "@/lib/game/icon-helpers";
 import { type PerkInfo, plainText, runeStatLines } from "@/lib/match/runes";
-import { type RuneMaps } from "@/lib/summoner/match-row";
+import { type RuneMaps } from "@/lib/summoner/matches/match-row";
 import { type Participant } from "@/lib/validators/match";
 
 /** Primary and secondary trees; each rune shows what it did this game, hovering shows its short description. Shards below. */

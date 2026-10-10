@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { formatRankLabel } from "@/lib/rank-calculator";
-import { sparklineIndexAt, sparklinePoints } from "@/lib/summoner/sparkline";
-import { toAbsoluteLp } from "@/lib/summoner/lp-change";
+import { formatRankLabel } from "@/lib/game/rank-calculator";
+import { sparklineIndexAt, sparklinePoints } from "@/lib/summoner/matches/sparkline";
+import { toAbsoluteLp } from "@/lib/summoner/profile/lp-change";
 import { type LPSnapshot } from "@/lib/validators/lp-history";
 
 const WIDTH = 240;

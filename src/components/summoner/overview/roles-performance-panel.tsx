@@ -3,9 +3,9 @@
 import { useMemo } from "react";
 import { Panel, PanelBody, PanelHeader } from "@/components/ui/panel";
 import { EmptyState } from "@/components/ui/empty-state";
-import { calculateStats } from "@/lib/match-stats";
-import { donutGradient, roleShares } from "@/lib/summoner/roles";
-import { formatThousands } from "@/lib/format";
+import { calculateStats } from "@/lib/match/stats";
+import { donutGradient, roleShares } from "@/lib/summoner/matches/roles";
+import { formatThousands } from "@/lib/shared/format";
 import { type Match } from "@/lib/validators/match";
 
 const ROLE_COLORS = ["var(--primary)", "var(--team-blue)", "var(--win)", "var(--gold)", "var(--loss)"] as const;

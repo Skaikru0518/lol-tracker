@@ -9,8 +9,8 @@ import Navbar from "@/components/layout/navbar";
 import Footer from "@/components/layout/footer";
 import MaintenanceScreen from "@/components/layout/maintenance-screen";
 import { Analytics } from "@vercel/analytics/next";
-import { isMaintenanceMode } from "@/lib/app-settings";
-import { SITE_URL } from "@/lib/site";
+import { isMaintenanceMode } from "@/lib/server/app-settings";
+import { SITE_URL } from "@/lib/shared/site";
 
 const geistSans = Geist({
 	variable: "--font-geist-sans",

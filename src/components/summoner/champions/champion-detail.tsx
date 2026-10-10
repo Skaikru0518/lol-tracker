@@ -14,10 +14,10 @@ import { useChampions } from "@/hooks/useChampions";
 import { useRankedLpHistories } from "@/hooks/useRankedLpHistories";
 import { useMatches } from "@/hooks/useMatches";
 import { useRunes } from "@/hooks/useRunes";
-import { formatPoints } from "@/lib/format";
-import { getChampionSplash } from "@/lib/icon-helpers";
-import { queryFailed } from "@/lib/query-state";
-import { averageKillParticipation, findChampionBySlug } from "@/lib/summoner/champion-slug";
+import { formatPoints } from "@/lib/shared/format";
+import { getChampionSplash } from "@/lib/game/icon-helpers";
+import { queryFailed } from "@/lib/shared/query-state";
+import { averageKillParticipation, findChampionBySlug } from "@/lib/summoner/champions/champion-slug";
 import { ChampionSummary } from "./champion-summary";
 
 // Stored games only (Riot cannot filter by champion); MatchList pages through them 20 at a time
@@ -74,7 +74,7 @@ export function ChampionDetail({ slug }: { slug: string }) {
 					<h2 className="text-2xl font-bold text-foreground">{champion.name}</h2>
 					<p className="text-sm text-muted-foreground">
 						{gameName}#{tagLine}
-						{mastery && ` · Mastery ${mastery.championLevel} · ${formatPoints(mastery.championPoints)} pts`}
+						{mastery && ` · ${formatPoints(mastery.championPoints)} mastery pts`}
 					</p>
 				</div>
 			</HeroBanner>

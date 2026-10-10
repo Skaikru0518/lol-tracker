@@ -7,13 +7,13 @@ import { cn } from "@/lib/utils";
 import { ChampionIcon } from "@/components/ui/champion-icon";
 import { ItemSlots } from "@/components/ui/item-slots";
 import { SpellRuneStack } from "@/components/ui/spell-rune-stack";
-import { getPlacementColor, getPlacementSuffix, isArenaMatch } from "@/lib/arena-helpers";
-import { csPerMinute, formatDuration, kdaRatio, timeAgo } from "@/lib/format";
-import { killParticipation, participantItems, rowResult, runeIcons, shortQueueName, type RuneMaps } from "@/lib/summoner/match-row";
+import { getPlacementColor, getPlacementSuffix, isArenaMatch } from "@/lib/game/arena-helpers";
+import { csPerMinute, formatDuration, kdaRatio, timeAgo } from "@/lib/shared/format";
+import { killParticipation, participantItems, rowResult, runeIcons, shortQueueName, type RuneMaps } from "@/lib/summoner/matches/match-row";
 import { type Match, type Participant } from "@/lib/validators/match";
 import { MatchBadges } from "./match-badges";
 import { MatchRowExpanded } from "./match-row-expanded";
-import { rankedQueueForQueueId } from "@/lib/ranked-queues";
+import { rankedQueueForQueueId } from "@/lib/game/ranked-queues";
 
 function Stat({ value, label, className }: { value: React.ReactNode; label: string; className?: string }) {
 	return (

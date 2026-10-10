@@ -2,7 +2,7 @@ import { HeroBanner } from "@/components/ui/hero-banner";
 import { Logo } from "@/components/layout/logo";
 import SearchHistory from "@/components/search/search-history";
 import SummonerSearch from "@/components/search/summoner-search";
-import { getChampionSplash } from "@/lib/icon-helpers";
+import { getChampionSplash } from "@/lib/game/icon-helpers";
 
 /** Ahri splash with the large logo, the summoner search and the local search history chips. */
 export function HomeHero() {

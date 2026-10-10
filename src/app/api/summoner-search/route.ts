@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { parseSearchTerms } from "@/lib/summoner/search-query";
-import { searchSummoners } from "@/lib/summoner/search";
+import { parseSearchTerms } from "@/lib/summoner/search/search-query";
+import { searchSummoners } from "@/lib/summoner/search/search";
 import { type RecentSearch } from "@/lib/validators/recent-searches";
 
 /** Summoner name suggestions from stored accounts; short input returns an empty list without a query. */

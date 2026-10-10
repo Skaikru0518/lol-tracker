@@ -4,7 +4,7 @@ import { Panel, PanelHeader } from "@/components/ui/panel";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useNewSkins } from "@/hooks/useNewSkins";
-import { rarityLabel } from "@/lib/new-skins";
+import { rarityLabel } from "@/lib/home/new-skins";
 
 /** Skins released this patch as splash cards with their name and rarity. */
 export function NewSkins() {

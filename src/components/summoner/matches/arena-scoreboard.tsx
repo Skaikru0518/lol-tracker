@@ -3,11 +3,11 @@ import { cn } from "@/lib/utils";
 import { ChampionIcon } from "@/components/ui/champion-icon";
 import { ItemSlots } from "@/components/ui/item-slots";
 import { badgeIdsFor } from "@/lib/match/detail";
-import { participantItems } from "@/lib/summoner/match-row";
+import { participantItems } from "@/lib/summoner/matches/match-row";
 import { MatchBadges } from "./match-badges";
-import { getArenaTeams, getPlacementColor, getPlacementSuffix } from "@/lib/arena-helpers";
-import { formatThousands } from "@/lib/format";
-import { toSummonerSlug } from "@/lib/riot-id";
+import { getArenaTeams, getPlacementColor, getPlacementSuffix } from "@/lib/game/arena-helpers";
+import { formatThousands } from "@/lib/shared/format";
+import { toSummonerSlug } from "@/lib/game/riot-id";
 import { type Participant } from "@/lib/validators/match";
 
 /** Arena leaderboard: eight duo teams by placement, top four above the divider; the match page adds items and badges. */

@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { type QueueFilter } from "@/lib/champion-stats/queue";
+import { type QueueFilter } from "@/lib/game/queue-filters";
 
 const CHIPS: { value: QueueFilter; label: string }[] = [
 	{ value: "all", label: "All" },

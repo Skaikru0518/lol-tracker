@@ -1,4 +1,4 @@
-import { getBuildingIcon, getObjectiveIcon } from "@/lib/icon-helpers";
+import { getBuildingIcon, getObjectiveIcon } from "@/lib/game/icon-helpers";
 import { type Timeline } from "@/lib/validators/timeline";
 
 export type Side = "blue" | "red";

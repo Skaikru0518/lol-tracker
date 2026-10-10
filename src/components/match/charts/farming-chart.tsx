@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
-import { formatThousands } from "@/lib/format";
+import { formatThousands } from "@/lib/shared/format";
 import { teamSeries } from "@/lib/match/timeline-events";
 import { type Timeline } from "@/lib/validators/timeline";
 import { TeamAreaChart } from "./team-area-chart";

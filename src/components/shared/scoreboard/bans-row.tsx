@@ -1,5 +1,5 @@
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { getChampionIcon, type Champion } from "@/lib/icon-helpers";
+import { getChampionIcon, type Champion } from "@/lib/game/icon-helpers";
 
 function BanIcons({ bans, version, champions }: { bans: number[]; version: string; champions?: Record<number, Champion> }) {
 	return (

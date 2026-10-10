@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { parseQueueFilter, QUEUE_FILTERS } from "@/lib/champion-stats/queue";
-import { queryChampionStats } from "@/lib/champion-stats/query";
-import { toChampionStat } from "@/lib/champion-stats/aggregate";
+import { parseQueueFilter, QUEUE_FILTERS } from "@/lib/game/queue-filters";
+import { queryChampionStats } from "@/lib/summoner/champions/stats-query";
+import { toChampionStat } from "@/lib/summoner/champions/stats-aggregate";
 import { type ChampionStat } from "@/lib/validators/champion-stats";
 
 export async function GET(

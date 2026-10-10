@@ -8,7 +8,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLPHistory } from "@/hooks/useLPHistory";
 import { type LpRange } from "@/lib/lp-history/range";
-import { type RankedQueueType } from "@/lib/ranked-queues";
+import { type RankedQueueType } from "@/lib/game/ranked-queues";
 import { dailyLpPoints, lpChangeRows, lpChartNotice, lpSummary } from "@/lib/lp-history/summary";
 import { LpChangesTable } from "./lp-changes-table";
 import { LpChart } from "./lp-chart";

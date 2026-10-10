@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getNewSkins } from "@/lib/new-skins-server";
+import { getNewSkins } from "@/lib/home/new-skins-server";
 import { type NewSkins } from "@/lib/validators/new-skins";
 
 /** Skins added in the current patch, cached for seven days. */

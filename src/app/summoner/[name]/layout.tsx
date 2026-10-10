@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getSummonerProfile } from "@/lib/summoner/get-profile";
-import { buildProfileMetadata } from "@/lib/summoner/metadata";
-import { getChampionMap, getDDragonVersion } from "@/lib/icon-helpers";
-import { toSummonerSlug } from "@/lib/riot-id";
+import { getSummonerProfile } from "@/lib/summoner/profile/get-profile";
+import { buildProfileMetadata } from "@/lib/summoner/profile/metadata";
+import { getChampionMap, getDDragonVersion } from "@/lib/game/icon-helpers";
+import { toSummonerSlug } from "@/lib/game/riot-id";
 import { SummonerProvider } from "@/components/summoner/shell/summoner-provider";
 import { SummonerHero } from "@/components/summoner/shell/summoner-hero";
 import { SummonerTabs } from "@/components/summoner/shell/summoner-tabs";

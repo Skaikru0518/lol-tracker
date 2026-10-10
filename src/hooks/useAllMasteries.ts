@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { z } from "zod";
-import { type MasteryEntry } from "@/lib/summoner/mastery";
+import { type MasteryEntry } from "@/lib/summoner/champions/mastery";
 
 const masteryEntriesSchema = z.array(
 	z.object({ puuid: z.string(), championId: z.number(), championLevel: z.number(), championPoints: z.number(), lastPlayTime: z.number() }),

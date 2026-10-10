@@ -2,7 +2,7 @@
 
 import { cn } from "@/lib/utils";
 import { ChampionIcon } from "@/components/ui/champion-icon";
-import { getChampionDisplayName } from "@/lib/icon-helpers";
+import { getChampionDisplayName } from "@/lib/game/icon-helpers";
 import { type Match } from "@/lib/validators/match";
 
 /** 5 vs 5 champion buttons; the selected player gets the gold ring. */

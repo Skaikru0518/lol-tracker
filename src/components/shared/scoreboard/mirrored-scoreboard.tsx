@@ -1,7 +1,7 @@
-import { type RuneMaps } from "@/lib/summoner/match-row";
-import { type Champion } from "@/lib/icon-helpers";
+import { type RuneMaps } from "@/lib/summoner/matches/match-row";
+import { type Champion } from "@/lib/game/icon-helpers";
 import { badgeIdsFor } from "@/lib/match/detail";
-import { type ScoreboardData } from "@/lib/summoner/scoreboard";
+import { type ScoreboardData } from "@/lib/summoner/matches/scoreboard";
 import { type RankedEntry } from "@/lib/validators/ranked";
 import { BansRow } from "./bans-row";
 import { ScoreboardRow } from "./scoreboard-row";

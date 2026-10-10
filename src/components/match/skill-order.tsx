@@ -3,7 +3,7 @@
 import { Fragment, useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { useChampionSpells } from "@/hooks/useChampionSpells";
-import { getSpellIcon } from "@/lib/icon-helpers";
+import { getSpellIcon } from "@/lib/game/icon-helpers";
 import { skillLevels, skillMaxOrder } from "@/lib/match/timeline-events";
 import { type Timeline } from "@/lib/validators/timeline";
 

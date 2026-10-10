@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { HttpError, retryUnlessNotFound } from "@/lib/http-error";
+import { HttpError, retryUnlessNotFound } from "@/lib/shared/http-error";
 import { type Match } from "@/lib/validators/match";
 
 async function fetchMatch(matchId: string) {

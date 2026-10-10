@@ -9,7 +9,7 @@ import { ChampionIcon } from "@/components/ui/champion-icon";
 import { ItemSlots } from "@/components/ui/item-slots";
 import { SpellRuneStack } from "@/components/ui/spell-rune-stack";
 import { Button } from "@/components/ui/button";
-import { getChampionSplash, getDDragonVersion } from "@/lib/icon-helpers";
+import { getChampionSplash, getDDragonVersion } from "@/lib/game/icon-helpers";
 
 /** Dev-only gallery of the redesign primitives; 404 in production. */
 export default async function UiGalleryPage() {

@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { Search } from "lucide-react";
-import { addSearchHistory } from "@/lib/search-history";
-import { parseRiotId, toSummonerSlug } from "@/lib/riot-id";
+import { addSearchHistory } from "@/lib/home/search-history";
+import { parseRiotId, toSummonerSlug } from "@/lib/game/riot-id";
 import { useSummonerSuggestions } from "@/hooks/useSummonerSuggestions";
 import { SearchSuggestions } from "./search-suggestions";
 

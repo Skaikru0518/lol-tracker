@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { resolveDDragonVersion } from "@/lib/ddragon-version";
-import { getDDragonVersion } from "@/lib/icon-helpers";
+import { resolveDDragonVersion } from "@/lib/game/ddragon-version";
+import { getDDragonVersion } from "@/lib/game/icon-helpers";
 
 function browserStorage() {
 	try {

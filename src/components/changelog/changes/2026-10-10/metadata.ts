@@ -54,6 +54,12 @@ const changelog: ChangelogEntry = {
 			title: "Search as you type",
 			description: "The summoner search suggests stored summoners with their rank while you type, and offers a lookup for any full Riot ID it does not know yet.",
 		},
+		{
+			category: "improvement",
+			title: "Ranked-only achievements",
+			description:
+				"Achievements and match badges now come from Ranked Solo, Flex and 5s games only, with remakes ignored. Ties no longer hand out a badge, 5s Enjoyer replaces Normal Enjoyer, and Objective Hunter counts dragons and barons.",
+		},
 	],
 };
 

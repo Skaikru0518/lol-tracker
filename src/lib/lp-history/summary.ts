@@ -1,5 +1,5 @@
-import { toAbsoluteLp } from "@/lib/summoner/lp-change";
-import { formatRankLabel } from "@/lib/rank-calculator";
+import { toAbsoluteLp } from "@/lib/summoner/profile/lp-change";
+import { formatRankLabel } from "@/lib/game/rank-calculator";
 import { type LPSnapshot } from "@/lib/validators/lp-history";
 
 const TIERS = ["IRON", "BRONZE", "SILVER", "GOLD", "PLATINUM", "EMERALD", "DIAMOND", "MASTER", "GRANDMASTER", "CHALLENGER"];

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { RiotApiError } from "@/lib/riot/riot";
-import { resolveAllMasteries, resolveTopMasteries } from "@/lib/summoner/mastery";
+import { resolveAllMasteries, resolveTopMasteries } from "@/lib/summoner/champions/mastery";
 
 export async function GET(req: NextRequest) {
 	const puuid = req.nextUrl.searchParams.get("puuid");
