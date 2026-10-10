@@ -46,3 +46,12 @@ export function riotIdToSlug(riotId: string): string {
 
 	return toSummonerSlug(parsed.gameName, parsed.tagLine);
 }
+
+/** `decodeURIComponent` that returns the input unchanged on malformed escapes. */
+export function decodeSlug(slug: string): string {
+	try {
+		return decodeURIComponent(slug);
+	} catch {
+		return slug;
+	}
+}

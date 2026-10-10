@@ -21,6 +21,7 @@ Then remove the last old match components.
 
 ## Global Constraints
 
+
 - Package manager is **pnpm**.
 - **Comments:** keep them minimal; use only JSDoc (prefer one line) and single-line inline `//`.
 - Use plain `<img>`, never `next/image`. No `any`. No emoji. No new env vars.
@@ -1052,7 +1053,7 @@ export function absoluteLpLabel(value: number): string {
 	return `${formatRankLabel(tier, rank)} · ${v % 100} LP`;
 }
 ```
-`absoluteLpLabel` maps every apex value to "Master". `toAbsoluteLp` puts Grandmaster at 2800+400·1 and Challenger at 2800+400·2, but in practice those tiers rarely appear on the chart's axis ticks. The tooltip shows each snapshot's real tier instead, see `lp-chart.tsx`.
+`absoluteLpLabel` labels every apex value "Master", because Master, Grandmaster and Challenger share one LP ladder in `toAbsoluteLp` (2800 + LP, fixed in the Phase 2 review). The axis cannot tell those tiers apart, so the tooltip shows each snapshot's real tier — see `lp-chart.tsx`.
 
 - [ ] **Step 4: Run tests to verify they pass**
 

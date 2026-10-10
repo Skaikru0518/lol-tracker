@@ -3,6 +3,7 @@ import { getMatchIdsByPuuid, getMatchById } from "@/lib/riot/matches";
 import { RiotApiError } from "@/lib/riot/riot";
 import { prisma } from "@/lib/db";
 import { projectMatch } from "@/lib/match-projection";
+import { parseChampionId, parseMatchCount } from "@/lib/match-query";
 
 /**
  * Match ids already stored for a player, newest first. Used as a fallback when
@@ -24,36 +25,54 @@ async function getCachedMatchIds(
 	return rows.map((row) => row.matchId);
 }
 
+/** Stored match ids where the player played one champion, newest first; Riot's ids endpoint cannot filter by champion. */
+async function getStoredChampionMatchIds(
+	puuid: string,
+	championId: number,
+	count: number,
+	start: number,
+): Promise<string[]> {
+	const rows = await prisma.$queryRaw<{ matchId: string }[]>`
+		SELECT m."matchId" FROM "Match" m
+		WHERE m.data->'metadata'->'participants' @> ${JSON.stringify(puuid)}::jsonb
+			AND EXISTS (
+				SELECT 1 FROM jsonb_array_elements(m.data->'info'->'participants') p
+				WHERE p->>'puuid' = ${puuid} AND (p->>'championId')::int = ${championId}
+			)
+		ORDER BY m."gameCreation" DESC
+		LIMIT ${count} OFFSET ${start}
+	`;
+
+	return rows.map((row) => row.matchId);
+}
+
 export async function GET(req: NextRequest) {
 	const puuid = req.nextUrl.searchParams.get("puuid");
-	const count = req.nextUrl.searchParams.get("count") ?? "20";
-	const championId = req.nextUrl.searchParams.get("championId");
-	const start = req.nextUrl.searchParams.get("start") ?? "0";
+	const count = parseMatchCount(req.nextUrl.searchParams.get("count"));
+	const championId = parseChampionId(req.nextUrl.searchParams.get("championId"));
+	const start = Math.max(Number.parseInt(req.nextUrl.searchParams.get("start") ?? "0", 10) || 0, 0);
 
 	if (!puuid)
 		return NextResponse.json({ error: "puuid is required" }, { status: 400 });
+	if (championId === null)
+		return NextResponse.json({ error: "championId must be a positive integer" }, { status: 400 });
 
 	try {
 		let matchIds: string[];
 		let riotReachable = true;
 
-		try {
-			matchIds = await getMatchIdsByPuuid(
-				puuid,
-				parseInt(count),
-				championId ? parseInt(championId) : undefined,
-				parseInt(start),
-			);
-		} catch (error) {
-			if (!(error instanceof RiotApiError) || championId) throw error;
+		if (championId) {
+			matchIds = await getStoredChampionMatchIds(puuid, championId, count, start);
+		} else {
+			try {
+				matchIds = await getMatchIdsByPuuid(puuid, count, undefined, start);
+			} catch (error) {
+				if (!(error instanceof RiotApiError)) throw error;
 
-			matchIds = await getCachedMatchIds(
-				puuid,
-				parseInt(count),
-				parseInt(start),
-			);
-			if (matchIds.length === 0) throw error;
-			riotReachable = false;
+				matchIds = await getCachedMatchIds(puuid, count, start);
+				if (matchIds.length === 0) throw error;
+				riotReachable = false;
+			}
 		}
 
 		// Batch DB lookup — single query instead of 50 individual ones

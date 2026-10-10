@@ -6,3 +6,9 @@ export async function getTopMasteries(puuid: string, count: number = 5) {
 		`${BASE_URL}/lol/champion-mastery/v4/champion-masteries/by-puuid/${encodeURIComponent(puuid)}/top?count=${count}`,
 	);
 }
+
+export async function getAllMasteries(puuid: string) {
+	return riotFetch<ChampionMastery[]>(
+		`${BASE_URL}/lol/champion-mastery/v4/champion-masteries/by-puuid/${encodeURIComponent(puuid)}`,
+	);
+}

@@ -30,3 +30,10 @@ export function csPerMinute(cs: number, durationSeconds: number): number {
 	if (durationSeconds <= 0) return 0;
 	return Math.round((cs / (durationSeconds / 60)) * 10) / 10;
 }
+
+/** Mastery points: `980`, `412k`, `1.25M`. */
+export function formatPoints(points: number): string {
+	if (points >= 1_000_000) return `${Math.round(points / 10_000) / 100}M`;
+	if (points >= 1_000) return `${Math.round(points / 1_000)}k`;
+	return `${points}`;
+}

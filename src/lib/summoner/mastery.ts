@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/db";
-import { getTopMasteries } from "@/lib/riot/mastery";
+import { getAllMasteries, getTopMasteries } from "@/lib/riot/mastery";
 import { isRecent, revalidateInBackground } from "@/lib/cache-utils";
 import { type ChampionMastery } from "@/lib/validators/mastery";
 
@@ -47,4 +47,15 @@ export async function resolveTopMasteries(puuid: string, count: number): Promise
 	}
 
 	return cached.map((entry) => ({ ...entry, lastPlayTime: Number(entry.lastPlayTime) }));
+}
+
+/** Every champion's mastery straight from Riot (not stored); stored rows are the fallback when Riot fails. */
+export async function resolveAllMasteries(puuid: string): Promise<MasteryEntry[]> {
+	try {
+		const masteries = await getAllMasteries(puuid);
+		return masteries.map((m) => ({ ...m, lastPlayTime: Number(m.lastPlayTime) }));
+	} catch {
+		const stored = await prisma.championMastery.findMany({ where: { puuid }, orderBy: { championPoints: "desc" } });
+		return stored.map((m) => ({ ...m, lastPlayTime: Number(m.lastPlayTime) }));
+	}
 }

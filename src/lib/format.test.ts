@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { csPerMinute, formatDuration, formatThousands, kdaRatio, timeAgo } from "./format";
+import { csPerMinute, formatDuration, formatPoints, formatThousands, kdaRatio, timeAgo } from "./format";
 
 describe("formatDuration", () => {
 	it("formats minutes and padded seconds", () => {
@@ -58,5 +58,19 @@ describe("csPerMinute", () => {
 
 	it("is 0 for a zero-length game", () => {
 		expect(csPerMinute(10, 0)).toBe(0);
+	});
+});
+
+describe("formatPoints", () => {
+	it("abbreviates thousands without decimals", () => {
+		expect(formatPoints(412_345)).toBe("412k");
+	});
+
+	it("uses two decimals for millions", () => {
+		expect(formatPoints(1_254_000)).toBe("1.25M");
+	});
+
+	it("keeps small values as is", () => {
+		expect(formatPoints(980)).toBe("980");
 	});
 });

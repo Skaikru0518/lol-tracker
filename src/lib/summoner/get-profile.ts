@@ -1,5 +1,5 @@
 import { cache } from "react";
-import { parseSummonerSlug } from "@/lib/riot-id";
+import { decodeSlug, parseSummonerSlug } from "@/lib/riot-id";
 import { RiotApiError } from "@/lib/riot/riot";
 import { resolveAccount } from "@/lib/summoner/account";
 import { resolveSummoner } from "@/lib/summoner/summoner";
@@ -7,6 +7,8 @@ import { resolveRankedEntries } from "@/lib/summoner/ranked";
 import { resolveTopMasteries } from "@/lib/summoner/mastery";
 import { type Account, type Summoner } from "@/lib/validators/summoner";
 import { type RankedEntry } from "@/lib/validators/ranked";
+
+export { decodeSlug };
 
 /** Same count the mastery panel requests, so the DB never holds fewer rows than it shows. */
 export const PROFILE_MASTERY_COUNT = 5;
@@ -17,15 +19,6 @@ export interface SummonerProfile {
 	summoner: Summoner;
 	ranked: RankedEntry[];
 	topMasteryChampionId: number | null;
-}
-
-/** `decodeURIComponent` that returns the input unchanged on malformed escapes. */
-export function decodeSlug(slug: string): string {
-	try {
-		return decodeURIComponent(slug);
-	} catch {
-		return slug;
-	}
 }
 
 /** Profile for a `/summoner/[name]` slug, or `null` if the Riot ID does not exist; deduped per request. */

@@ -33,7 +33,11 @@ export function PanelHeader({
 			)}
 			{...props}
 		>
-			<h2 className="text-sm font-semibold text-foreground">{title}</h2>
+			{typeof title === "string" ? (
+				<h2 className="text-sm font-semibold text-foreground">{title}</h2>
+			) : (
+				<div className="flex items-center gap-2 text-sm font-semibold text-foreground">{title}</div>
+			)}
 			{actions && <div className="flex items-center gap-2">{actions}</div>}
 		</header>
 	);
