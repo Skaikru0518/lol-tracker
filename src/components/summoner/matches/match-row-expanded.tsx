@@ -7,6 +7,7 @@ import { useChampions } from "@/hooks/useChampions";
 import { usePlayerRanks } from "@/hooks/usePlayerRanks";
 import { isArenaMatch } from "@/lib/arena-helpers";
 import { buildScoreboard } from "@/lib/summoner/scoreboard";
+import { rankedQueueForQueueId } from "@/lib/ranked-queues";
 import { type Match } from "@/lib/validators/match";
 import { ArenaScoreboard } from "./arena-scoreboard";
 
@@ -44,7 +45,7 @@ export function MatchRowExpanded({ match, puuid, version }: { match: Match; puui
 				version={version}
 				highlightPuuid={puuid}
 				ranks={ranks}
-				rankQueue={match.info.queueId === 440 ? "RANKED_FLEX_SR" : "RANKED_SOLO_5x5"}
+				rankQueue={rankedQueueForQueueId(match.info.queueId) ?? "RANKED_SOLO_5x5"}
 				champions={champions}
 				footer={fullMatch}
 			/>

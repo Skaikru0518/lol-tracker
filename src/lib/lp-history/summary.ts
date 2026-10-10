@@ -81,3 +81,67 @@ export function lpAxisTickLabel(value: number): string {
 	if (value > APEX_BASE) return `${value - APEX_BASE} LP`;
 	return absoluteLpLabel(value).split(" · ")[0];
 }
+
+const pad = (n: number) => String(n).padStart(2, "0");
+
+/** Local calendar day of an ISO timestamp as `YYYY-MM-DD`. */
+export function localDayKey(iso: string): string {
+	const d = new Date(iso);
+	return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+/** Local midnight of a `YYYY-MM-DD` day key. */
+export function dayKeyToDate(day: string): Date {
+	const [y, m, d] = day.split("-").map(Number);
+	return new Date(y, m - 1, d);
+}
+
+export interface DailyLpPoint {
+	day: string;
+	value: number;
+	snapshot: LPSnapshot;
+}
+
+/** One point per day that has snapshots (that day's last), oldest first; unknown tiers are skipped. */
+export function dailyLpPoints(snapshots: LPSnapshot[]): DailyLpPoint[] {
+	const byDay = new Map<string, LPSnapshot>();
+	for (const s of knownTierSnapshots(snapshots)) byDay.set(localDayKey(s.createdAt), s);
+	return [...byDay].map(([day, snapshot]) => ({ day, value: absolute(snapshot), snapshot }));
+}
+
+export interface LpDayGroup {
+	day: string;
+	latest: LpChangeRow;
+	rows: LpChangeRow[];
+	delta: number | null;
+	wins: number;
+	losses: number;
+}
+
+/** Newest-first change rows grouped by local day with net LP and W/L; W/L uses running totals when known, else gain/loss kinds. */
+export function groupChangesByDay(rows: LpChangeRow[]): LpDayGroup[] {
+	const groups: LpDayGroup[] = [];
+	rows.forEach((row, i) => {
+		const day = localDayKey(row.createdAt);
+		let group = groups[groups.length - 1];
+		if (!group || group.day !== day) {
+			group = { day, latest: row, rows: [], delta: null, wins: 0, losses: 0 };
+			groups.push(group);
+		}
+		group.rows.push(row);
+		if (row.delta !== null) group.delta = (group.delta ?? 0) + row.delta;
+		if (row.kind === "start") return;
+
+		const older = rows[i + 1];
+		const totals = older && row.wins !== null && row.losses !== null && older.wins !== null && older.losses !== null;
+		const winDiff = totals ? row.wins! - older.wins! : -1;
+		const lossDiff = totals ? row.losses! - older.losses! : -1;
+		// Running totals drop at a season reset; fall back to the change kind then
+		if (winDiff >= 0 && lossDiff >= 0) {
+			group.wins += winDiff;
+			group.losses += lossDiff;
+		} else if (row.kind === "gain" || row.kind === "promotion") group.wins += 1;
+		else if (row.kind === "loss" || row.kind === "demotion") group.losses += 1;
+	});
+	return groups;
+}

@@ -4,6 +4,7 @@ import { RiotApiError } from "@/lib/riot/riot";
 import { prisma } from "@/lib/db";
 import { projectMatch } from "@/lib/match-projection";
 import { parseChampionId, parseMatchCount } from "@/lib/match-query";
+import { RIFT_QUEUE_IDS } from "@/lib/champion-stats/queue";
 
 /**
  * Match ids already stored for a player, newest first. Used as a fallback when
@@ -46,10 +47,24 @@ async function getStoredChampionMatchIds(
 	return rows.map((row) => row.matchId);
 }
 
+/** Stored match ids in the given queues, newest first. */
+async function getStoredQueueMatchIds(puuid: string, queueIds: number[], count: number, start: number): Promise<string[]> {
+	const rows = await prisma.$queryRaw<{ matchId: string }[]>`
+		SELECT "matchId" FROM "Match"
+		WHERE data->'metadata'->'participants' @> ${JSON.stringify(puuid)}::jsonb
+			AND "queueId" = ANY(${queueIds}::int[])
+		ORDER BY "gameCreation" DESC
+		LIMIT ${count} OFFSET ${start}
+	`;
+
+	return rows.map((row) => row.matchId);
+}
+
 export async function GET(req: NextRequest) {
 	const puuid = req.nextUrl.searchParams.get("puuid");
 	const count = parseMatchCount(req.nextUrl.searchParams.get("count"));
 	const championId = parseChampionId(req.nextUrl.searchParams.get("championId"));
+	const rift = req.nextUrl.searchParams.get("rift") === "true";
 	const start = Math.max(Number.parseInt(req.nextUrl.searchParams.get("start") ?? "0", 10) || 0, 0);
 
 	if (!puuid)
@@ -63,6 +78,8 @@ export async function GET(req: NextRequest) {
 
 		if (championId) {
 			matchIds = await getStoredChampionMatchIds(puuid, championId, count, start);
+		} else if (rift) {
+			matchIds = await getStoredQueueMatchIds(puuid, RIFT_QUEUE_IDS, count, start);
 		} else {
 			try {
 				matchIds = await getMatchIdsByPuuid(puuid, count, undefined, start);

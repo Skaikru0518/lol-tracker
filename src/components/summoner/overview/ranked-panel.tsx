@@ -5,13 +5,9 @@ import { RankEmblem } from "@/components/ui/rank-emblem";
 import { useLPHistory } from "@/hooks/useLPHistory";
 import { RANK_COLORS } from "@/lib/icon-helpers";
 import { formatRankLabel } from "@/lib/rank-calculator";
+import { RANKED_QUEUE_TITLES, type RankedQueueType } from "@/lib/ranked-queues";
 import { type RankedEntry } from "@/lib/validators/ranked";
 import { LpSparkline } from "./lp-sparkline";
-
-const TITLES: Record<string, string> = {
-	RANKED_SOLO_5x5: "Ranked Solo",
-	RANKED_FLEX_SR: "Ranked Flex",
-};
 
 /** Rank card for one queue with a 30-day LP sparkline; shows Unranked without an entry. */
 export function RankedPanel({
@@ -20,14 +16,14 @@ export function RankedPanel({
 	entry,
 }: {
 	puuid: string;
-	queueType: "RANKED_SOLO_5x5" | "RANKED_FLEX_SR";
+	queueType: RankedQueueType;
 	entry?: RankedEntry;
 }) {
 	const { data: snapshots } = useLPHistory(entry ? puuid : undefined, queueType, "30d");
 
 	return (
 		<Panel>
-			<PanelHeader title={TITLES[queueType]} />
+			<PanelHeader title={RANKED_QUEUE_TITLES[queueType]} />
 			<PanelBody>
 				{entry ? (
 					<>

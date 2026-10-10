@@ -12,6 +12,7 @@ describe("shortQueueName", () => {
 	it("names ranked queues explicitly", () => {
 		expect(shortQueueName(420, "CLASSIC")).toBe("Ranked Solo");
 		expect(shortQueueName(440, "CLASSIC")).toBe("Ranked Flex");
+		expect(shortQueueName(710, "CLASSIC")).toBe("Ranked 5s");
 	});
 
 	it("uses the queue table, then the game mode", () => {

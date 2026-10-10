@@ -31,4 +31,10 @@ describe("rankPills", () => {
 	it("falls back to a neutral color for an unknown tier", () => {
 		expect(rankPills([entry("RANKED_SOLO_5x5", "WOOD", "I")])[0].color).toBe("#7d829c");
 	});
+
+	it("adds Ranked 5s after flex", () => {
+		expect(
+			rankPills([entry("RANKED_PREMADE_5x5", "GOLD", "II"), entry("RANKED_SOLO_5x5", "EMERALD", "I")]).map((p) => p.label),
+		).toEqual(["EMERALD I · SOLO", "GOLD II · 5S"]);
+	});
 });

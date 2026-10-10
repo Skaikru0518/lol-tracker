@@ -13,6 +13,7 @@ export function participantItems(p: Participant): number[] {
 export function shortQueueName(queueId: number, gameMode: string): string {
 	if (queueId === 420) return "Ranked Solo";
 	if (queueId === 440) return "Ranked Flex";
+	if (queueId === 710) return "Ranked 5s";
 	return getQueueName(queueId, gameMode);
 }
 

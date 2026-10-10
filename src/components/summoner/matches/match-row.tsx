@@ -13,6 +13,7 @@ import { killParticipation, participantItems, runeIcons, shortQueueName, type Ru
 import { type Match, type Participant } from "@/lib/validators/match";
 import { MatchBadges } from "./match-badges";
 import { MatchRowExpanded } from "./match-row-expanded";
+import { rankedQueueForQueueId } from "@/lib/ranked-queues";
 
 function Stat({ value, label, className }: { value: React.ReactNode; label: string; className?: string }) {
 	return (
@@ -46,7 +47,7 @@ export function MatchRow({
 	const won = arena ? isArenaWin(placement) : player.win;
 	const kda = kdaRatio(player.kills, player.deaths, player.assists);
 	const cs = player.totalMinionsKilled + player.neutralMinionsKilled;
-	const ranked = info.queueId === 420 || info.queueId === 440;
+	const ranked = rankedQueueForQueueId(info.queueId) !== null;
 
 	return (
 		<div className="border-b last:border-b-0">

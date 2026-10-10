@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { absoluteLpLabel, lpAxisTickLabel, lpAxisTicks, lpChangeRows, lpSummary } from "./summary";
+import { absoluteLpLabel, dailyLpPoints, dayKeyToDate, groupChangesByDay, localDayKey, lpAxisTickLabel, lpAxisTicks, lpChangeRows, lpSummary } from "./summary";
 
 const snap = (id: string, tier: string, rank: string, lp: number) => ({
 	id,
@@ -100,5 +100,79 @@ describe("lpAxisTickLabel", () => {
 	it("shows LP above the Master line instead of repeating Master", () => {
 		expect(lpAxisTickLabel(2800)).toBe("Master+");
 		expect(lpAxisTickLabel(3300)).toBe("500 LP");
+	});
+});
+
+const at = (id: string, createdAt: string, lp: number, wins: number | null = null, losses: number | null = null, tier = "EMERALD") => ({
+	id,
+	tier,
+	rank: "I",
+	lp,
+	wins,
+	losses,
+	createdAt,
+});
+
+describe("localDayKey / dayKeyToDate", () => {
+	it("round-trips a local day", () => {
+		const key = localDayKey("2026-10-03T12:00:00.000Z");
+		expect(key).toBe("2026-10-03");
+		expect(localDayKey(dayKeyToDate(key).toISOString())).toBe(key);
+	});
+});
+
+describe("dailyLpPoints", () => {
+	it("keeps the last snapshot of each played day, oldest first", () => {
+		const points = dailyLpPoints([
+			at("a", "2026-10-01T12:00:00.000Z", 10),
+			at("b", "2026-10-01T13:00:00.000Z", 30),
+			at("c", "2026-10-04T12:00:00.000Z", 50),
+		]);
+		expect(points.map((p) => [p.day, p.snapshot.id])).toEqual([
+			["2026-10-01", "b"],
+			["2026-10-04", "c"],
+		]);
+		expect(points[0].value).toBe(2300 + 30);
+	});
+
+	it("collapses a single day to one point", () => {
+		expect(dailyLpPoints([at("a", "2026-10-01T12:00:00.000Z", 10), at("b", "2026-10-01T13:00:00.000Z", 30)])).toHaveLength(1);
+	});
+
+	it("skips unknown tiers", () => {
+		expect(dailyLpPoints([at("a", "2026-10-01T12:00:00.000Z", 10, null, null, "UNKNOWN")])).toEqual([]);
+	});
+});
+
+describe("groupChangesByDay", () => {
+	it("groups newest first with the day's net LP and W/L from running totals", () => {
+		const rows = lpChangeRows([
+			at("a", "2026-10-01T12:00:00.000Z", 10, 10, 10),
+			at("b", "2026-10-01T13:00:00.000Z", 30, 11, 10),
+			at("c", "2026-10-02T12:00:00.000Z", 50, 12, 10),
+			at("d", "2026-10-02T12:30:00.000Z", 32, 12, 11),
+			at("e", "2026-10-02T13:00:00.000Z", 52, 13, 11),
+		]);
+		const groups = groupChangesByDay(rows);
+		expect(groups.map((g) => [g.day, g.latest.id, g.rows.length, g.delta, g.wins, g.losses])).toEqual([
+			["2026-10-02", "e", 3, 22, 2, 1],
+			["2026-10-01", "b", 2, 20, 1, 0],
+		]);
+	});
+
+	it("counts gain and loss kinds when W/L is unknown", () => {
+		const groups = groupChangesByDay(
+			lpChangeRows([at("a", "2026-10-01T12:00:00.000Z", 10), at("b", "2026-10-01T12:30:00.000Z", 30), at("c", "2026-10-01T13:00:00.000Z", 12)]),
+		);
+		expect([groups[0].wins, groups[0].losses, groups[0].delta]).toEqual([1, 1, 2]);
+	});
+
+	it("has no delta for a day holding only the first snapshot", () => {
+		expect(groupChangesByDay(lpChangeRows([at("a", "2026-10-01T12:00:00.000Z", 10)]))[0].delta).toBeNull();
+	});
+
+	it("never counts negative games across a season reset", () => {
+		const groups = groupChangesByDay(lpChangeRows([at("a", "2026-10-01T12:00:00.000Z", 10, 80, 70), at("b", "2026-10-02T12:00:00.000Z", 30, 1, 0)]));
+		expect([groups[0].wins, groups[0].losses]).toEqual([1, 0]);
 	});
 });

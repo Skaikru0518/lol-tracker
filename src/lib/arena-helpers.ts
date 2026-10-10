@@ -1,7 +1,10 @@
 import { type Participant } from "@/lib/validators/match";
 
+/** Arena queues: 2v2v2v2, the 16-player lobby and the current rotation. */
+export const ARENA_QUEUE_IDS = [1700, 1710, 1750];
+
 export function isArenaMatch(queueId: number): boolean {
-	return queueId === 1700 || queueId === 1710;
+	return ARENA_QUEUE_IDS.includes(queueId);
 }
 
 export interface ArenaTeam {

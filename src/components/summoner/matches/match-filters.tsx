@@ -7,8 +7,12 @@ const CHIPS: { value: QueueFilter; label: string }[] = [
 	{ value: "all", label: "All" },
 	{ value: "solo", label: "Solo" },
 	{ value: "flex", label: "Flex" },
-	{ value: "aram", label: "ARAM" },
+	{ value: "premade", label: "5s" },
 	{ value: "normal", label: "Normal" },
+	{ value: "aram", label: "ARAM" },
+	{ value: "mayhem", label: "Mayhem" },
+	{ value: "arena", label: "Arena" },
+	{ value: "event", label: "Event" },
 ];
 
 /** Queue chips for the match list. */

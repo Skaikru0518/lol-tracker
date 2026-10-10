@@ -11,7 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useAllMasteries } from "@/hooks/useAllMasteries";
 import { useChampionStats } from "@/hooks/useChampionStats";
 import { useChampions } from "@/hooks/useChampions";
-import { useLPHistory } from "@/hooks/useLPHistory";
+import { useRankedLpHistories } from "@/hooks/useRankedLpHistories";
 import { useMatches } from "@/hooks/useMatches";
 import { useRunes } from "@/hooks/useRunes";
 import { formatPoints } from "@/lib/format";
@@ -32,8 +32,7 @@ export function ChampionDetail({ slug }: { slug: string }) {
 	const { data: stats } = useChampionStats(puuid, "all");
 	const { data: masteries } = useAllMasteries(puuid);
 	const { data: runeData } = useRunes();
-	const { data: soloHistory } = useLPHistory(puuid, "RANKED_SOLO_5x5");
-	const { data: flexHistory } = useLPHistory(puuid, "RANKED_FLEX_SR");
+	const lpHistories = useRankedLpHistories(puuid);
 
 	const stat = stats?.find((s) => s.championId === championId);
 	const mastery = masteries?.find((m) => m.championId === championId);
@@ -78,8 +77,7 @@ export function ChampionDetail({ slug }: { slug: string }) {
 				version={version}
 				isLoading={isLoading}
 				runeData={runeData}
-				soloHistory={soloHistory}
-				flexHistory={flexHistory}
+				lpHistories={lpHistories}
 			/>
 		</div>
 	);

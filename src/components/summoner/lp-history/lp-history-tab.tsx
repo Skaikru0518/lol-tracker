@@ -8,16 +8,18 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLPHistory } from "@/hooks/useLPHistory";
 import { type LpRange } from "@/lib/lp-history/range";
-import { knownTierSnapshots, lpChangeRows, lpSummary } from "@/lib/lp-history/summary";
+import { type RankedQueueType } from "@/lib/ranked-queues";
+import { dailyLpPoints, lpChangeRows, lpSummary } from "@/lib/lp-history/summary";
 import { LpChangesTable } from "./lp-changes-table";
 import { LpChart } from "./lp-chart";
 import { LpSummary } from "./lp-summary";
 
-type Queue = "RANKED_SOLO_5x5" | "RANKED_FLEX_SR";
+type Queue = RankedQueueType;
 
 const QUEUES: { value: Queue; label: string }[] = [
 	{ value: "RANKED_SOLO_5x5", label: "Solo/Duo" },
 	{ value: "RANKED_FLEX_SR", label: "Flex" },
+	{ value: "RANKED_PREMADE_5x5", label: "5s" },
 ];
 
 const RANGES: { value: LpRange; label: string }[] = [
@@ -50,11 +52,11 @@ function Toggle<T extends string>({ options, value, onChange }: { options: { val
 export function LpHistoryTab() {
 	const { puuid } = useSummonerContext();
 	const [queue, setQueue] = useState<Queue>("RANKED_SOLO_5x5");
-	const [range, setRange] = useState<LpRange>("30d");
+	const [range, setRange] = useState<LpRange>("season");
 	const { data: snapshots, isLoading } = useLPHistory(puuid, queue, range);
 	const summary = useMemo(() => lpSummary(snapshots ?? []), [snapshots]);
 	const rows = useMemo(() => lpChangeRows(snapshots ?? []), [snapshots]);
-	const charted = useMemo(() => knownTierSnapshots(snapshots ?? []), [snapshots]);
+	const days = useMemo(() => dailyLpPoints(snapshots ?? []), [snapshots]);
 	const rangeLabel = RANGES.find((r) => r.value === range)?.label ?? "";
 
 	return (
@@ -71,7 +73,7 @@ export function LpHistoryTab() {
 				) : (
 					<>
 						<LpSummary summary={summary} rangeLabel={rangeLabel} />
-						{charted.length > 1 ? <LpChart snapshots={charted} /> : <p className="p-4 text-sm text-muted-foreground">One snapshot so far.</p>}
+							{days.length > 1 ? <LpChart points={days} /> : <p className="p-4 text-sm text-muted-foreground">Played on one day so far.</p>}
 					</>
 				)}
 			</Panel>

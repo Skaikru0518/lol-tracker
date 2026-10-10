@@ -16,3 +16,10 @@ export function sparklinePoints(values: number[], width: number, height: number)
 		})
 		.join(" ");
 }
+
+/** Index of the point nearest to `x` on a sparkline of `count` evenly spaced points across `width`. */
+export function sparklineIndexAt(x: number, width: number, count: number): number {
+	if (count <= 1 || width <= 0) return 0;
+	const index = Math.round((x / width) * (count - 1));
+	return Math.min(Math.max(index, 0), count - 1);
+}

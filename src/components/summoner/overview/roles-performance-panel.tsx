@@ -10,7 +10,7 @@ import { type Match } from "@/lib/validators/match";
 
 const ROLE_COLORS = ["var(--primary)", "var(--team-blue)", "var(--win)", "var(--gold)", "var(--loss)"] as const;
 
-/** Role donut plus average KDA, CS, gold, damage and vision over the loaded matches. */
+/** Role donut plus average KDA, CS, gold, damage and vision over the last Summoner's Rift games, one dot per game. */
 export function RolesPerformancePanel({ matches, puuid }: { matches: Match[]; puuid: string }) {
 	const stats = useMemo(() => calculateStats(matches, puuid), [matches, puuid]);
 	const shares = useMemo(() => roleShares(stats.roles), [stats.roles]);
@@ -22,7 +22,7 @@ export function RolesPerformancePanel({ matches, puuid }: { matches: Match[]; pu
 				actions={<span className="text-xs text-muted-foreground">Last {stats.totalGames}</span>}
 			/>
 			{stats.totalGames === 0 ? (
-				<EmptyState title="No ranked or normal games yet" />
+				<EmptyState title="No Summoner's Rift games yet" />
 			) : (
 				<PanelBody className="space-y-4">
 					<div className="flex items-center gap-4">
@@ -68,7 +68,7 @@ export function RolesPerformancePanel({ matches, puuid }: { matches: Match[]; pu
 					</dl>
 
 					<div className="flex gap-0.5">
-						{stats.recentTrend.slice(0, 20).map((win, index) => (
+						{stats.recentTrend.map((win, index) => (
 							<span key={index} className={`h-3 flex-1 rounded-sm ${win ? "bg-win" : "bg-loss"}`} />
 						))}
 					</div>

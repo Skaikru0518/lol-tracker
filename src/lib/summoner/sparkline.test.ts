@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { sparklinePoints } from "./sparkline";
+import { sparklineIndexAt, sparklinePoints } from "./sparkline";
 
 describe("sparklinePoints", () => {
 	it("is empty without values", () => {
@@ -20,5 +20,27 @@ describe("sparklinePoints", () => {
 
 	it("never emits NaN", () => {
 		expect(sparklinePoints([1, Number.NaN, 3], 100, 40)).not.toContain("NaN");
+	});
+});
+
+describe("sparklineIndexAt", () => {
+	it("maps the edges to the first and last point", () => {
+		expect(sparklineIndexAt(0, 240, 5)).toBe(0);
+		expect(sparklineIndexAt(240, 240, 5)).toBe(4);
+	});
+
+	it("snaps to the nearest point", () => {
+		expect(sparklineIndexAt(80, 240, 5)).toBe(1);
+		expect(sparklineIndexAt(100, 240, 5)).toBe(2);
+	});
+
+	it("clamps positions outside the line", () => {
+		expect(sparklineIndexAt(-10, 240, 5)).toBe(0);
+		expect(sparklineIndexAt(999, 240, 5)).toBe(4);
+	});
+
+	it("is 0 for a single point or zero width", () => {
+		expect(sparklineIndexAt(50, 240, 1)).toBe(0);
+		expect(sparklineIndexAt(50, 0, 5)).toBe(0);
 	});
 });

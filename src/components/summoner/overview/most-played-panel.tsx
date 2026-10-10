@@ -15,11 +15,12 @@ const QUEUE_OPTIONS: { value: QueueFilter; label: string }[] = [
 	{ value: "all", label: "All queues" },
 	{ value: "solo", label: "Ranked Solo" },
 	{ value: "flex", label: "Ranked Flex" },
+	{ value: "premade", label: "Ranked 5s" },
 ];
 
 /** Top five champions from the stored-match stats, with a link to the Champions tab. */
 export function MostPlayedPanel({ puuid, version, basePath }: { puuid: string; version: string; basePath: string }) {
-	const [queue, setQueue] = useState<QueueFilter>("all");
+	const [queue, setQueue] = useState<QueueFilter>("solo");
 	const { data: stats, isLoading } = useChampionStats(puuid, queue);
 	const top = stats?.slice(0, 5) ?? [];
 	const maxGames = top[0]?.games ?? 1;

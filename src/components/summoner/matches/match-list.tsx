@@ -8,10 +8,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useMatchBadgesBatch } from "@/hooks/useMatchBadges";
 import { type QueueFilter } from "@/lib/champion-stats/queue";
+import { type LpHistories, rankedQueueForQueueId } from "@/lib/ranked-queues";
 import { calculateLPChange } from "@/lib/summoner/lp-change";
 import { filterMatches } from "@/lib/summoner/match-filter";
 import { type RuneMaps } from "@/lib/summoner/match-row";
-import { type LPSnapshot } from "@/lib/validators/lp-history";
 import { type Match } from "@/lib/validators/match";
 import { MatchFilters } from "./match-filters";
 import { MatchRow } from "./match-row";
@@ -25,16 +25,14 @@ export function MatchList({
 	version,
 	isLoading,
 	runeData,
-	soloHistory,
-	flexHistory,
+	lpHistories,
 }: {
 	matches?: Match[];
 	puuid: string;
 	version?: string;
 	isLoading: boolean;
 	runeData?: RuneMaps;
-	soloHistory?: LPSnapshot[];
-	flexHistory?: LPSnapshot[];
+	lpHistories?: LpHistories;
 }) {
 	const [queue, setQueue] = useState<QueueFilter>("all");
 	const [visible, setVisible] = useState(PAGE_SIZE);
@@ -71,9 +69,8 @@ export function MatchList({
 						const player = match.info.participants.find((p) => p.puuid === puuid);
 						if (!player) return null;
 						const { queueId, gameCreation, gameDuration } = match.info;
-						const history = queueId === 440 ? flexHistory : soloHistory;
-						const lpChange =
-							queueId === 420 || queueId === 440 ? calculateLPChange(history, gameCreation + gameDuration * 1000) : null;
+						const rankedQueue = rankedQueueForQueueId(queueId);
+						const lpChange = rankedQueue ? calculateLPChange(lpHistories?.[rankedQueue], gameCreation + gameDuration * 1000) : null;
 						const badgeIds = (badges?.[match.metadata.matchId] ?? []).filter((b) => b.puuid === puuid).map((b) => b.badgeId);
 
 						return (
