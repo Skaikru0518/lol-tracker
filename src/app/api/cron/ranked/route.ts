@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db";
 import { getRankedByPuuid } from "@/lib/riot/ranked";
 import { isAuthorizedCronRequest } from "@/lib/cron-auth";
+import { saveRankedEntries } from "@/lib/summoner/ranked";
 import { NextResponse } from "next/server";
 
 export async function GET(req: Request) {
@@ -20,71 +21,7 @@ export async function GET(req: Request) {
 		for (const account of accounts) {
 			try {
 				const entries = await getRankedByPuuid(account.puuid);
-
-				for (const entry of entries) {
-					// Upsert ranked entry
-					await prisma.rankedEntry.upsert({
-						where: {
-							puuid_queueType: {
-								puuid: account.puuid,
-								queueType: entry.queueType,
-							},
-						},
-						update: {
-							tier: entry.tier,
-							rank: entry.rank,
-							leaguePoints: entry.leaguePoints,
-							wins: entry.wins,
-							losses: entry.losses,
-							hotStreak: entry.hotStreak,
-							veteran: entry.veteran,
-							freshBlood: entry.freshBlood,
-							inactive: entry.inactive,
-						},
-						create: {
-							puuid: account.puuid,
-							queueType: entry.queueType,
-							tier: entry.tier,
-							rank: entry.rank,
-							leaguePoints: entry.leaguePoints,
-							wins: entry.wins,
-							losses: entry.losses,
-							hotStreak: entry.hotStreak,
-							veteran: entry.veteran,
-							freshBlood: entry.freshBlood,
-							inactive: entry.inactive,
-						},
-					});
-
-					// LP snapshot — only if changed
-					const lastSnapshot = await prisma.lPHistory.findFirst({
-						where: {
-							puuid: account.puuid,
-							queueType: entry.queueType,
-						},
-						orderBy: { createdAt: "desc" },
-					});
-
-					if (
-						!lastSnapshot ||
-						lastSnapshot.tier !== entry.tier ||
-						lastSnapshot.rank !== entry.rank ||
-						lastSnapshot.lp !== entry.leaguePoints
-					) {
-						await prisma.lPHistory.create({
-							data: {
-								puuid: account.puuid,
-								queueType: entry.queueType,
-								tier: entry.tier,
-								rank: entry.rank,
-								lp: entry.leaguePoints,
-								wins: entry.wins,
-								losses: entry.losses,
-							},
-						});
-						snapshotsCreated++;
-					}
-				}
+				snapshotsCreated += await saveRankedEntries(account.puuid, entries);
 			} catch {
 				// Skip individual account errors (e.g. unranked)
 			}

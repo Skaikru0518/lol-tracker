@@ -1,169 +1,93 @@
 "use client";
 
+import { useId, useMemo } from "react";
+import { Area, AreaChart, CartesianGrid, ReferenceDot, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Panel, PanelBody, PanelHeader } from "@/components/ui/panel";
+import { formatThousands } from "@/lib/format";
+import { grubWaves, objectiveEvents } from "@/lib/match/timeline-events";
 import { type Timeline } from "@/lib/validators/timeline";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-	LineChart,
-	Line,
-	XAxis,
-	YAxis,
-	Tooltip,
-	ResponsiveContainer,
-	ReferenceLine,
-	ReferenceArea,
-} from "recharts";
-import { useMemo } from "react";
+import { AXIS, GRID, TEAM_COLOR, TOOLTIP_STYLE } from "./charts/chart-theme";
 
-interface GoldChartProps {
-	timeline?: Timeline;
-}
+const MARKER_KINDS = new Set(["dragon", "elder", "baron", "herald", "grubs", "atakhan"]);
 
-interface GoldDataPoint {
-	minute: number;
-	diff: number;
-}
-
-export default function GoldChart({ timeline }: GoldChartProps) {
-	const data = useMemo(() => {
-		if (!timeline) return [];
-
-		return timeline.info.frames.map((frame): GoldDataPoint => {
-			const minute = Math.round(frame.timestamp / 60000);
-			let blueGold = 0;
-			let redGold = 0;
-
-			for (const [, pf] of Object.entries(frame.participantFrames)) {
-				if (pf.participantId <= 5) {
-					blueGold += pf.totalGold;
-				} else {
-					redGold += pf.totalGold;
-				}
-			}
-
-			return {
-				minute,
-				diff: blueGold - redGold,
-			};
-		});
-	}, [timeline]);
+/** Blue minus red team gold per minute, split-coloured around zero, with monster objectives marked under the axis. */
+export default function GoldChart({ timeline }: { timeline?: Timeline }) {
+	const data = useMemo(
+		() =>
+			(timeline?.info.frames ?? []).map((frame) => {
+				let diff = 0;
+				for (const pf of Object.values(frame.participantFrames)) diff += pf.participantId <= 5 ? pf.totalGold : -pf.totalGold;
+				return { minute: frame.timestamp / 60000, diff };
+			}),
+		[timeline],
+	);
+	const gradientId = `gold-split-${useId().replace(/:/g, "")}`;
+	const markers = useMemo(() => (timeline ? grubWaves(objectiveEvents(timeline)).filter((o) => MARKER_KINDS.has(o.kind)) : []), [timeline]);
 
 	if (!timeline || data.length === 0) return null;
-
-	const maxDiff = Math.max(...data.map((d) => Math.abs(d.diff)));
-	const yDomain = Math.ceil(maxDiff / 1000) * 1000 || 5000;
-	const lastMinute = data[data.length - 1]?.minute ?? 0;
+	const peak = Math.max(1000, ...data.map((d) => Math.abs(d.diff)));
+	const bound = Math.ceil(peak / 1000) * 1000;
+	const last = data[data.length - 1].diff;
+	const highest = Math.max(0, ...data.map((d) => d.diff));
+	const lowest = Math.min(0, ...data.map((d) => d.diff));
+	// Gradient offsets are relative to the area's own box, so the zero line sits at this fraction
+	const split = highest === lowest ? 0.5 : highest / (highest - lowest);
 
 	return (
-		<Card>
-			<CardHeader>
-				<CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-					Gold Advantage
-				</CardTitle>
-			</CardHeader>
-			<CardContent>
-				<div className="h-[250px] w-full">
+		<Panel className="flex h-full flex-col">
+			<PanelHeader
+				title="Team gold advantage"
+				actions={
+					<span className="text-xs text-muted-foreground">
+						{last === 0 ? "Even" : `${last > 0 ? "Blue" : "Red"} +${formatThousands(Math.abs(last))}`}
+					</span>
+				}
+			/>
+			<PanelBody className="flex-1">
+				<div className="h-60">
 					<ResponsiveContainer width="100%" height="100%">
-						<LineChart data={data}>
-							{/* Blue background (top half) */}
-							<ReferenceArea
-								y1={0}
-								y2={yDomain}
-								x1={0}
-								x2={lastMinute}
-								fill="#3b82f6"
-								fillOpacity={0.06}
-							/>
-							{/* Red background (bottom half) */}
-							<ReferenceArea
-								y1={-yDomain}
-								y2={0}
-								x1={0}
-								x2={lastMinute}
-								fill="#ef4444"
-								fillOpacity={0.06}
-							/>
-							<XAxis
-								dataKey="minute"
-								tickFormatter={(v) => `${v}m`}
-								stroke="hsl(220 15% 30%)"
-								fontSize={12}
-								tickLine={false}
-								axisLine={false}
-							/>
-							<YAxis
-								domain={[-yDomain, yDomain]}
-								tickFormatter={(v) =>
-									v === 0
-										? "0"
-										: `+${(Math.abs(v) / 1000).toFixed(0)}k`
-								}
-								stroke="hsl(220 15% 30%)"
-								fontSize={12}
-								tickLine={false}
-								axisLine={false}
-								width={35}
-							/>
+						<AreaChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 34 }}>
+							<defs>
+								<linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+									<stop offset="0%" stopColor={TEAM_COLOR.blue} stopOpacity={0.45} />
+									<stop offset={split} stopColor={TEAM_COLOR.blue} stopOpacity={0.05} />
+									<stop offset={split} stopColor={TEAM_COLOR.red} stopOpacity={0.05} />
+									<stop offset="100%" stopColor={TEAM_COLOR.red} stopOpacity={0.45} />
+								</linearGradient>
+							</defs>
+							<CartesianGrid {...GRID} />
+							<XAxis dataKey="minute" type="number" domain={[0, "dataMax"]} tickFormatter={(m: number) => `${Math.round(m)}m`} {...AXIS} />
+							<YAxis domain={[-bound, bound]} tickFormatter={(v: number) => (v === 0 ? "0" : `${v > 0 ? "+" : "-"}${Math.abs(v) / 1000}k`)} width={40} {...AXIS} />
+							<ReferenceLine y={0} stroke="var(--border)" />
 							<Tooltip
-								content={({ active, payload, label }) => {
-									if (!active || !payload?.[0]) return null;
-									const diff =
-										payload[0].payload.diff as number;
-									const team = diff >= 0 ? "Blue" : "Red";
-									const color =
-										diff >= 0 ? "#3b82f6" : "#ef4444";
-									return (
-										<div
-											style={{
-												backgroundColor:
-													"hsl(220 20% 12%)",
-												border: "1px solid hsl(220 15% 20%)",
-												borderRadius: "8px",
-												padding: "8px 12px",
-												fontSize: "13px",
-											}}
-										>
-											<p
-												style={{
-													color: "hsl(220 15% 60%)",
-												}}
-											>
-												{label} min
-											</p>
-											<p
-												style={{
-													color,
-													fontWeight: 600,
-												}}
-											>
-												{team} +
-												{Math.abs(diff).toLocaleString()} gold
-											</p>
-										</div>
-									);
+								{...TOOLTIP_STYLE}
+								labelFormatter={(m) => `${Math.round(Number(m))} min`}
+								formatter={(value) => {
+									const v = Number(value);
+									return [v === 0 ? "Even" : `${v > 0 ? "Blue" : "Red"} +${formatThousands(Math.abs(v))}`, "Gold"];
 								}}
 							/>
-							<ReferenceLine
-								y={0}
-								stroke="hsl(220 15% 35%)"
-								strokeWidth={1}
-							/>
-							<Line
-								type="monotone"
-								dataKey="diff"
-								stroke="hsl(220 15% 75%)"
-								strokeWidth={2}
-								dot={false}
-								activeDot={{
-									r: 4,
-									fill: "hsl(220 20% 12%)",
-									stroke: "hsl(220 15% 75%)",
-									strokeWidth: 2,
-								}}
-							/>
-						</LineChart>
+							<Area type="monotone" dataKey="diff" stroke="var(--foreground)" strokeWidth={1.5} fill={`url(#${gradientId})`} baseValue={0} />
+							{markers.map((o, i) => (
+								<ReferenceDot
+									key={`${o.timestamp}-${i}`}
+									x={o.timestamp / 60000}
+									y={-bound}
+									r={0}
+									ifOverflow="visible"
+									shape={(props: { cx?: number; cy?: number }) => (
+										<g>
+											<title>{o.label}</title>
+											<circle cx={props.cx} cy={(props.cy ?? 0) + 34} r={9} fill="var(--card)" stroke={TEAM_COLOR[o.side]} strokeWidth={1.5} />
+											<image href={o.icon} x={(props.cx ?? 0) - 6} y={(props.cy ?? 0) + 28} width={12} height={12} />
+										</g>
+									)}
+								/>
+							))}
+						</AreaChart>
 					</ResponsiveContainer>
 				</div>
-			</CardContent>
-		</Card>
+			</PanelBody>
+		</Panel>
 	);
 }

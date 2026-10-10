@@ -1,3 +1,4 @@
+import { rankedQueueForQueueId } from "@/lib/ranked-queues";
 import { type RankedEntry } from "@/lib/validators/ranked";
 
 const TIERS = [
@@ -52,8 +53,7 @@ export function calculateAvgRank(
 ): { tier: string; rank: string; points: number } | null {
 	if (!playerRanks) return null;
 
-	const relevantQueue =
-		queueId === 440 ? "RANKED_FLEX_SR" : "RANKED_SOLO_5x5";
+	const relevantQueue = rankedQueueForQueueId(queueId) ?? "RANKED_SOLO_5x5";
 
 	let totalPoints = 0;
 	let count = 0;

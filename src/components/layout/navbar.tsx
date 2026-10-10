@@ -1,64 +1,74 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
-import SummonerSearch from "@/components/search/summoner-search";
-import SearchHistory from "@/components/search/search-history";
-import ThemeToggle from "@/components/ui/theme-toggle";
 import { Search } from "lucide-react";
+import ThemeToggle from "@/components/ui/theme-toggle";
+import { Logo } from "@/components/layout/logo";
+import { SearchSpotlight } from "@/components/layout/search-spotlight";
+import { isTypingTarget } from "@/lib/ui/keyboard";
+import { reconcileOpenedOn } from "@/lib/ui/spotlight";
 
+/** Fixed top bar: logo, search trigger (not on home), theme toggle. */
 export default function Navbar() {
 	const pathname = usePathname();
 	const isHome = pathname === "/";
-	const [spotlightOpen, setSpotlightOpen] = useState(false);
+	const [openedOn, setOpenedOn] = useState<string | null>(null);
+	const reconciled = reconcileOpenedOn(openedOn, pathname);
+	if (reconciled !== openedOn) setOpenedOn(reconciled); // render-time reset, React-sanctioned
+	const spotlightOpen = reconciled !== null;
 
-	// Close on Escape
-	useEffect(() => {
-		function handleKeyDown(e: KeyboardEvent) {
-			if (e.key === "Escape") setSpotlightOpen(false);
-		}
-		if (spotlightOpen) {
-			document.addEventListener("keydown", handleKeyDown);
-			return () => document.removeEventListener("keydown", handleKeyDown);
-		}
-	}, [spotlightOpen]);
+	const openSpotlight = useCallback(() => setOpenedOn(pathname), [pathname]);
+	const closeSpotlight = useCallback(() => setOpenedOn(null), []);
 
-	// Close on route change
 	useEffect(() => {
-		setSpotlightOpen(false);
-	}, [pathname]);
-
-	// Lock body scroll when open
-	useEffect(() => {
-		if (spotlightOpen) {
-			document.body.style.overflow = "hidden";
-			return () => { document.body.style.overflow = ""; };
+		function handleKeyDown(event: KeyboardEvent) {
+			if (event.key === "Escape") {
+				closeSpotlight();
+				return;
+			}
+			if (
+				event.key === "/" &&
+				!isHome &&
+				!isTypingTarget(event.target as HTMLElement | null)
+			) {
+				event.preventDefault();
+				openSpotlight();
+			}
 		}
+
+		document.addEventListener("keydown", handleKeyDown);
+		return () => document.removeEventListener("keydown", handleKeyDown);
+	}, [isHome, openSpotlight, closeSpotlight]);
+
+	useEffect(() => {
+		if (!spotlightOpen) return;
+		document.body.style.overflow = "hidden";
+		return () => {
+			document.body.style.overflow = "";
+		};
 	}, [spotlightOpen]);
 
 	return (
 		<>
-			<motion.header
-				initial={{ opacity: 0, y: -20 }}
-				animate={{ opacity: 1, y: 0 }}
-				transition={{ duration: 0.4, ease: "easeOut" }}
-				className="fixed top-0 left-0 right-0 z-40 h-14 border-b backdrop-blur-md bg-background/80"
-			>
-				<div className="flex h-full items-center justify-between gap-4 px-4 sm:px-6">
-					<Link href="/" className="text-lg font-bold tracking-tight shrink-0">
-						<span className="text-primary">Summon</span>.gg
+			<header className="fixed inset-x-0 top-0 z-40 h-14 border-b bg-nav/90 backdrop-blur">
+				<div className="mx-auto flex h-full max-w-7xl items-center gap-4 px-4 sm:px-6">
+					<Link href="/" className="shrink-0 text-lg">
+						<Logo />
 					</Link>
 
-					{!isHome && (
+					{isHome ? (
+						<div className="flex-1" />
+					) : (
 						<button
-							onClick={() => setSpotlightOpen(true)}
-							className="flex items-center gap-2 h-9 px-4 rounded-lg border border-border/50 bg-card text-sm text-muted-foreground hover:text-foreground hover:border-border transition-colors cursor-pointer max-w-sm w-full"
+							type="button"
+							onClick={openSpotlight}
+							className="mx-auto flex h-9 w-full max-w-md items-center gap-2 rounded-lg border bg-card px-3 text-sm text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
 						>
 							<Search className="size-3.5" />
 							<span>Search summoner...</span>
-							<kbd className="ml-auto hidden sm:inline text-[10px] text-muted-foreground/50 border border-border/30 rounded px-1.5 py-0.5">
+							<kbd className="ml-auto hidden rounded border px-1.5 py-0.5 text-3xs sm:inline">
 								/
 							</kbd>
 						</button>
@@ -66,46 +76,9 @@ export default function Navbar() {
 
 					<ThemeToggle />
 				</div>
-			</motion.header>
+			</header>
 
-			{/* Spotlight overlay */}
-			<AnimatePresence>
-				{spotlightOpen && (
-					<>
-						{/* Backdrop */}
-						<motion.div
-							initial={{ opacity: 0 }}
-							animate={{ opacity: 1 }}
-							exit={{ opacity: 0 }}
-							transition={{ duration: 0.2 }}
-							className="fixed inset-0 z-50 bg-background/70 backdrop-blur-md"
-							onClick={() => setSpotlightOpen(false)}
-						/>
-
-						{/* Search box */}
-						<motion.div
-							initial={{ opacity: 0, scale: 0.95, y: -20 }}
-							animate={{ opacity: 1, scale: 1, y: 0 }}
-							exit={{ opacity: 0, scale: 0.95, y: -20 }}
-							transition={{ duration: 0.25, ease: "easeOut" }}
-							className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none px-4"
-						>
-							<div
-								className="w-full max-w-lg pointer-events-auto"
-								onClick={(e) => e.stopPropagation()}
-							>
-								<SummonerSearch autoFocus />
-								<div className="mt-3">
-									<SearchHistory />
-								</div>
-								<p className="mt-3 text-center text-sm text-muted-foreground/50">
-									Press <kbd className="text-[10px] border border-border/30 rounded px-1.5 py-0.5">Esc</kbd> to close
-								</p>
-							</div>
-						</motion.div>
-					</>
-				)}
-			</AnimatePresence>
+			<SearchSpotlight open={spotlightOpen} onClose={closeSpotlight} />
 		</>
 	);
 }

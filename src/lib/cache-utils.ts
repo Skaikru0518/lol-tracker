@@ -8,5 +8,5 @@ export function isRecent(updatedAt: Date, maxAgeSeconds: number): boolean {
  * Errors are silently swallowed.
  */
 export function revalidateInBackground(fn: () => Promise<void>): void {
-	fn().catch(() => {});
+	fn().catch((error) => console.error("[revalidate] background refresh failed:", error));
 }
