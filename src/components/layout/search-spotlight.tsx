@@ -33,7 +33,7 @@ export function SearchSpotlight({
 						className="w-full max-w-lg"
 						onClick={(event) => event.stopPropagation()}
 					>
-						<Panel className="flex flex-col gap-3 p-4 shadow-xl">
+						<Panel className="flex flex-col gap-3 overflow-visible p-4 shadow-xl">
 							<SummonerSearch autoFocus />
 							<SearchHistory />
 							<p className="text-center text-xs text-muted-foreground">

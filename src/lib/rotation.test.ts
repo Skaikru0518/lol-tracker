@@ -4,7 +4,7 @@ import {
 	rotationCacheState,
 	serializeRotation,
 	toFreeRotation,
-	ROTATION_MAX_AGE_MS,
+	lastRotationReset,
 } from "./rotation";
 
 const now = new Date("2026-10-10T12:00:00Z");
@@ -45,25 +45,35 @@ describe("parseCachedRotation", () => {
 	});
 });
 
-describe("rotationCacheState", () => {
-	const at = (msAgo: number) => ({
-		fetchedAt: new Date(now.getTime() - msAgo).toISOString(),
-		freeChampionIds: [1],
+describe("lastRotationReset", () => {
+	it("is the most recent Tuesday 00:00 UTC", () => {
+		expect(lastRotationReset(new Date("2026-10-10T15:00:00Z")).toISOString()).toBe("2026-10-06T00:00:00.000Z");
+		expect(lastRotationReset(new Date("2026-10-06T00:00:00Z")).toISOString()).toBe("2026-10-06T00:00:00.000Z");
+		expect(lastRotationReset(new Date("2026-10-05T23:59:00Z")).toISOString()).toBe("2026-09-29T00:00:00.000Z");
 	});
+});
+
+describe("rotationCacheState", () => {
+	const cache = (iso: string) => ({ fetchedAt: iso, freeChampionIds: [1] });
 
 	it("is missing without a cache", () => {
-		expect(rotationCacheState(null, now)).toBe("missing");
+		expect(rotationCacheState(null, new Date("2026-10-10T12:00:00Z"))).toBe("missing");
 	});
 
-	it("is fresh within the max age", () => {
-		expect(rotationCacheState(at(ROTATION_MAX_AGE_MS - 1000), now)).toBe("fresh");
+	it("stays fresh through the week once fetched after the Tuesday reset", () => {
+		expect(rotationCacheState(cache("2026-10-07T20:00:00Z"), new Date("2026-10-12T09:00:00Z"))).toBe("fresh");
 	});
 
-	it("is stale after the max age", () => {
-		expect(rotationCacheState(at(ROTATION_MAX_AGE_MS + 1000), now)).toBe("stale");
+	it("is stale once a new Tuesday reset has passed", () => {
+		expect(rotationCacheState(cache("2026-10-12T09:00:00Z"), new Date("2026-10-13T01:00:00Z"))).toBe("stale");
+	});
+
+	it("refreshes every six hours during the 36 hours after a reset, when Riot may still be swapping", () => {
+		expect(rotationCacheState(cache("2026-10-13T01:00:00Z"), new Date("2026-10-13T08:00:00Z"))).toBe("stale");
+		expect(rotationCacheState(cache("2026-10-13T05:00:00Z"), new Date("2026-10-13T08:00:00Z"))).toBe("fresh");
 	});
 
 	it("is stale for a timestamp in the future", () => {
-		expect(rotationCacheState(at(-60_000), now)).toBe("stale");
+		expect(rotationCacheState(cache("2026-10-11T00:00:00Z"), new Date("2026-10-10T12:00:00Z"))).toBe("stale");
 	});
 });
