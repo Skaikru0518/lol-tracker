@@ -8,12 +8,12 @@ const row = (achievementId: string, scope: string, value: number, tier: number) 
 
 describe("progressView", () => {
 	it("shows the way from the reached threshold to the next one", () => {
-		expect(progressView(veteran, row("veteran", "all", 350, 2))).toEqual({ tier: 2, tierName: "Silver", current: "350", next: "500", percent: 50 });
-		expect(progressView(veteran, undefined)).toEqual({ tier: 0, tierName: null, current: "0", next: "50", percent: 0 });
+		expect(progressView(veteran, row("veteran", "all", 1000, 2))).toEqual({ tier: 2, tierName: "Silver", current: "1,000", next: "1,500", percent: 50 });
+		expect(progressView(veteran, undefined)).toEqual({ tier: 0, tierName: null, current: "0", next: "100", percent: 0 });
 	});
 
 	it("fills the bar at Platinum and names ranks and binary tiers", () => {
-		expect(progressView(veteran, row("veteran", "all", 1500, 4))).toMatchObject({ tierName: "Platinum", current: "1,500", next: null, percent: 100 });
+		expect(progressView(veteran, row("veteran", "all", 3500, 4))).toMatchObject({ tierName: "Platinum", current: "3,500", next: null, percent: 100 });
 		expect(progressView(getMilestone("peak-rank")!, row("peak-rank", "all", 6, 2))).toMatchObject({ current: "Diamond", next: "Master" });
 		expect(progressView(getSeasonal("hot-streak")!, row("hot-streak", "2026", 7, 1))).toMatchObject({ tierName: "Earned", percent: 100 });
 	});

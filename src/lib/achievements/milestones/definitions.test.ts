@@ -3,8 +3,8 @@ import { MILESTONES, RANK_THRESHOLDS } from "./definitions";
 import { SEASONAL } from "../seasonal/definitions";
 
 describe("progress definitions", () => {
-	it("has 14 four-tier milestones with ascending thresholds", () => {
-		expect(MILESTONES).toHaveLength(14);
+	it("has 24 four-tier milestones with ascending thresholds", () => {
+		expect(MILESTONES).toHaveLength(24);
 		for (const def of MILESTONES) {
 			expect(def.thresholds).toHaveLength(4);
 			expect([...def.thresholds].sort((a, b) => a - b)).toEqual([...def.thresholds]);
@@ -12,8 +12,8 @@ describe("progress definitions", () => {
 		expect(MILESTONES.find((m) => m.id === "peak-rank")?.thresholds).toEqual(RANK_THRESHOLDS);
 	});
 
-	it("has 8 seasonal achievements, only Season Peak tiered", () => {
-		expect(SEASONAL).toHaveLength(8);
+	it("has 16 seasonal achievements, only Season Peak tiered", () => {
+		expect(SEASONAL).toHaveLength(16);
 		expect(SEASONAL.filter((s) => s.thresholds.length === 4).map((s) => s.id)).toEqual(["season-peak"]);
 	});
 

@@ -1,3 +1,28 @@
+/** One eligible game of a player, reduced to what achievements count. */
+export interface GameRow {
+	championName: string;
+	gameCreation: number;
+	gameDuration: number;
+	teamPosition: string;
+	win: boolean;
+	pentas: number;
+	quadras: number;
+	kills: number;
+	deaths: number;
+	assists: number;
+	vision: number;
+	turrets: number;
+	epics: number;
+	gold: number;
+	cs: number;
+	damage: number;
+	wardsPlaced: number;
+	wardsKilled: number;
+	support: number;
+	firstBlood: boolean;
+	largestSpree: number;
+}
+
 /** Per-champion sums over a player's eligible games in some time range. */
 export interface ChampionTotals {
 	championName: string;
@@ -10,6 +35,16 @@ export interface ChampionTotals {
 	vision: number;
 	turrets: number;
 	epics: number;
+	gold: number;
+	cs: number;
+	damage: number;
+	wardsPlaced: number;
+	wardsKilled: number;
+	support: number;
+	firstBloods: number;
+	deathless: number;
+	legendary: number;
+	seconds: number;
 }
 
 /** One stored LP snapshot, reduced to its tier. */
@@ -37,10 +72,10 @@ export interface MilestoneInputs {
 	masteries: MasteryPoint[];
 }
 
-/** Inputs for one season; `ranked` is null for a closed season (current ranks say nothing about it). */
+/** Inputs for one season; `games` are oldest first, `ranked` is null for a closed season (current ranks say nothing about it). */
 export interface SeasonalInputs {
 	champions: ChampionTotals[];
-	wins: boolean[];
+	games: GameRow[];
 	snapshots: TierSnapshot[];
 	ranked: CurrentRank[] | null;
 }

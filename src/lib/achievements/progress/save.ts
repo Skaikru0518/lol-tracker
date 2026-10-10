@@ -4,7 +4,7 @@ import { evaluateMilestones } from "../milestones/evaluate";
 import { SEASONAL } from "../seasonal/definitions";
 import { evaluateSeasonal } from "../seasonal/evaluate";
 import { seasonRange } from "../seasons";
-import { championTotals, seasonRanks, winSequence } from "./aggregate";
+import { championTotals, seasonGames, seasonRanks } from "./aggregate";
 import { hasSeasonData, seasonsToCompute } from "./backfill";
 import { mergeProgress } from "./merge";
 import { loadCurrentRanks, loadGameRows, loadMasteries, loadTierSnapshots } from "./query";
@@ -31,7 +31,7 @@ export async function recomputeProgress(puuid: string, now: Date = new Date()): 
 		const range = seasonRange(season);
 		const inputs = {
 			champions: championTotals(games, range),
-			wins: winSequence(games, range),
+			games: seasonGames(games, range),
 			snapshots: snapshots.filter((s) => s.createdAt >= range.from && (!range.to || s.createdAt < range.to)),
 			ranked: closed ? null : seasonRanks(ranked, range.from),
 		};

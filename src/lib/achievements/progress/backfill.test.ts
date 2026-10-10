@@ -12,7 +12,7 @@ describe("seasonsToCompute", () => {
 
 describe("hasSeasonData", () => {
 	it("is false for a season without games or snapshots", () => {
-		expect(hasSeasonData({ champions: [], wins: [], snapshots: [], ranked: null })).toBe(false);
-		expect(hasSeasonData({ champions: [], wins: [], snapshots: [{ queueType: "RANKED_SOLO_5x5", tier: "GOLD", createdAt: now }], ranked: null })).toBe(true);
+		expect(hasSeasonData({ champions: [], games: [], snapshots: [], ranked: null })).toBe(false);
+		expect(hasSeasonData({ champions: [], games: [], snapshots: [{ queueType: "RANKED_SOLO_5x5", tier: "GOLD", createdAt: now }], ranked: null })).toBe(true);
 	});
 });

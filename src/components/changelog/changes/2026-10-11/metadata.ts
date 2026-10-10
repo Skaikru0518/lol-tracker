@@ -11,13 +11,13 @@ const changelog: ChangelogEntry = {
 			category: "feature",
 			title: "Milestones",
 			description:
-				"Fourteen all-time milestones such as Veteran, Pentakiller, Champion Pool and Peak Rank, each with four tiers, a progress bar, the date you reached each tier and how rare it is among tracked players.",
+				"Twenty-four all-time milestones such as Veteran, Pentakiller, Ward Keeper, Champion Pool and Peak Rank, each with four tiers, a progress bar, the date you reached each tier and how rare it is among tracked players.",
 		},
 		{
 			category: "feature",
 			title: "Season achievements",
 			description:
-				"Eight achievements per ranked season, from Season Grinder to Hot Streak and Season Peak. Earned ones stay for the season, and past seasons are kept.",
+				"Sixteen achievements per ranked season, from Season Grinder and Hot Streak to Role Swap, Comeback Kid and Season Peak. Earned ones stay for the season, and past seasons are kept.",
 		},
 		{
 			category: "improvement",
