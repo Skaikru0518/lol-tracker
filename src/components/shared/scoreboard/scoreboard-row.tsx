@@ -7,7 +7,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { formatThousands } from "@/lib/format";
 import { formatRankLabel } from "@/lib/rank-calculator";
 import { toSummonerSlug } from "@/lib/riot-id";
-import { participantItems } from "@/lib/summoner/match-row";
+import { participantItems, runeIcons, type RuneMaps } from "@/lib/summoner/match-row";
+import { remSize } from "@/lib/ui/size";
 import { type Participant } from "@/lib/validators/match";
 import { type RankedEntry } from "@/lib/validators/ranked";
 
@@ -19,6 +20,8 @@ export function ScoreboardRow({
 	highlighted,
 	rank,
 	ranksLoading = false,
+	runeData,
+	itemNames,
 }: {
 	participant: Participant | null;
 	side: "blue" | "red";
@@ -26,6 +29,8 @@ export function ScoreboardRow({
 	highlighted: boolean;
 	rank?: RankedEntry;
 	ranksLoading?: boolean;
+	runeData?: RuneMaps;
+	itemNames?: Map<number, string>;
 }) {
 	if (!participant) return <div className="h-11" />;
 	const p = participant;
@@ -40,6 +45,15 @@ export function ScoreboardRow({
 				</span>
 			)}
 			<ChampionIcon version={version} championName={p.championName} size={28} level={p.champLevel} />
+			<div className="flex shrink-0 flex-col gap-0.5">
+				{runeIcons(p, runeData).map((src, i) =>
+					src ? (
+						<img key={i} src={src} alt="" width={13} height={13} style={{ width: remSize(13), height: remSize(13) }} className={cn("rounded-full", i === 0 && "bg-black/40")} />
+					) : (
+						<span key={i} className="rounded-full bg-muted" style={{ width: remSize(13), height: remSize(13) }} />
+					),
+				)}
+			</div>
 			<div className={cn("w-24 min-w-0 leading-tight sm:w-28", side === "red" && "text-right")}>
 				<Link
 					href={`/summoner/${toSummonerSlug(p.riotIdGameName, p.riotIdTagline)}`}
@@ -52,7 +66,7 @@ export function ScoreboardRow({
 					{ranksLoading ? <Skeleton className="mt-0.5 h-2.5 w-14" /> : rank ? formatRankLabel(rank.tier, rank.rank) : "Unranked"}
 				</div>
 			</div>
-			<div className="w-16 text-center leading-tight">
+			<div className="w-24 shrink-0 whitespace-nowrap text-center leading-tight">
 				<p className="text-xs font-semibold text-foreground">
 					{p.kills}/{p.deaths}/{p.assists}
 				</p>
@@ -60,7 +74,7 @@ export function ScoreboardRow({
 					{p.totalMinionsKilled + p.neutralMinionsKilled} CS · {formatThousands(p.goldEarned)}
 				</p>
 			</div>
-			<ItemSlots version={version} items={participantItems(p)} size={17} className="hidden sm:flex" />
+			<ItemSlots version={version} items={participantItems(p)} size={17} itemNames={itemNames} className="hidden sm:flex" />
 		</div>
 	);
 }

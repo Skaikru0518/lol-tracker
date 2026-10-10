@@ -5,6 +5,8 @@ import Link from "next/link";
 import { MirroredScoreboard } from "@/components/shared/scoreboard/mirrored-scoreboard";
 import { useChampions } from "@/hooks/useChampions";
 import { usePlayerRanks } from "@/hooks/usePlayerRanks";
+import { useItems } from "@/hooks/useItems";
+import { useRunes } from "@/hooks/useRunes";
 import { isArenaMatch } from "@/lib/arena-helpers";
 import { buildScoreboard } from "@/lib/summoner/scoreboard";
 import { rankedQueueForQueueId } from "@/lib/ranked-queues";
@@ -17,6 +19,8 @@ export function MatchRowExpanded({ match, puuid, version }: { match: Match; puui
 	const puuids = useMemo(() => (arena ? undefined : match.info.participants.map((p) => p.puuid)), [arena, match]);
 	const { data: ranks, isLoading: ranksLoading } = usePlayerRanks(puuids);
 	const { data: champions } = useChampions();
+	const { data: runeData } = useRunes();
+	const { data: itemNames } = useItems();
 	const data = useMemo(() => buildScoreboard(match), [match]);
 
 	const fullMatch = (
@@ -46,6 +50,8 @@ export function MatchRowExpanded({ match, puuid, version }: { match: Match; puui
 				highlightPuuid={puuid}
 				ranks={ranks}
 				ranksLoading={ranksLoading}
+				runeData={runeData}
+				itemNames={itemNames}
 				rankQueue={rankedQueueForQueueId(match.info.queueId) ?? "RANKED_SOLO_5x5"}
 				champions={champions}
 				footer={fullMatch}

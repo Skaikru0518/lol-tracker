@@ -1,3 +1,4 @@
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { getChampionIcon, type Champion } from "@/lib/icon-helpers";
 
 function BanIcons({ bans, version, champions }: { bans: number[]; version: string; champions?: Record<number, Champion> }) {
@@ -6,15 +7,18 @@ function BanIcons({ bans, version, champions }: { bans: number[]; version: strin
 			{bans.map((id) => {
 				const champ = champions?.[id];
 				return champ ? (
-					<img
-						key={id}
-						src={getChampionIcon(version, champ.id)}
-						alt={champ.name}
-						title={champ.name}
-						width={18}
-						height={18}
-						className="size-4.5 rounded-full opacity-70 grayscale"
-					/>
+					<Tooltip key={id}>
+						<TooltipTrigger asChild>
+							<img
+								src={getChampionIcon(version, champ.id)}
+								alt={champ.name}
+								width={18}
+								height={18}
+								className="size-4.5 cursor-pointer rounded-full opacity-70 grayscale transition hover:opacity-100 hover:grayscale-0"
+							/>
+						</TooltipTrigger>
+						<TooltipContent>{champ.name}</TooltipContent>
+					</Tooltip>
 				) : null;
 			})}
 		</span>

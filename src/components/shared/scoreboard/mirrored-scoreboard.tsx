@@ -1,3 +1,4 @@
+import { type RuneMaps } from "@/lib/summoner/match-row";
 import { type Champion } from "@/lib/icon-helpers";
 import { type ScoreboardData } from "@/lib/summoner/scoreboard";
 import { type RankedEntry } from "@/lib/validators/ranked";
@@ -15,6 +16,8 @@ export function MirroredScoreboard({
 	champions,
 	footer,
 	ranksLoading = false,
+	runeData,
+	itemNames,
 }: {
 	data: ScoreboardData;
 	version: string;
@@ -24,6 +27,8 @@ export function MirroredScoreboard({
 	champions?: Record<number, Champion>;
 	footer?: React.ReactNode;
 	ranksLoading?: boolean;
+	runeData?: RuneMaps;
+	itemNames?: Map<number, string>;
 }) {
 	const rankOf = (puuid?: string) => (puuid ? ranks?.[puuid]?.find((e) => e.queueType === rankQueue) : undefined);
 
@@ -44,6 +49,8 @@ export function MirroredScoreboard({
 							highlighted={!!row.blue && row.blue.puuid === highlightPuuid}
 							rank={rankOf(row.blue?.puuid)}
 							ranksLoading={ranksLoading}
+							runeData={runeData}
+							itemNames={itemNames}
 						/>
 					))}
 				</div>
@@ -57,6 +64,8 @@ export function MirroredScoreboard({
 							highlighted={!!row.red && row.red.puuid === highlightPuuid}
 							rank={rankOf(row.red?.puuid)}
 							ranksLoading={ranksLoading}
+							runeData={runeData}
+							itemNames={itemNames}
 						/>
 					))}
 				</div>
