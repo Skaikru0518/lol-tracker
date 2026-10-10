@@ -19,7 +19,7 @@ export default function AppleIcon() {
 			>
 				<span
 					style={{
-						fontSize: "120px",
+						fontSize: "156px",
 						fontWeight: 900,
 						background: "linear-gradient(135deg, #0ab1c7, #e100ff)",
 						backgroundClip: "text",
