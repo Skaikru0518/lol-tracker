@@ -1,18 +1,21 @@
 "use client";
 
 import Link from "next/link";
+import { useSelectedLayoutSegment } from "next/navigation";
 import { useLiveGame } from "@/hooks/useLiveGame";
 import { useNow } from "@/hooks/useNow";
 import { formatDuration } from "@/lib/format";
 import { getQueueName } from "@/lib/queue-names";
+import { showLiveBanner } from "@/lib/live/live-game";
 import { liveElapsedSeconds } from "@/lib/summoner/live-elapsed";
 
-/** One-line banner shown while the player is in a game; links to the live page. */
+/** One-line banner shown while the player is in a game; links to the live page and is hidden on it. */
 export function LiveBanner({ puuid, basePath }: { puuid: string; basePath: string }) {
 	const { data } = useLiveGame(puuid);
 	const now = useNow();
+	const segment = useSelectedLayoutSegment();
 
-	if (!data?.inGame) return null;
+	if (!data?.inGame || !showLiveBanner(segment)) return null;
 
 	const champSelect = !data.gameStartTime;
 	const elapsed = liveElapsedSeconds(data.gameStartTime, data.gameLength, now);
