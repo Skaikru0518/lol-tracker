@@ -57,7 +57,7 @@ export function ScoreboardRow({
 					),
 				)}
 			</div>
-			<div className={cn("w-24 min-w-0 leading-tight sm:w-28", side === "red" && "text-right")}>
+			<div className={cn("w-24 min-w-0 leading-tight @sm:w-28", side === "red" && "text-right")}>
 				<Link
 					href={`/summoner/${toSummonerSlug(p.riotIdGameName, p.riotIdTagline)}`}
 					onClick={(e) => e.stopPropagation()}
@@ -77,7 +77,7 @@ export function ScoreboardRow({
 					{p.totalMinionsKilled + p.neutralMinionsKilled} CS · {formatThousands(p.goldEarned)}
 				</p>
 			</div>
-			<ItemSlots version={version} items={participantItems(p)} size={17} itemNames={itemNames} className="hidden sm:flex" />
+			<ItemSlots version={version} items={participantItems(p)} size={17} itemNames={itemNames} className="hidden @sm:flex" />
 			<BadgeStack badgeIds={badgeIds} side={side} className="hidden @[34rem]:flex" />
 		</div>
 	);

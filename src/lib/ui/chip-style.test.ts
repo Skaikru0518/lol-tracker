@@ -57,4 +57,3 @@ describe("chipStyle with tokens", () => {
 		});
 	});
 });
-

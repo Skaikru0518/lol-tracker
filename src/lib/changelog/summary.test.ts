@@ -47,4 +47,3 @@ describe("categoryLabel", () => {
 		expect(categoryLabel("feature", 3)).toBe("3 features");
 	});
 });
-

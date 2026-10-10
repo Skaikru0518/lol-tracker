@@ -72,23 +72,24 @@ export function ComparisonBars({
 			<PanelHeader
 				title={title}
 				actions={
-					metrics.length > 1 &&
-					<div className="flex gap-1 overflow-x-auto">
-						{COMPARISON_METRICS.filter((m) => metrics.includes(m.id)).map((m) => (
-							<button
-								key={m.id}
-								type="button"
-								onClick={() => setMetric(m.id)}
-								aria-pressed={m.id === metric}
-								className={cn(
-									"h-6 rounded-md border px-2 text-xs font-medium transition-colors",
-									m.id === metric ? "border-primary/50 bg-primary/15 text-foreground" : "text-muted-foreground hover:text-foreground",
-								)}
-							>
-								{m.label}
-							</button>
-						))}
-					</div>
+					metrics.length > 1 ? (
+						<div className="flex gap-1 overflow-x-auto">
+							{COMPARISON_METRICS.filter((m) => metrics.includes(m.id)).map((m) => (
+								<button
+									key={m.id}
+									type="button"
+									onClick={() => setMetric(m.id)}
+									aria-pressed={m.id === metric}
+									className={cn(
+										"h-6 rounded-md border px-2 text-xs font-medium transition-colors",
+										m.id === metric ? "border-primary/50 bg-primary/15 text-foreground" : "text-muted-foreground hover:text-foreground",
+									)}
+								>
+									{m.label}
+								</button>
+							))}
+						</div>
+					) : undefined
 				}
 			/>
 			<div className="grid flex-1 grid-cols-2 gap-x-5 p-4">

@@ -46,46 +46,30 @@ export function getChampionDisplayName(championName: string): string {
 	return CHAMPION_NAME_OVERRIDES[championName] ?? championName;
 }
 
-const SPELL_NAMES: Record<number, string> = {
-	1: 'Boost', // Cleanse
-	3: 'Exhaust',
-	4: 'Flash',
-	6: 'Haste', // Ghost
-	7: 'Heal',
-	11: 'Smite',
-	12: 'Teleport',
-	13: 'Mana', // Clarity
-	14: 'Dot', // Ignite
-	21: 'Barrier',
-	32: 'Snowball', // Mark (ARAM)
-};
-
-const SPELL_LABELS: Record<number, string> = {
-	1: "Cleanse",
-	3: "Exhaust",
-	4: "Flash",
-	6: "Ghost",
-	7: "Heal",
-	11: "Smite",
-	12: "Teleport",
-	13: "Clarity",
-	14: "Ignite",
-	21: "Barrier",
-	32: "Mark",
+/** Summoner spells by id: the DDragon file key and the in-game name. */
+const SPELLS: Record<number, { file: string; label: string }> = {
+	1: { file: "Boost", label: "Cleanse" },
+	3: { file: "Exhaust", label: "Exhaust" },
+	4: { file: "Flash", label: "Flash" },
+	6: { file: "Haste", label: "Ghost" },
+	7: { file: "Heal", label: "Heal" },
+	11: { file: "Smite", label: "Smite" },
+	12: { file: "Teleport", label: "Teleport" },
+	13: { file: "Mana", label: "Clarity" },
+	14: { file: "Dot", label: "Ignite" },
+	21: { file: "Barrier", label: "Barrier" },
+	32: { file: "Snowball", label: "Mark" },
 };
 
 /** In-game name of a summoner spell; null for ids we don't know (event and Arena spells). */
 export function getSummonerSpellName(spellId: number): string | null {
-	return SPELL_LABELS[spellId] ?? null;
+	return SPELLS[spellId]?.label ?? null;
 }
 
-/** Icon of a known summoner spell; null for unknown ids instead of a misleading Flash. */
-export function knownSummonerSpellIcon(version: string, spellId: number): string | null {
-	return SPELL_NAMES[spellId] ? getSummonerSpellIcon(version, spellId) : null;
-}
-
-export function getSummonerSpellIcon(version: string, spellId: number) {
-	return `https://ddragon.leagueoflegends.com/cdn/${version}/img/spell/Summoner${SPELL_NAMES[spellId] ?? 'Flash'}.png`;
+/** DDragon icon of a known summoner spell; null for unknown ids instead of a misleading Flash. */
+export function getSummonerSpellIcon(version: string, spellId: number): string | null {
+	const spell = SPELLS[spellId];
+	return spell ? `https://ddragon.leagueoflegends.com/cdn/${version}/img/spell/Summoner${spell.file}.png` : null;
 }
 
 export function getRuneIcon(path: string) {

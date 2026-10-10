@@ -12,6 +12,7 @@ import { useLiveGame } from "@/hooks/useLiveGame";
 import { usePlayerRanks } from "@/hooks/usePlayerRanks";
 import { useRunes } from "@/hooks/useRunes";
 import { liveViewState } from "@/lib/live/live-game";
+import { queryFailed } from "@/lib/query-state";
 import { LiveHero } from "./live-hero";
 import { LiveScoreboard } from "./live-scoreboard";
 
@@ -22,7 +23,8 @@ export function LiveGame() {
 	const { data: champions } = useChampions();
 	const { data: runeData } = useRunes();
 	const puuids = useMemo(() => live?.participants?.map((p) => p.puuid), [live?.participants]);
-	const { data: ranks, isLoading: ranksLoading, isError: ranksFailed } = usePlayerRanks(puuids);
+	const { data: ranks, isLoading: ranksLoading, isError: ranksError } = usePlayerRanks(puuids);
+	const ranksFailed = queryFailed({ isError: ranksError, data: ranks });
 
 	const view = liveViewState({ data: live, isLoading, isError });
 

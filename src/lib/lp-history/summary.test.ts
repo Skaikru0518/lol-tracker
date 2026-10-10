@@ -224,4 +224,3 @@ describe("zero-LP apex changes", () => {
 		expect(rows[0].kind).toBe("promotion");
 	});
 });
-

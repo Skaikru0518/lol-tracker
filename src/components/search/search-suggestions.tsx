@@ -14,12 +14,14 @@ export function SearchSuggestions({
 	input,
 	results,
 	pending,
+	stale,
 	isError,
 	onPick,
 }: {
 	input: string;
 	results: RecentSearch[];
 	pending: boolean;
+	stale: boolean;
 	isError: boolean;
 	onPick: (gameName: string, tagLine: string) => void;
 }) {
@@ -36,7 +38,7 @@ export function SearchSuggestions({
 				</li>
 			)}
 			{results.map((r) => (
-				<li key={r.puuid} className={cn(pending && "pointer-events-none opacity-60")}>
+				<li key={r.puuid} className={cn(stale && "pointer-events-none opacity-60")}>
 					<button
 						type="button"
 						onClick={() => onPick(r.gameName, r.tagLine)}

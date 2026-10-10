@@ -73,4 +73,29 @@ describe("resolveAllMasteries", () => {
 		vi.mocked(getAllMasteries).mockResolvedValue([]);
 		expect(await resolveAllMasteries("p1")).toEqual([]);
 	});
+
+	it("stores every champion Riot returned and marks the list synced", async () => {
+		vi.mocked(prisma.$transaction).mockClear();
+		vi.mocked(getAllMasteries).mockResolvedValue([riotRow, { ...riotRow, championId: 99 }]);
+		await resolveAllMasteries("p1");
+		await vi.waitFor(() => expect(prisma.$transaction).toHaveBeenCalledTimes(1));
+		const [operations] = vi.mocked(prisma.$transaction).mock.calls[0] as unknown as [unknown[]];
+		expect(operations).toHaveLength(3);
+		expect(prisma.account.updateMany).toHaveBeenCalledWith({ where: { puuid: "p1" }, data: { masteriesSyncedAt: expect.any(Date) } });
+	});
+
+	it("serves a stale full list and refreshes it once in the background, even for parallel requests", async () => {
+		vi.mocked(prisma.$transaction).mockClear();
+		const stored = [{ id: "a", puuid: "p1", championId: 267, championLevel: 10, championPoints: 5, lastPlayTime: BigInt(1), updatedAt: new Date() }];
+		vi.mocked(prisma.championMastery.findMany).mockResolvedValue(stored as never);
+		vi.mocked(prisma.account.findUnique).mockResolvedValue({ masteriesSyncedAt: new Date(Date.now() - 2 * 60 * 60 * 1000) } as never);
+		let release!: (rows: (typeof riotRow)[]) => void;
+		vi.mocked(getAllMasteries).mockReturnValue(new Promise((resolve) => (release = resolve)));
+		const [first, second] = await Promise.all([resolveAllMasteries("p1"), resolveAllMasteries("p1")]);
+		expect(first.map((m) => m.championPoints)).toEqual([5]);
+		expect(second).toHaveLength(1);
+		expect(getAllMasteries).toHaveBeenCalledTimes(1);
+		release([riotRow]);
+		await vi.waitFor(() => expect(prisma.$transaction).toHaveBeenCalledTimes(1));
+	});
 });

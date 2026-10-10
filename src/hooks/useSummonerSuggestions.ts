@@ -29,5 +29,12 @@ export function useSummonerSuggestions(input: string) {
 		refetchOnWindowFocus: false,
 	});
 	const typing = parseSearchTerms(input) !== null && input.trim() !== debounced.trim();
-	return { results: terms ? (query.data ?? []) : [], pending: typing || query.isFetching, isError: query.isError, terms: parseSearchTerms(input) };
+	return {
+		results: terms ? (query.data ?? []) : [],
+		pending: typing || query.isFetching,
+		// Only rows kept from an earlier query are stale; a background refetch of the current one is not
+		stale: typing || query.isPlaceholderData,
+		isError: query.isError,
+		terms: parseSearchTerms(input),
+	};
 }

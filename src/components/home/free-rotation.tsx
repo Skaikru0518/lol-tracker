@@ -9,18 +9,19 @@ import { useChampions } from "@/hooks/useChampions";
 import { useDDragonVersion } from "@/hooks/useDDragonVersion";
 import { useRotation } from "@/hooks/useRotation";
 import { rotationChampions } from "@/lib/home/format";
+import { queryFailed } from "@/lib/query-state";
 
 /** This week's free champions as icons with their names on hover. */
 export function FreeRotation() {
 	const { data: rotation, isLoading, isError } = useRotation();
-	const { data: champions, isError: championsFailed } = useChampions();
+	const { data: champions, isError: championsError } = useChampions();
 	const { data: version } = useDDragonVersion();
 	const list = rotationChampions(rotation?.freeChampionIds ?? [], champions);
 
 	return (
 		<Panel>
 			<PanelHeader title="Free rotation" />
-			{isError || championsFailed ? (
+			{queryFailed({ isError, data: rotation }) || queryFailed({ isError: championsError, data: champions }) ? (
 				<EmptyState title="Rotation unavailable" description="This week's free champions could not be loaded." />
 			) : isLoading || (rotation && !champions) || !version ? (
 				<PanelBody className="grid grid-cols-5 gap-2">

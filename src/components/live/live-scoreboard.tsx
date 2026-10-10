@@ -9,9 +9,9 @@ import { type LiveGame, type LiveGameParticipant } from "@/lib/validators/live-g
 import { type RankedEntry } from "@/lib/validators/ranked";
 import { LiveRow } from "./live-row";
 
-function TeamLabel({ side, avg, className }: { side: "blue" | "red"; avg: { tier: string; rank: string } | null; className?: string }) {
+function TeamLabel({ side, avg }: { side: "blue" | "red"; avg: { tier: string; rank: string } | null }) {
 	return (
-		<span className={cn("flex items-center gap-2 text-xs", side === "red" && "flex-row-reverse", className)}>
+		<span className={cn("flex items-center gap-2 text-xs", side === "red" && "flex-row-reverse")}>
 			<span className={cn("font-bold", side === "blue" ? "text-team-blue" : "text-team-red")}>{side.toUpperCase()}</span>
 			{avg && (
 				<span className="text-muted-foreground">

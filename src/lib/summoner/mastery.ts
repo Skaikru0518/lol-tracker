@@ -50,24 +50,27 @@ export async function resolveTopMasteries(puuid: string, count: number): Promise
 	return cached.map((entry) => ({ ...entry, lastPlayTime: Number(entry.lastPlayTime) }));
 }
 
+/** One background full-list refresh per player at a time. */
+const refreshing = new Map<string, Promise<void>>();
+
 async function storeMasteries(puuid: string, masteries: { championId: number; championLevel: number; championPoints: number; lastPlayTime: number | bigint }[]) {
-	await prisma.$transaction([
-		...masteries.map((m) => {
-			const data = { championLevel: m.championLevel, championPoints: m.championPoints, lastPlayTime: BigInt(m.lastPlayTime) };
-			return prisma.championMastery.upsert({
-				where: { puuid_championId: { puuid, championId: m.championId } },
-				update: data,
-				create: { puuid, championId: m.championId, ...data },
-			});
-		}),
-		// Marks the stored rows as the complete list; top-mastery refreshes never set this
-		prisma.account.updateMany({ where: { puuid }, data: { masteriesSyncedAt: new Date() } }),
-	]);
+	const upserts = masteries.map((m) => {
+		const data = { championLevel: m.championLevel, championPoints: m.championPoints, lastPlayTime: BigInt(m.lastPlayTime) };
+		return prisma.championMastery.upsert({
+			where: { puuid_championId: { puuid, championId: m.championId } },
+			update: data,
+			create: { puuid, championId: m.championId, ...data },
+		});
+	});
+	// Marks the stored rows as the complete list; top-mastery refreshes never set this
+	const synced = prisma.account.updateMany({ where: { puuid }, data: { masteriesSyncedAt: new Date() } });
+	// ~170 upserts in one batch; Prisma's default 5 s would be tight on a slow DB link
+	await prisma.$transaction([...upserts, synced], { timeout: 30_000 });
 }
 
 async function fetchAllAndStore(puuid: string): Promise<MasteryEntry[]> {
 	const masteries = await getAllMasteries(puuid);
-	revalidateInBackground(() => storeMasteries(puuid, masteries));
+	storeMasteries(puuid, masteries).catch((error) => console.error("[mastery] storing the full list failed:", error));
 	return masteries.map((m) => ({ ...m, lastPlayTime: Number(m.lastPlayTime) }));
 }
 
@@ -87,6 +90,12 @@ export async function resolveAllMasteries(puuid: string): Promise<MasteryEntry[]
 			return fromDb();
 		}
 	}
-	if (plan === "cached-revalidate") revalidateInBackground(async () => void (await fetchAllAndStore(puuid)));
+	if (plan === "cached-revalidate" && !refreshing.has(puuid)) {
+		const job = fetchAllAndStore(puuid)
+			.then(() => undefined)
+			.catch((error) => console.error("[mastery] background refresh failed:", error))
+			.finally(() => refreshing.delete(puuid));
+		refreshing.set(puuid, job);
+	}
 	return fromDb();
 }

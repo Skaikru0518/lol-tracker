@@ -16,6 +16,7 @@ import { useMatches } from "@/hooks/useMatches";
 import { useRunes } from "@/hooks/useRunes";
 import { formatPoints } from "@/lib/format";
 import { getChampionSplash } from "@/lib/icon-helpers";
+import { queryFailed } from "@/lib/query-state";
 import { averageKillParticipation, findChampionBySlug } from "@/lib/summoner/champion-slug";
 import { ChampionSummary } from "./champion-summary";
 
@@ -25,7 +26,8 @@ const CHAMPION_MATCH_COUNT = 50;
 /** Champion sub-page: splash header with mastery, summary strip and matches on that champion. */
 export function ChampionDetail({ slug }: { slug: string }) {
 	const { puuid, gameName, tagLine, basePath, version } = useSummonerContext();
-	const { data: champions, isLoading: championsLoading, isError: championsFailed } = useChampions();
+	const { data: champions, isLoading: championsLoading, isError: championsError } = useChampions();
+	const championsFailed = queryFailed({ isError: championsError, data: champions });
 	const champion = findChampionBySlug(champions, slug);
 	const championId = champion ? Number(champion.key) : undefined;
 

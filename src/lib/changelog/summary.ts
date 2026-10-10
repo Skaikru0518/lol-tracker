@@ -32,4 +32,3 @@ export function categoryLabel(category: ChangeCategory, count: number): string {
 	const meta = CATEGORY_META[category];
 	return `${count} ${(count === 1 ? meta.label : meta.plural).toLowerCase()}`;
 }
-
