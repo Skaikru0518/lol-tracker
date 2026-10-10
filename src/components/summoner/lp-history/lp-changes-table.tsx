@@ -62,7 +62,9 @@ export function LpChangesTable({ rows }: { rows: LpChangeRow[] }) {
 									>
 										<ChevronRight className={cn("size-3.5 transition-transform", expanded && "rotate-90")} />
 										{dayLabel(group.day)}
-										<span className="text-xs font-normal text-muted-foreground">· {group.rows.length}</span>
+										<span className="text-xs font-normal text-muted-foreground">
+											· {group.wins + group.losses} {group.wins + group.losses === 1 ? "game" : "games"}
+										</span>
 									</button>
 								</TableCell>
 								<TableCell>{formatRankLabel(group.latest.tier, group.latest.rank)}</TableCell>
@@ -81,7 +83,11 @@ export function LpChangesTable({ rows }: { rows: LpChangeRow[] }) {
 										<TableCell>{formatRankLabel(row.tier, row.rank)}</TableCell>
 										<TableCell className="text-right">{row.lp}</TableCell>
 										<TableCell>
-											<Delta value={row.kind === "start" ? null : row.delta} suffix={kindSuffix(row)} />
+											{row.kind === "reset" ? (
+												<span className="text-muted-foreground">new season</span>
+											) : (
+												<Delta value={row.kind === "start" ? null : row.delta} suffix={kindSuffix(row)} />
+											)}
 										</TableCell>
 										<TableCell className="hidden text-right text-muted-foreground sm:table-cell">
 											{row.wins !== null && row.losses !== null ? `${row.wins}/${row.losses}` : "—"}

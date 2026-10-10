@@ -1,3 +1,4 @@
+import { RIFT_QUEUE_IDS } from "@/lib/champion-stats/queue";
 import { type Match, type Participant } from "@/lib/validators/match";
 
 export interface SummonerStats {
@@ -43,10 +44,8 @@ export function calculateStats(
 ): SummonerStats {
 	const players: Participant[] = [];
 
-	// Filter out ARAM (450) and Arena (1700, 1710)
-	const filtered = matches.filter(
-		(m) => ![450, 1700, 1710].includes(m.info.queueId),
-	);
+	// Roles and averages only mean something on Summoner's Rift
+	const filtered = matches.filter((m) => RIFT_QUEUE_IDS.includes(m.info.queueId));
 
 	for (const match of filtered) {
 		const p = match.info.participants.find((p) => p.puuid === puuid);

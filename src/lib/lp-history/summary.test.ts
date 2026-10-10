@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { absoluteLpLabel, dailyLpPoints, dayKeyToDate, groupChangesByDay, localDayKey, lpAxisTickLabel, lpAxisTicks, lpChangeRows, lpSummary } from "./summary";
+import { absoluteLpLabel, dailyLpPoints, dayKeyToDate, groupChangesByDay, localDayKey, lpAxisTickLabel, lpChartNotice, lpAxisTicks, lpChangeRows, lpSummary } from "./summary";
 
 const snap = (id: string, tier: string, rank: string, lp: number) => ({
 	id,
@@ -174,5 +174,33 @@ describe("groupChangesByDay", () => {
 	it("never counts negative games across a season reset", () => {
 		const groups = groupChangesByDay(lpChangeRows([at("a", "2026-10-01T12:00:00.000Z", 10, 80, 70), at("b", "2026-10-02T12:00:00.000Z", 30, 1, 0)]));
 		expect([groups[0].wins, groups[0].losses]).toEqual([1, 0]);
+	});
+});
+
+describe("season reset", () => {
+	const reset = [at("a", "2026-10-01T12:00:00.000Z", 50, 80, 70, "DIAMOND"), at("b", "2026-10-02T12:00:00.000Z", 20, 2, 3, "GOLD")];
+
+	it("marks a drop in the W/L totals as a new season, not a demotion", () => {
+		const [row] = lpChangeRows(reset);
+		expect([row.kind, row.delta]).toEqual(["reset", null]);
+	});
+
+	it("counts the new season's placement games for that day", () => {
+		const [day] = groupChangesByDay(lpChangeRows(reset));
+		expect([day.wins, day.losses, day.delta]).toEqual([2, 3, null]);
+	});
+});
+
+describe("lpChartNotice", () => {
+	it("explains a range with nothing to chart", () => {
+		expect(lpChartNotice(0)).toBe("No chartable snapshots in this range.");
+	});
+
+	it("explains a single played day", () => {
+		expect(lpChartNotice(1)).toBe("Played on one day so far.");
+	});
+
+	it("is null once two days can be charted", () => {
+		expect(lpChartNotice(2)).toBeNull();
 	});
 });

@@ -36,7 +36,7 @@ export function OverviewTab() {
 	const { data: runeData } = useRunes();
 	const { matches, isLoading, settled } = useOverviewMatches(puuid);
 	// Read stored Rift games only after the Riot fetch has saved the newest ones
-	const { data: riftMatches } = useRiftMatches(settled ? puuid : undefined);
+	const { data: riftMatches } = useRiftMatches(settled ? puuid : undefined, matches?.[0]?.metadata.matchId);
 	const lpHistories = useRankedLpHistories(puuid);
 
 	return (

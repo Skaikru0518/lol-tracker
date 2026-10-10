@@ -12,7 +12,7 @@ export interface LpSummaryData {
 	change: number | null;
 }
 
-export type LpChangeKind = "start" | "gain" | "loss" | "promotion" | "demotion" | "same";
+export type LpChangeKind = "start" | "gain" | "loss" | "promotion" | "demotion" | "same" | "reset";
 
 export interface LpChangeRow {
 	id: string;
@@ -41,14 +41,21 @@ export function lpSummary(all: LPSnapshot[]): LpSummaryData {
 	return { current, peak, change };
 }
 
-/** Each known-tier snapshot with its LP delta and whether it was a gain, loss, promotion or demotion; newest first. */
+/** Each known-tier snapshot with its LP delta and kind, newest first; a drop in the W/L totals is a season `reset` with no delta. */
 export function lpChangeRows(all: LPSnapshot[]): LpChangeRow[] {
 	const snapshots = knownTierSnapshots(all);
 	return snapshots
 		.map((s, i) => {
 			const prev = snapshots[i - 1];
-			const delta = prev ? absolute(s) - absolute(prev) : null;
-			let kind: LpChangeKind = "start";
+			const reset =
+				!!prev &&
+				s.wins !== null &&
+				s.losses !== null &&
+				prev.wins !== null &&
+				prev.losses !== null &&
+				(s.wins < prev.wins || s.losses < prev.losses);
+			const delta = prev && !reset ? absolute(s) - absolute(prev) : null;
+			let kind: LpChangeKind = reset ? "reset" : "start";
 			if (prev && delta !== null) {
 				if (division(s) !== division(prev)) kind = delta > 0 ? "promotion" : "demotion";
 				else kind = delta > 0 ? "gain" : delta < 0 ? "loss" : "same";
@@ -118,7 +125,7 @@ export interface LpDayGroup {
 	losses: number;
 }
 
-/** Newest-first change rows grouped by local day with net LP and W/L; W/L uses running totals when known, else gain/loss kinds. */
+/** Newest-first change rows grouped by local day with net LP and W/L; W/L uses running totals when known (a reset counts its new-season totals), else gain/loss kinds. */
 export function groupChangesByDay(rows: LpChangeRow[]): LpDayGroup[] {
 	const groups: LpDayGroup[] = [];
 	rows.forEach((row, i) => {
@@ -132,16 +139,25 @@ export function groupChangesByDay(rows: LpChangeRow[]): LpDayGroup[] {
 		if (row.delta !== null) group.delta = (group.delta ?? 0) + row.delta;
 		if (row.kind === "start") return;
 
+		if (row.kind === "reset") {
+			group.wins += row.wins ?? 0;
+			group.losses += row.losses ?? 0;
+			return;
+		}
+
 		const older = rows[i + 1];
-		const totals = older && row.wins !== null && row.losses !== null && older.wins !== null && older.losses !== null;
-		const winDiff = totals ? row.wins! - older.wins! : -1;
-		const lossDiff = totals ? row.losses! - older.losses! : -1;
-		// Running totals drop at a season reset; fall back to the change kind then
-		if (winDiff >= 0 && lossDiff >= 0) {
-			group.wins += winDiff;
-			group.losses += lossDiff;
+		if (older && row.wins !== null && row.losses !== null && older.wins !== null && older.losses !== null) {
+			group.wins += row.wins - older.wins;
+			group.losses += row.losses - older.losses;
 		} else if (row.kind === "gain" || row.kind === "promotion") group.wins += 1;
 		else if (row.kind === "loss" || row.kind === "demotion") group.losses += 1;
 	});
 	return groups;
+}
+
+/** Why the LP chart is not drawn for a number of charted days; null when it can be drawn. */
+export function lpChartNotice(dayCount: number): string | null {
+	if (dayCount === 0) return "No chartable snapshots in this range.";
+	if (dayCount === 1) return "Played on one day so far.";
+	return null;
 }

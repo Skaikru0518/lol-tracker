@@ -9,7 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useLPHistory } from "@/hooks/useLPHistory";
 import { type LpRange } from "@/lib/lp-history/range";
 import { type RankedQueueType } from "@/lib/ranked-queues";
-import { dailyLpPoints, lpChangeRows, lpSummary } from "@/lib/lp-history/summary";
+import { dailyLpPoints, lpChangeRows, lpChartNotice, lpSummary } from "@/lib/lp-history/summary";
 import { LpChangesTable } from "./lp-changes-table";
 import { LpChart } from "./lp-chart";
 import { LpSummary } from "./lp-summary";
@@ -73,7 +73,7 @@ export function LpHistoryTab() {
 				) : (
 					<>
 						<LpSummary summary={summary} rangeLabel={rangeLabel} />
-							{days.length > 1 ? <LpChart points={days} /> : <p className="p-4 text-sm text-muted-foreground">Played on one day so far.</p>}
+						{days.length > 1 ? <LpChart points={days} /> : <p className="p-4 text-sm text-muted-foreground">{lpChartNotice(days.length)}</p>}
 					</>
 				)}
 			</Panel>

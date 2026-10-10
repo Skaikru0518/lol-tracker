@@ -1,4 +1,5 @@
 import { getQueueName } from "@/lib/queue-names";
+import { RANKED_QUEUE_TITLES, rankedQueueForQueueId } from "@/lib/ranked-queues";
 import { getRuneIcon, type RuneData, type RuneStyle } from "@/lib/icon-helpers";
 import { type Participant } from "@/lib/validators/match";
 
@@ -11,9 +12,8 @@ export function participantItems(p: Participant): number[] {
 
 /** Queue label for a match row. */
 export function shortQueueName(queueId: number, gameMode: string): string {
-	if (queueId === 420) return "Ranked Solo";
-	if (queueId === 440) return "Ranked Flex";
-	if (queueId === 710) return "Ranked 5s";
+	const ranked = rankedQueueForQueueId(queueId);
+	if (ranked) return RANKED_QUEUE_TITLES[ranked];
 	return getQueueName(queueId, gameMode);
 }
 
