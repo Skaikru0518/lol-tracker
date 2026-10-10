@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { remSize } from "@/lib/ui/size";
 import { getRankEmblem } from "@/lib/icon-helpers";
 
 /** Local rank emblem image; unknown or empty tiers show the unranked emblem. */
@@ -17,6 +18,7 @@ export function RankEmblem({
 			alt={`${tier ? tier.toLowerCase() : "unranked"} emblem`}
 			width={size}
 			height={size}
+			style={{ width: remSize(size), height: remSize(size) }}
 			className={cn("shrink-0 object-contain", className)}
 		/>
 	);

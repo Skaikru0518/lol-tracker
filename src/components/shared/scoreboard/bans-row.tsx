@@ -13,7 +13,7 @@ function BanIcons({ bans, version, champions }: { bans: number[]; version: strin
 						title={champ.name}
 						width={18}
 						height={18}
-						className="size-[18px] rounded-full opacity-70 grayscale"
+						className="size-4.5 rounded-full opacity-70 grayscale"
 					/>
 				) : null;
 			})}

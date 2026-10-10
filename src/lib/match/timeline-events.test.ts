@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { type Timeline } from "@/lib/validators/timeline";
 import {
+	cumulativeKills,
 	gameEndMs,
+	grubWaves,
+	teamSeries,
 	killTicks,
 	objectiveEvents,
 	objectiveSummary,
@@ -137,5 +140,66 @@ describe("gameEndMs", () => {
 	it("is the last frame's timestamp, at least 1", () => {
 		expect(gameEndMs(timeline([], 1_500_000))).toBe(1_500_000);
 		expect(gameEndMs({ info: { frames: [] } } as unknown as Timeline)).toBe(1);
+	});
+});
+
+describe("grubWaves", () => {
+	const grub = (minute: number, killerTeamId: number) => ({ type: "ELITE_MONSTER_KILL", timestamp: at(minute), monsterType: "HORDE", killerTeamId });
+
+	it("merges each wave into one icon for the team that took at least two", () => {
+		const events = grubWaves(objectiveEvents(timeline([grub(6, 100), grub(6.2, 200), grub(6.4, 100), grub(10, 200), grub(10.1, 200), grub(10.3, 200)])));
+		expect(events.map((e) => [e.side, e.label, e.timestamp])).toEqual([
+			["blue", "Void Grubs 2–1", at(6.4)],
+			["red", "Void Grubs 0–3", at(10.3)],
+		]);
+	});
+
+	it("leaves other objectives untouched and in order", () => {
+		const events = grubWaves(
+			objectiveEvents(timeline([grub(6, 100), { type: "ELITE_MONSTER_KILL", timestamp: at(8), monsterType: "DRAGON", killerTeamId: 200 }])),
+		);
+		expect(events.map((e) => e.kind)).toEqual(["grubs", "dragon"]);
+	});
+});
+
+describe("killTicks details", () => {
+	it("keeps killer and victim ids", () => {
+		const [tick] = killTicks(timeline([{ type: "CHAMPION_KILL", timestamp: at(3), killerId: 2, victimId: 7 }]));
+		expect([tick.killerId, tick.victimId]).toEqual([2, 7]);
+	});
+});
+
+describe("cumulativeKills", () => {
+	it("counts kills per side up to each frame", () => {
+		const t = {
+			info: {
+				frames: [
+					{ timestamp: 0, participantFrames: {}, events: [] },
+					{ timestamp: at(1), participantFrames: {}, events: [{ type: "CHAMPION_KILL", timestamp: at(0.5), killerId: 2, victimId: 7 }] },
+					{ timestamp: at(2), participantFrames: {}, events: [{ type: "CHAMPION_KILL", timestamp: at(1.5), killerId: 0, victimId: 2 }] },
+				],
+			},
+		} as unknown as Timeline;
+		expect(cumulativeKills(t)).toEqual([
+			{ minute: 0, blue: 0, red: 0 },
+			{ minute: 1, blue: 1, red: 0 },
+			{ minute: 2, blue: 1, red: 1 },
+		]);
+	});
+});
+
+describe("teamSeries", () => {
+	it("sums CS (lane + jungle) and gold per side for each frame", () => {
+		const pf = (participantId: number, minionsKilled: number, jungleMinionsKilled: number, totalGold: number) => ({
+			participantId,
+			minionsKilled,
+			jungleMinionsKilled,
+			totalGold,
+			level: 1,
+			xp: 0,
+		});
+		const t = { info: { frames: [{ timestamp: at(5), participantFrames: { "1": pf(1, 30, 4, 2000), "6": pf(6, 20, 0, 1500) }, events: [] }] } } as unknown as Timeline;
+		expect(teamSeries(t, "cs")).toEqual([{ minute: 5, blue: 34, red: 20 }]);
+		expect(teamSeries(t, "gold")).toEqual([{ minute: 5, blue: 2000, red: 1500 }]);
 	});
 });

@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { remSize } from "@/lib/ui/size";
 import { getChampionDisplayName, getChampionIcon } from "@/lib/icon-helpers";
 
 /** Square champion portrait with an optional level badge in the corner. */
@@ -18,7 +19,7 @@ export function ChampionIcon({
 	return (
 		<span
 			className={cn("relative inline-block shrink-0", className)}
-			style={{ width: size, height: size }}
+			style={{ width: remSize(size), height: remSize(size) }}
 		>
 			<img
 				src={getChampionIcon(version, championName)}

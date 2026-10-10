@@ -4,13 +4,27 @@ import { useMemo, useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Panel, PanelHeader } from "@/components/ui/panel";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { getChampionDisplayName } from "@/lib/icon-helpers";
 import { formatDuration } from "@/lib/format";
-import { type FirstTaken, gameEndMs, killTicks, objectiveEvents, objectiveSummary, type Side } from "@/lib/match/timeline-events";
+import { type FirstTaken, gameEndMs, grubWaves, type KillTick, killTicks, objectiveEvents, objectiveSummary, type Side } from "@/lib/match/timeline-events";
+import { type Participant } from "@/lib/validators/match";
 import { type Timeline } from "@/lib/validators/timeline";
 
 const SIDE_TEXT: Record<Side, string> = { blue: "text-team-blue", red: "text-team-red" };
 const SIDE_BORDER: Record<Side, string> = { blue: "border-team-blue", red: "border-team-red" };
 const clock = (ms: number) => formatDuration(ms / 1000);
+
+function playerLabel(participants: Participant[], id: number): string {
+	const p = participants[id - 1];
+	return p ? `${p.riotIdGameName} (${getChampionDisplayName(p.championName)})` : "Unknown";
+}
+
+function killText(tick: KillTick, participants: Participant[]): string {
+	const victim = playerLabel(participants, tick.victimId);
+	const what = tick.killerId ? `${playerLabel(participants, tick.killerId)} killed ${victim}` : `${victim} was executed`;
+	return `${what} · ${clock(tick.timestamp)}`;
+}
 
 function First({ label, taken }: { label: string; taken: FirstTaken | null }) {
 	return (
@@ -27,9 +41,9 @@ function First({ label, taken }: { label: string; taken: FirstTaken | null }) {
 	);
 }
 
-/** Objectives on a blue (top) and red (bottom) lane across the game, kill ticks along the axis, the firsts and counts, and a collapsible list. */
-export function ObjectivesPanel({ timeline }: { timeline: Timeline }) {
-	const objectives = useMemo(() => objectiveEvents(timeline), [timeline]);
+/** Objectives on a blue (top) and red (bottom) lane (grubs merged per wave), kill ticks with tooltips along the axis, the firsts and counts, and a collapsible list. */
+export function ObjectivesPanel({ timeline, participants }: { timeline: Timeline; participants: Participant[] }) {
+	const objectives = useMemo(() => grubWaves(objectiveEvents(timeline)), [timeline]);
 	const kills = useMemo(() => killTicks(timeline), [timeline]);
 	const summary = useMemo(() => objectiveSummary(timeline), [timeline]);
 	const [open, setOpen] = useState(false);
@@ -51,21 +65,35 @@ export function ObjectivesPanel({ timeline }: { timeline: Timeline }) {
 					))}
 				</div>
 				{kills.map((k, i) => (
-					<span
-						key={i}
-						className={cn("absolute h-2.5 w-0.5 -translate-x-1/2 rounded-sm", k.side === "blue" ? "top-[3.1rem] bg-team-blue" : "top-[4.9rem] bg-team-red")}
-						style={{ left: left(k.timestamp) }}
-					/>
+					<Tooltip key={i}>
+						<TooltipTrigger asChild>
+							<span
+								className={cn(
+									"absolute h-3.5 w-1 -translate-x-1/2 cursor-pointer rounded-sm transition-transform hover:scale-125",
+									k.side === "blue" ? "top-[2.875rem] bg-team-blue" : "top-[4.75rem] bg-team-red",
+								)}
+								style={{ left: left(k.timestamp) }}
+							/>
+						</TooltipTrigger>
+						<TooltipContent>{killText(k, participants)}</TooltipContent>
+					</Tooltip>
 				))}
 				{objectives.map((o, i) => (
-					<img
-						key={`${o.timestamp}-${i}`}
-						src={o.icon}
-						alt={o.label}
-						title={`${o.label} · ${o.side === "blue" ? "Blue" : "Red"} · ${clock(o.timestamp)}`}
-						className={cn("absolute size-6 -translate-x-1/2 rounded-full border-2 bg-card p-0.5", SIDE_BORDER[o.side], o.side === "blue" ? "top-3" : "bottom-3")}
-						style={{ left: left(o.timestamp) }}
-					/>
+					<Tooltip key={`${o.timestamp}-${i}`}>
+						<TooltipTrigger asChild>
+							<img
+								src={o.icon}
+								alt={o.label}
+								className={cn(
+									"absolute size-6 -translate-x-1/2 cursor-pointer rounded-full border-2 bg-card p-0.5 transition-transform hover:scale-110",
+									SIDE_BORDER[o.side],
+									o.side === "blue" ? "top-3" : "bottom-3",
+								)}
+								style={{ left: left(o.timestamp) }}
+							/>
+						</TooltipTrigger>
+						<TooltipContent>{`${o.label} · ${o.side === "blue" ? "Blue" : "Red"} · ${clock(o.timestamp)}`}</TooltipContent>
+					</Tooltip>
 				))}
 			</div>
 			<div className="flex flex-wrap gap-1.5 px-4 pb-4">

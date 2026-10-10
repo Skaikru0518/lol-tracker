@@ -5,6 +5,7 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+	--animate-bar-grow: bar-grow 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 	--text-2xs: 0.6875rem;
 	--text-2xs--line-height: 1rem;
 	--text-3xs: 0.625rem;
@@ -185,4 +186,10 @@
 
 @theme inline {
 	--animate-shimmer: shimmer 1.5s infinite;
+}
+
+@keyframes bar-grow {
+	from {
+		transform: scaleX(0);
+	}
 }

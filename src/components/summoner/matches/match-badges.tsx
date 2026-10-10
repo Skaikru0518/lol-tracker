@@ -15,7 +15,9 @@ export function MatchBadges({ badgeIds, max }: { badgeIds: string[]; max?: numbe
 				return (
 					<Tooltip key={id}>
 						<TooltipTrigger asChild>
-							<Chip color={def.color ?? ""}>{def.name}</Chip>
+							<Chip color={def.color ?? ""} className="cursor-pointer">
+								{def.name}
+							</Chip>
 						</TooltipTrigger>
 						<TooltipContent>
 							<p>{def.description}</p>

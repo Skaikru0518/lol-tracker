@@ -25,11 +25,15 @@ export interface ComparisonEntry {
 	value: number;
 }
 
-/** Both teams' values for one metric in scoreboard order, with the largest value (at least 1) to scale bars by. */
-export function comparisonRows(data: ScoreboardData, metric: ComparisonMetric): { blue: ComparisonEntry[]; red: ComparisonEntry[]; max: number } {
+/** Both teams' values for one metric in scoreboard order, the largest value (at least 1) to scale bars by, and who holds it. */
+export function comparisonRows(
+	data: ScoreboardData,
+	metric: ComparisonMetric,
+): { blue: ComparisonEntry[]; red: ComparisonEntry[]; max: number; topPuuid: string | null } {
 	const entry = (p: Participant): ComparisonEntry => ({ puuid: p.puuid, championName: p.championName, value: VALUE[metric](p) });
 	const blue = data.rows.flatMap((r) => (r.blue ? [entry(r.blue)] : []));
 	const red = data.rows.flatMap((r) => (r.red ? [entry(r.red)] : []));
 	const max = Math.max(1, ...blue.map((e) => e.value), ...red.map((e) => e.value));
-	return { blue, red, max };
+	const top = [...blue, ...red].find((e) => e.value === max && e.value > 0);
+	return { blue, red, max, topPuuid: top?.puuid ?? null };
 }

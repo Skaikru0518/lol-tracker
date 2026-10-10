@@ -5,6 +5,7 @@ export const participantFrameSchema = z.object({
 	totalGold: z.number(),
 	level: z.number(),
 	minionsKilled: z.number(),
+	jungleMinionsKilled: z.number().optional(),
 	xp: z.number(),
 });
 

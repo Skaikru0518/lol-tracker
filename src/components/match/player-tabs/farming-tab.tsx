@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { Panel, PanelBody } from "@/components/ui/panel";
-import CsGoldChart from "@/components/match/cs-gold-chart";
+import { FarmingChart } from "@/components/match/charts/farming-chart";
 import { TimelineChartSlot } from "@/components/match/timeline-slot";
 import { playerStatGroups } from "@/lib/match/detail";
 import { StatList } from "./stat-list";
@@ -19,8 +19,8 @@ export function FarmingTab({ match, timeline, timelineState, player }: PlayerTab
 					<StatList title="Income" stats={groups.income} />
 				</PanelBody>
 			</Panel>
-			<TimelineChartSlot title="CS & total gold" state={timelineState}>
-				<CsGoldChart timeline={timeline} />
+			<TimelineChartSlot title="CS over time" state={timelineState}>
+				{timeline && <FarmingChart timeline={timeline} />}
 			</TimelineChartSlot>
 		</div>
 	);

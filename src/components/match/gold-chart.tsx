@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import { Area, AreaChart, CartesianGrid, ReferenceDot, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Panel, PanelBody, PanelHeader } from "@/components/ui/panel";
 import { formatThousands } from "@/lib/format";
-import { objectiveEvents } from "@/lib/match/timeline-events";
+import { grubWaves, objectiveEvents } from "@/lib/match/timeline-events";
 import { type Timeline } from "@/lib/validators/timeline";
 import { AXIS, GRID, TEAM_COLOR, TOOLTIP_STYLE } from "./charts/chart-theme";
 
@@ -21,7 +21,7 @@ export default function GoldChart({ timeline }: { timeline?: Timeline }) {
 			}),
 		[timeline],
 	);
-	const markers = useMemo(() => (timeline ? objectiveEvents(timeline).filter((o) => MARKER_KINDS.has(o.kind)) : []), [timeline]);
+	const markers = useMemo(() => (timeline ? grubWaves(objectiveEvents(timeline)).filter((o) => MARKER_KINDS.has(o.kind)) : []), [timeline]);
 
 	if (!timeline || data.length === 0) return null;
 	const peak = Math.max(1000, ...data.map((d) => Math.abs(d.diff)));

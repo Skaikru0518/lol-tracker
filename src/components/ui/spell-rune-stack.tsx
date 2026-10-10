@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { remSize } from "@/lib/ui/size";
 import { getSummonerSpellIcon } from "@/lib/icon-helpers";
 
 /** 2x2 grid: summoner spells left, keystone + secondary tree right. */
@@ -24,6 +25,7 @@ export function SpellRuneStack({
 					alt=""
 					width={size}
 					height={size}
+					style={{ width: remSize(size), height: remSize(size) }}
 					className="rounded"
 				/>
 			))}
@@ -35,13 +37,14 @@ export function SpellRuneStack({
 						alt=""
 						width={size}
 						height={size}
+						style={{ width: remSize(size), height: remSize(size) }}
 						className="rounded-full bg-black/40 p-px"
 					/>
 				) : (
 					<span
 						key={`rune-${index}`}
 						className="rounded-full bg-muted"
-						style={{ width: size, height: size }}
+						style={{ width: remSize(size), height: remSize(size) }}
 					/>
 				),
 			)}

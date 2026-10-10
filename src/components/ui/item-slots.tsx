@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { remSize } from "@/lib/ui/size";
 import { getItemIcon } from "@/lib/icon-helpers";
 
 /** Row of item icons; `0` renders as an empty slot. */
@@ -24,13 +25,14 @@ export function ItemSlots({
 						alt=""
 						width={size}
 						height={size}
+						style={{ width: remSize(size), height: remSize(size) }}
 						className="rounded"
 					/>
 				) : (
 					<span
 						key={index}
 						className="rounded bg-muted"
-						style={{ width: size, height: size }}
+						style={{ width: remSize(size), height: remSize(size) }}
 					/>
 				);
 			})}

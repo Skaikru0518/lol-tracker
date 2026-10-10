@@ -12,7 +12,7 @@ export function Chip({
 		<span
 			data-slot="chip"
 			className={cn(
-				"inline-flex h-5 items-center gap-1 whitespace-nowrap rounded border px-1.5 text-3xs font-semibold",
+				"inline-flex h-5 items-center gap-1 whitespace-nowrap rounded border px-1.5 text-3xs font-semibold hover:cursor-pointer",
 				className,
 			)}
 			style={{ ...chipStyle(color), ...style }}

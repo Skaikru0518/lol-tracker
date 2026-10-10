@@ -89,6 +89,8 @@ export function objectiveEvents(timeline: Timeline): ObjectiveEvent[] {
 export interface KillTick {
 	timestamp: number;
 	side: Side;
+	killerId: number;
+	victimId: number;
 }
 
 /** Champion kills by the killer's side; executions (killer 0) count for the victim's enemies. */
@@ -98,6 +100,8 @@ export function killTicks(timeline: Timeline): KillTick[] {
 		.map((e) => ({
 			timestamp: e.timestamp,
 			side: e.killerId ? sideOfParticipant(e.killerId) : enemy(sideOfParticipant(e.victimId!)),
+			killerId: e.killerId ?? 0,
+			victimId: e.victimId!,
 		}));
 }
 
@@ -188,4 +192,60 @@ export function skillMaxOrder(levels: number[]): number[] {
 	}
 	const rest = BASIC_SLOTS.filter((s) => !maxed.includes(s)).sort((a, b) => points[b] - points[a] || a - b);
 	return [4, ...maxed, ...rest];
+}
+
+const GRUB_WAVE_GAP_MS = 120_000;
+
+/** Void Grubs merged into one icon per wave, owned by the team that took more of it (label "Void Grubs blue–red"). */
+export function grubWaves(objectives: ObjectiveEvent[]): ObjectiveEvent[] {
+	const out: ObjectiveEvent[] = [];
+	let wave: ObjectiveEvent[] = [];
+	const flush = () => {
+		if (wave.length === 0) return;
+		const blue = wave.filter((w) => w.side === "blue").length;
+		const red = wave.length - blue;
+		const side: Side = blue === red ? wave[0].side : blue > red ? "blue" : "red";
+		out.push({ ...wave[wave.length - 1], side, label: `Void Grubs ${blue}–${red}` });
+		wave = [];
+	};
+	for (const o of objectives) {
+		if (o.kind !== "grubs") {
+			out.push(o);
+			continue;
+		}
+		if (wave.length > 0 && o.timestamp - wave[wave.length - 1].timestamp > GRUB_WAVE_GAP_MS) flush();
+		wave.push(o);
+	}
+	flush();
+	return out.sort((a, b) => a.timestamp - b.timestamp);
+}
+
+export interface TeamPoint {
+	minute: number;
+	blue: number;
+	red: number;
+}
+
+/** Each side's running kill total at every frame; executions count for the victim's enemies. */
+export function cumulativeKills(timeline: Timeline): TeamPoint[] {
+	const totals = { blue: 0, red: 0 };
+	return timeline.info.frames.map((frame) => {
+		for (const e of frame.events) {
+			if (e.type !== "CHAMPION_KILL" || !e.victimId) continue;
+			totals[e.killerId ? sideOfParticipant(e.killerId) : enemy(sideOfParticipant(e.victimId))]++;
+		}
+		return { minute: Math.round(frame.timestamp / 60000), ...totals };
+	});
+}
+
+/** Each side's CS (lane plus jungle) or total gold at every frame. */
+export function teamSeries(timeline: Timeline, metric: "cs" | "gold"): TeamPoint[] {
+	return timeline.info.frames.map((frame) => {
+		const point = { minute: Math.round(frame.timestamp / 60000), blue: 0, red: 0 };
+		for (const pf of Object.values(frame.participantFrames)) {
+			const value = metric === "cs" ? pf.minionsKilled + (pf.jungleMinionsKilled ?? 0) : pf.totalGold;
+			point[sideOfParticipant(pf.participantId)] += value;
+		}
+		return point;
+	});
 }

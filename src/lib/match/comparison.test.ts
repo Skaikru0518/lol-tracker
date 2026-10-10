@@ -30,4 +30,9 @@ describe("comparisonRows", () => {
 		const empty = makeMatch({ participants: [makeParticipant({ puuid: "x", teamId: 100, visionScore: 0 })] });
 		expect(comparisonRows(buildScoreboard(empty), "vision").max).toBe(1);
 	});
+
+	it("names the top player for the metric", () => {
+		expect(comparisonRows(buildScoreboard(match), "damage").topPuuid).toBe("c");
+		expect(comparisonRows(buildScoreboard(match), "vision").topPuuid).toBe("b");
+	});
 });
