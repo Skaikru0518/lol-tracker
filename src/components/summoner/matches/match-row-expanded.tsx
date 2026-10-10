@@ -14,7 +14,17 @@ import { type Match } from "@/lib/validators/match";
 import { ArenaScoreboard } from "./arena-scoreboard";
 
 /** Expanded match: mirrored 5v5 (ranks fetched on open) or the Arena leaderboard, plus a full-match link. */
-export function MatchRowExpanded({ match, puuid, version }: { match: Match; puuid: string; version: string }) {
+export function MatchRowExpanded({
+	match,
+	puuid,
+	version,
+	badges,
+}: {
+	match: Match;
+	puuid: string;
+	version: string;
+	badges?: { puuid: string; badgeId: string }[];
+}) {
 	const arena = isArenaMatch(match.info.queueId);
 	const puuids = useMemo(() => (arena ? undefined : match.info.participants.map((p) => p.puuid)), [arena, match]);
 	const { data: ranks, isLoading: ranksLoading } = usePlayerRanks(puuids);
@@ -52,6 +62,7 @@ export function MatchRowExpanded({ match, puuid, version }: { match: Match; puui
 				ranksLoading={ranksLoading}
 				runeData={runeData}
 				itemNames={itemNames}
+				badges={badges}
 				rankQueue={rankedQueueForQueueId(match.info.queueId) ?? "RANKED_SOLO_5x5"}
 				champions={champions}
 				footer={fullMatch}

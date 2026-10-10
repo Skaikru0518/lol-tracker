@@ -1,5 +1,6 @@
 import { type RuneMaps } from "@/lib/summoner/match-row";
 import { type Champion } from "@/lib/icon-helpers";
+import { badgeIdsFor } from "@/lib/match/detail";
 import { type ScoreboardData } from "@/lib/summoner/scoreboard";
 import { type RankedEntry } from "@/lib/validators/ranked";
 import { BansRow } from "./bans-row";
@@ -18,6 +19,7 @@ export function MirroredScoreboard({
 	ranksLoading = false,
 	runeData,
 	itemNames,
+	badges,
 }: {
 	data: ScoreboardData;
 	version: string;
@@ -29,6 +31,7 @@ export function MirroredScoreboard({
 	ranksLoading?: boolean;
 	runeData?: RuneMaps;
 	itemNames?: Map<number, string>;
+	badges?: { puuid: string; badgeId: string }[];
 }) {
 	const rankOf = (puuid?: string) => (puuid ? ranks?.[puuid]?.find((e) => e.queueType === rankQueue) : undefined);
 
@@ -39,7 +42,7 @@ export function MirroredScoreboard({
 				<TeamHeader team={data.red} side="red" remake={data.remake} />
 			</div>
 			<div className="grid grid-cols-1 md:grid-cols-2">
-				<div className="divide-y divide-border/50">
+				<div className="@container divide-y divide-border/50">
 					{data.rows.map((row, i) => (
 						<ScoreboardRow
 							key={row.blue?.puuid ?? `b${i}`}
@@ -51,10 +54,11 @@ export function MirroredScoreboard({
 							ranksLoading={ranksLoading}
 							runeData={runeData}
 							itemNames={itemNames}
+							badgeIds={row.blue ? badgeIdsFor(badges, row.blue.puuid) : []}
 						/>
 					))}
 				</div>
-				<div className="divide-y divide-border/50 border-t md:border-l md:border-t-0">
+				<div className="@container divide-y divide-border/50 border-t md:border-l md:border-t-0">
 					{data.rows.map((row, i) => (
 						<ScoreboardRow
 							key={row.red?.puuid ?? `r${i}`}
@@ -66,6 +70,7 @@ export function MirroredScoreboard({
 							ranksLoading={ranksLoading}
 							runeData={runeData}
 							itemNames={itemNames}
+							badgeIds={row.red ? badgeIdsFor(badges, row.red.puuid) : []}
 						/>
 					))}
 				</div>

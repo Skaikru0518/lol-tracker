@@ -103,6 +103,7 @@ export function MatchDetail({ matchId, puuid }: { matchId: string; puuid?: strin
 						ranksLoading={ranksLoading}
 						runeData={runeData}
 						itemNames={itemNames}
+						badges={badges?.[matchId]}
 						rankQueue={rankedQueueForQueueId(match.info.queueId) ?? "RANKED_SOLO_5x5"}
 						champions={champions}
 					/>

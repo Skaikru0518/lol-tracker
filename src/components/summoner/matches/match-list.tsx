@@ -82,6 +82,7 @@ export function MatchList({
 								runeData={runeData}
 								lpChange={lpChange}
 								badgeIds={badgeIds}
+								matchBadges={badges?.[match.metadata.matchId]}
 							/>
 						);
 					})}

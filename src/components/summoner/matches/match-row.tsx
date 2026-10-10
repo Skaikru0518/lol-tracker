@@ -32,6 +32,7 @@ export function MatchRow({
 	runeData,
 	lpChange,
 	badgeIds,
+	matchBadges,
 }: {
 	match: Match;
 	player: Participant;
@@ -39,6 +40,7 @@ export function MatchRow({
 	runeData?: RuneMaps;
 	lpChange: number | null;
 	badgeIds: string[];
+	matchBadges?: { puuid: string; badgeId: string }[];
 }) {
 	const [open, setOpen] = useState(false);
 	const { info } = match;
@@ -121,7 +123,7 @@ export function MatchRow({
 						transition={{ duration: 0.18 }}
 						className="overflow-hidden"
 					>
-						<MatchRowExpanded match={match} puuid={player.puuid} version={version} />
+						<MatchRowExpanded match={match} puuid={player.puuid} version={version} badges={matchBadges} />
 					</motion.div>
 				)}
 			</AnimatePresence>

@@ -8,6 +8,7 @@ import { formatThousands } from "@/lib/format";
 import { formatRankLabel } from "@/lib/rank-calculator";
 import { toSummonerSlug } from "@/lib/riot-id";
 import { participantItems, runeIcons, type RuneMaps } from "@/lib/summoner/match-row";
+import { BadgeStack } from "./badge-stack";
 import { remSize } from "@/lib/ui/size";
 import { type Participant } from "@/lib/validators/match";
 import { type RankedEntry } from "@/lib/validators/ranked";
@@ -22,6 +23,7 @@ export function ScoreboardRow({
 	ranksLoading = false,
 	runeData,
 	itemNames,
+	badgeIds = [],
 }: {
 	participant: Participant | null;
 	side: "blue" | "red";
@@ -31,12 +33,13 @@ export function ScoreboardRow({
 	ranksLoading?: boolean;
 	runeData?: RuneMaps;
 	itemNames?: Map<number, string>;
+	badgeIds?: string[];
 }) {
-	if (!participant) return <div className="h-11" />;
+	if (!participant) return <div className="h-13" />;
 	const p = participant;
 
 	return (
-		<div className={cn("flex h-11 items-center gap-2 px-2", side === "red" && "flex-row-reverse", highlighted && "bg-gold/10")}>
+		<div className={cn("flex h-13 items-center gap-2 px-2", side === "red" && "flex-row-reverse", highlighted && "bg-gold/10")}>
 			{ranksLoading ? (
 				<Skeleton className="size-5 shrink-0 rounded-full" />
 			) : (
@@ -75,6 +78,7 @@ export function ScoreboardRow({
 				</p>
 			</div>
 			<ItemSlots version={version} items={participantItems(p)} size={17} itemNames={itemNames} className="hidden sm:flex" />
+			<BadgeStack badgeIds={badgeIds} side={side} className="hidden @[34rem]:flex" />
 		</div>
 	);
 }
