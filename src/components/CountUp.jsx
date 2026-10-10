@@ -1,4 +1,4 @@
-import { useInView, useMotionValue, useSpring } from 'motion/react';
+import { useInView, useMotionValue, useSpring } from 'framer-motion';
 import { useCallback, useEffect, useRef } from 'react';
 
 export default function CountUp({

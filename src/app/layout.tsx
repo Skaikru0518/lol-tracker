@@ -5,7 +5,6 @@ import { cn } from "@/lib/utils";
 import { QueryProvider } from "@/providers/query-providers";
 import ThemeProvider from "@/providers/theme-provider";
 import { Toaster } from "react-hot-toast";
-import AuroraBackground from "@/components/ui/aurora-background";
 import Navbar from "@/components/layout/navbar";
 import Footer from "@/components/layout/footer";
 import MaintenanceScreen from "@/components/layout/maintenance-screen";
@@ -114,30 +113,24 @@ export default async function RootLayout({
 			<body className="min-h-full flex flex-col font-sans scroll-smooth">
 				<ThemeProvider>
 					{maintenance ? (
-						<>
-							<AuroraBackground />
-							<MaintenanceScreen />
-						</>
+						<MaintenanceScreen />
 					) : (
-						<>
-							<AuroraBackground />
-							<QueryProvider>
-								<Toaster
-									toastOptions={{
-										style: {
-											background: "var(--card)",
-											color: "var(--card-foreground)",
-											border: "1px solid var(--border)",
-											fontSize: "14px",
-										},
-									}}
-								/>
-								<Navbar />
-								<main className="flex-1 pt-14 pb-12">{children}</main>
-								<Analytics />
-								<Footer />
-							</QueryProvider>
-						</>
+						<QueryProvider>
+							<Toaster
+								toastOptions={{
+									style: {
+										background: "var(--card)",
+										color: "var(--card-foreground)",
+										border: "1px solid var(--border)",
+										fontSize: "14px",
+									},
+								}}
+							/>
+							<Navbar />
+							<main className="flex-1 pt-14">{children}</main>
+							<Analytics />
+							<Footer />
+						</QueryProvider>
 					)}
 				</ThemeProvider>
 			</body>

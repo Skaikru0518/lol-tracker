@@ -48,63 +48,79 @@
 	--radius-4xl: calc(var(--radius) * 2.6);
 	--color-win: var(--win);
 	--color-loss: var(--loss);
+	--color-gold: var(--gold);
+	--color-nav: var(--nav);
+	--color-team-blue: var(--team-blue);
+	--color-team-red: var(--team-red);
 }
 
 :root {
-	--background: oklch(1 0 0);
-	--foreground: oklch(0.145 0 0);
-	--card: oklch(1 0 0);
-	--card-foreground: oklch(0.145 0 0);
-	--popover: oklch(1 0 0);
-	--popover-foreground: oklch(0.145 0 0);
-	--primary: oklch(0.205 0 0);
-	--primary-foreground: oklch(0.985 0 0);
-	--secondary: oklch(0.97 0 0);
-	--secondary-foreground: oklch(0.205 0 0);
-	--muted: oklch(0.97 0 0);
-	--muted-foreground: oklch(0.556 0 0);
-	--accent: oklch(0.97 0 0);
-	--accent-foreground: oklch(0.205 0 0);
-	--destructive: oklch(0.577 0.245 27.325);
-	--border: oklch(0.922 0 0);
-	--input: oklch(0.922 0 0);
-	--ring: oklch(0.708 0 0);
-	--chart-1: oklch(0.87 0 0);
-	--chart-2: oklch(0.556 0 0);
-	--chart-3: oklch(0.439 0 0);
-	--chart-4: oklch(0.371 0 0);
-	--chart-5: oklch(0.269 0 0);
+	--background: #f5f6fa;
+	--foreground: #1b1e2e;
+	--nav: #ffffff;
+	--card: #ffffff;
+	--card-foreground: #1b1e2e;
+	--popover: #ffffff;
+	--popover-foreground: #1b1e2e;
+	--primary: #9a3fc4;
+	--primary-foreground: #ffffff;
+	--secondary: #eceef5;
+	--secondary-foreground: #2a2e45;
+	--muted: #eceef5;
+	--muted-foreground: #626886;
+	--accent: #eceef5;
+	--accent-foreground: #1b1e2e;
+	--destructive: #c43c3c;
+	--border: #e1e4ee;
+	--input: #e1e4ee;
+	--ring: #9a3fc4;
+	--chart-1: #9a3fc4;
+	--chart-2: #2f6fd0;
+	--chart-3: #157a55;
+	--chart-4: #8a6508;
+	--chart-5: #c43c3c;
 	--radius: 0.5rem;
-	--win: oklch(0.65 0.17 155);
-	--loss: oklch(0.6 0.2 25);
+	--win: #157a55;
+	--loss: #c43c3c;
+	--gold: #8a6508;
+	--team-blue: #2f6fd0;
+	--team-red: #c43c3c;
+	--scrollbar: #cfd3e0;
+	--scrollbar-hover: #b7bccd;
 }
 
 .dark {
-	--background: oklch(0.11 0.015 280);
-	--foreground: oklch(0.92 0.01 250);
-	--card: oklch(0.14 0.018 280);
-	--card-foreground: oklch(0.92 0.01 250);
-	--popover: oklch(0.14 0.018 280);
-	--popover-foreground: oklch(0.92 0.01 250);
-	--primary: oklch(0.55 0.2 320);
-	--primary-foreground: oklch(0.98 0 0);
-	--secondary: oklch(0.18 0.02 280);
-	--secondary-foreground: oklch(0.85 0.01 250);
-	--muted: oklch(0.18 0.015 280);
-	--muted-foreground: oklch(0.55 0.02 260);
-	--accent: oklch(0.55 0.2 320);
-	--accent-foreground: oklch(0.95 0 0);
-	--destructive: oklch(0.6 0.2 25);
-	--border: oklch(0.2 0.02 280);
-	--input: oklch(0.18 0.02 280);
-	--ring: oklch(0.7 0.12 200);
-	--chart-1: oklch(0.7 0.12 200);
-	--chart-2: oklch(0.55 0.2 320);
-	--chart-3: oklch(0.6 0.15 200);
-	--chart-4: oklch(0.65 0.15 150);
-	--chart-5: oklch(0.5 0.15 280);
-	--win: oklch(0.62 0.17 155);
-	--loss: oklch(0.58 0.2 25);
+	--background: #0d0f1a;
+	--foreground: #d4d7e6;
+	--nav: #0a0c15;
+	--card: #151827;
+	--card-foreground: #d4d7e6;
+	--popover: #151827;
+	--popover-foreground: #d4d7e6;
+	--primary: #b05ad6;
+	--primary-foreground: #ffffff;
+	--secondary: #1d2136;
+	--secondary-foreground: #d4d7e6;
+	--muted: #1d2136;
+	--muted-foreground: #7d829c;
+	--accent: #1d2136;
+	--accent-foreground: #ffffff;
+	--destructive: #ef5350;
+	--border: #252a40;
+	--input: #1d2136;
+	--ring: #b05ad6;
+	--chart-1: #b05ad6;
+	--chart-2: #4f8fe6;
+	--chart-3: #34c38f;
+	--chart-4: #e9b949;
+	--chart-5: #ef5350;
+	--win: #34c38f;
+	--loss: #ef5350;
+	--gold: #e9b949;
+	--team-blue: #4f8fe6;
+	--team-red: #ef5350;
+	--scrollbar: #2a3048;
+	--scrollbar-hover: #3a4160;
 }
 
 @layer base {
@@ -134,12 +150,12 @@
 }
 
 ::-webkit-scrollbar-thumb {
-	background: oklch(0.3 0.02 250);
+	background: var(--scrollbar);
 	border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-	background: oklch(0.4 0.03 250);
+	background: var(--scrollbar-hover);
 }
 
 ::-webkit-scrollbar-corner {
@@ -149,7 +165,7 @@
 /* Firefox */
 * {
 	scrollbar-width: thin;
-	scrollbar-color: oklch(0.3 0.02 250) transparent;
+	scrollbar-color: var(--scrollbar) transparent;
 }
 
 /* Shimmer animation for skeletons */
@@ -159,27 +175,6 @@
 	}
 }
 
-@keyframes smoke {
-	0%,
-	100% {
-		transform: scale(1) translateY(0);
-		opacity: 0.4;
-	}
-	25% {
-		transform: scale(1.15) translateY(-4px);
-		opacity: 0.25;
-	}
-	50% {
-		transform: scale(1.05) translateY(-8px);
-		opacity: 0.35;
-	}
-	75% {
-		transform: scale(1.2) translateY(-2px);
-		opacity: 0.2;
-	}
-}
-
 @theme inline {
 	--animate-shimmer: shimmer 1.5s infinite;
-	--animate-smoke: smoke 4s ease-in-out infinite;
 }

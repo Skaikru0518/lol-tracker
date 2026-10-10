@@ -1,23 +1,31 @@
 "use client";
 
-import { useDDragonVersion } from "@/hooks/useDDragonVersion";
 import Link from "next/link";
+import { useDDragonVersion } from "@/hooks/useDDragonVersion";
 
+/** Slim page footer with patch, links and the Riot legal notice. */
 export default function Footer() {
 	const { data: version } = useDDragonVersion();
 
 	return (
-		<footer className="fixed bottom-0 left-0 right-0 z-40 border-t py-1.5 backdrop-blur-md bg-background/80">
-			<div className="flex items-center justify-center gap-3 text-[11px] text-muted-foreground">
-				<span className="font-medium">Summon.gg</span>
-				<span>·</span>
-				<span>Patch {version ?? "..."}</span>
-				<span>·</span>
-				<Link href="/changelog">Changes</Link>
-				<span>·</span>
-				<Link href="/policy">Policy</Link>
-				<span>·</span>
-				<span>© {new Date().getFullYear()}</span>
+		<footer className="mt-auto border-t bg-nav">
+			<div className="mx-auto flex max-w-7xl flex-col items-center gap-1 px-4 py-4 text-[11px] text-muted-foreground sm:px-6">
+				<div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
+					<span className="font-medium text-foreground">Summon.gg</span>
+					<span>Patch {version ?? "..."}</span>
+					<Link href="/changelog" className="hover:text-foreground">
+						Changelog
+					</Link>
+					<Link href="/policy" className="hover:text-foreground">
+						Policy
+					</Link>
+					<span>&copy; {new Date().getFullYear()}</span>
+				</div>
+				<p className="text-center">
+					Summon.gg isn&apos;t endorsed by Riot Games and doesn&apos;t reflect the
+					views or opinions of Riot Games or anyone officially involved in
+					producing or managing Riot Games properties.
+				</p>
 			</div>
 		</footer>
 	);

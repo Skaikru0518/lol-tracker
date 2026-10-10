@@ -20,6 +20,13 @@ export function getChampionIcon(version: string, championName: string) {
 	return `https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/${fixedName}.png`;
 }
 
+/** Data Dragon splash URL; invalid skin numbers fall back to 0. */
+export function getChampionSplash(championName: string, skinNum = 0) {
+	const fixedName = CHAMPION_ID_FIXES[championName] ?? championName;
+	const skin = Number.isFinite(skinNum) && skinNum > 0 ? Math.trunc(skinNum) : 0;
+	return `https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${fixedName}_${skin}.jpg`;
+}
+
 const CHAMPION_NAME_OVERRIDES: Record<string, string> = {
 	MonkeyKing: "Wukong",
 	FiddleSticks: "Fiddlesticks",
@@ -95,8 +102,23 @@ export async function getItemMap(
 	return map;
 }
 
-export function getRankEmblem(tier: string) {
-	return `/icons/rank/${tier.toLowerCase()}.png`;
+const RANK_EMBLEM_TIERS = new Set([
+	"iron",
+	"bronze",
+	"silver",
+	"gold",
+	"platinum",
+	"emerald",
+	"diamond",
+	"master",
+	"grandmaster",
+	"challenger",
+]);
+
+/** Local rank emblem; unknown or empty tiers use the unranked emblem. */
+export function getRankEmblem(tier: string | null | undefined) {
+	const key = (tier ?? "").trim().toLowerCase();
+	return `/icons/rank/${RANK_EMBLEM_TIERS.has(key) ? key : "unranked"}.png`;
 }
 
 export const RANK_COLORS: Record<string, string> = {
