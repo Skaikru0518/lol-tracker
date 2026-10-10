@@ -2,13 +2,11 @@ import {
 	type AchievementMatch,
 	type AchievementParticipant,
 } from "@/lib/validators/match";
-import { type RankedEntry } from "@/lib/validators/ranked";
 import { isAchievementEligible } from "../eligibility";
 
 interface DetectionInput {
 	matches: AchievementMatch[];
 	puuid: string;
-	ranked?: RankedEntry[];
 }
 
 const WINDOW = 10;
@@ -27,9 +25,9 @@ function average<T>(items: T[], value: (item: T) => number): number {
 	return items.reduce((sum, item) => sum + value(item), 0) / items.length;
 }
 
-/** Returns the achievement IDs a player has earned from their ranked games (remakes excluded) and current rank. */
+/** Returns the Current form achievement IDs a player has earned from their ranked games (remakes excluded). */
 export function detectAchievements(input: DetectionInput): string[] {
-	const { puuid, ranked } = input;
+	const { puuid } = input;
 	const allMatches = input.matches.filter((m) => isAchievementEligible(m.info.queueId, m.info.gameDuration));
 	const earned: string[] = [];
 
@@ -43,8 +41,6 @@ export function detectAchievements(input: DetectionInput): string[] {
 
 	if (players.length > 0) {
 		// --- Combat ---
-
-		if (players.some((p) => p.pentaKills > 0)) earned.push("pentakill");
 
 		if (players.slice(0, 5).some((p) => p.deaths === 0 && p.kills + p.assists >= 3)) {
 			earned.push("perfect-kda");
@@ -115,17 +111,6 @@ export function detectAchievements(input: DetectionInput): string[] {
 		if (queueCount(420) >= 13) earned.push("soloq-enjoyer");
 		if (queueCount(440) >= 13) earned.push("flex-enjoyer");
 		if (queueCount(710) >= 13) earned.push("premade-enjoyer");
-	}
-
-	// --- Rank (current tier, not match-based) ---
-	if (ranked) {
-		const tiers = ranked.map((e) => e.tier);
-		const APEX = ["MASTER", "GRANDMASTER", "CHALLENGER"];
-		const DIAMOND_PLUS = ["DIAMOND", ...APEX];
-
-		if (tiers.includes("CHALLENGER")) earned.push("challenger");
-		else if (tiers.some((t) => APEX.includes(t))) earned.push("master-plus");
-		else if (tiers.some((t) => DIAMOND_PLUS.includes(t))) earned.push("diamond-plus");
 	}
 
 	return earned;

@@ -1,28 +1,24 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { achievementPayloadSchema, type AchievementPayload } from "@/lib/validators/achievements";
 
-interface SavedAchievement {
-	achievementId: string;
-	earnedAt: string;
-}
-
-async function fetchAchievements(puuid: string): Promise<SavedAchievement[]> {
+async function fetchAchievements(puuid: string): Promise<AchievementPayload> {
 	const res = await fetch(`/api/achievements?puuid=${puuid}`);
 	if (!res.ok) throw new Error("Failed to fetch achievements");
-	return res.json();
+	return achievementPayloadSchema.parse(await res.json());
 }
 
-async function detectAndSave(puuid: string): Promise<SavedAchievement[]> {
+async function detectAndSave(puuid: string): Promise<AchievementPayload> {
 	const res = await fetch("/api/achievements", {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
 		body: JSON.stringify({ puuid }),
 	});
 	if (!res.ok) throw new Error("Failed to detect achievements");
-	return res.json();
+	return achievementPayloadSchema.parse(await res.json());
 }
 
 export function useAchievements(puuid: string | undefined) {
-	return useQuery<SavedAchievement[]>({
+	return useQuery<AchievementPayload>({
 		queryKey: ["achievements", puuid],
 		queryFn: () => fetchAchievements(puuid!),
 		staleTime: 1000 * 60 * 5,

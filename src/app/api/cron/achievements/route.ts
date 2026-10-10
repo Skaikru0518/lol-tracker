@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/server/db";
 import { detectAchievements } from "@/lib/achievements/profile/detect";
 import { loadAchievementMatches } from "@/lib/achievements/profile/query";
+import { saveRarity } from "@/lib/achievements/progress/rarity";
+import { recomputeProgress } from "@/lib/achievements/progress/save";
 import { isAuthorizedCronRequest } from "@/lib/server/cron-auth";
 import { NextResponse } from "next/server";
 
@@ -21,15 +23,9 @@ export async function GET(req: Request) {
 			try {
 				const matches = await loadAchievementMatches(account.puuid);
 
-				// Load ranked from DB
-				const ranked = await prisma.rankedEntry.findMany({
-					where: { puuid: account.puuid },
-				});
-
 				const earnedIds = detectAchievements({
 					matches,
 					puuid: account.puuid,
-					ranked,
 				});
 
 				if (earnedIds.length > 0) {
@@ -50,10 +46,14 @@ export async function GET(req: Request) {
 						achievementId: { notIn: earnedIds },
 					},
 				});
+
+				await recomputeProgress(account.puuid);
 			} catch (error) {
 				console.error(`[cron/achievements] failed for ${account.puuid}:`, error);
 			}
 		}
+
+		await saveRarity();
 
 		return NextResponse.json({
 			ok: true,

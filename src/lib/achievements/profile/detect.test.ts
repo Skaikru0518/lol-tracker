@@ -37,12 +37,12 @@ function detect(matches: AchievementMatch[]): string[] {
 
 describe("detectAchievements", () => {
 	it("ignores Arena, ARAM and normal games", () => {
-		const games = [1700, 450, 400, 1700, 450].map((queueId) => match({ win: true, pentaKills: 1 }, { queueId }));
+		const games = [1700, 450, 400, 1700, 450].map((queueId) => match({ win: true, deaths: 0, kills: 5 }, { queueId }));
 		expect(detect(games)).toEqual([]);
 	});
 
 	it("counts Ranked 5s games", () => {
-		expect(detect([match({ pentaKills: 1 }, { queueId: 710 })])).toContain("pentakill");
+		expect(detect([match({ deaths: 0, kills: 3 }, { queueId: 710 })])).toContain("perfect-kda");
 	});
 
 	it("skips remakes, so a remade loss does not break a win streak", () => {
@@ -72,6 +72,11 @@ describe("detectAchievements", () => {
 		const earned = detect(games);
 		expect(earned).toContain("premade-enjoyer");
 		expect(earned).not.toContain("normal-enjoyer");
+	});
+
+	it("leaves pentakills and rank to milestones", () => {
+		const earned = detectAchievements({ matches: [match({ pentaKills: 1 })], puuid: ME });
+		expect(earned).not.toContain("pentakill");
 	});
 
 	it("gives no role main on a tie for most played role", () => {

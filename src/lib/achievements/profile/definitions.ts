@@ -2,21 +2,13 @@ export interface AchievementDef {
 	id: string;
 	name: string;
 	description: string;
-	icon: string; // filename in public/achi/ → e.g. "pentakill" → /achi/pentakill.svg
+	icon: string; // filename in public/achi/ → e.g. "carry" → /achi/carry.svg
 	color: string; // hex color for badge text
-	category: "combat" | "mastery" | "rank" | "playstyle";
+	category: "combat" | "mastery" | "playstyle";
 }
 
 export const ACHIEVEMENTS: AchievementDef[] = [
 	// Combat
-	{
-		id: "pentakill",
-		name: "Pentakill",
-		description: "Got a pentakill in your last 10 ranked matches",
-		icon: "pentakill",
-		color: "#e74c3c",
-		category: "combat",
-	},
 	{
 		id: "perfect-kda",
 		name: "Untouchable",
@@ -130,31 +122,6 @@ export const ACHIEVEMENTS: AchievementDef[] = [
 		icon: "lose-streak",
 		color: "#3498db",
 		category: "playstyle",
-	},
-	// Rank
-	{
-		id: "diamond-plus",
-		name: "Diamond+",
-		description: "Currently Diamond or above in any ranked queue",
-		icon: "diamond-plus",
-		color: "#5b8bf5",
-		category: "rank",
-	},
-	{
-		id: "master-plus",
-		name: "Master+",
-		description: "Currently Master or above in any ranked queue",
-		icon: "master-plus",
-		color: "#9b59b6",
-		category: "rank",
-	},
-	{
-		id: "challenger",
-		name: "Challenger",
-		description: "Currently Challenger in any ranked queue",
-		icon: "challenger",
-		color: "#f1c40f",
-		category: "rank",
 	},
 	// Role
 	{

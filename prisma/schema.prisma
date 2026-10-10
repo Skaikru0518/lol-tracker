@@ -21,6 +21,7 @@ model Account {
   championMasteries ChampionMastery[]
   lpHistory         LPHistory[]
   achievements      PlayerAchievement[]
+  achievementProgress AchievementProgress[]
 
   /// Set when every champion's mastery was stored; null while only the top masteries are.
   masteriesSyncedAt DateTime?
@@ -130,6 +131,22 @@ model PlayerAchievement {
 
   @@unique([puuid, achievementId])
   @@index([puuid])
+}
+
+/// Milestone (scope "all") and seasonal (scope = season id) progress; tiers only go up.
+model AchievementProgress {
+  puuid         String
+  achievementId String
+  scope         String
+  value         Int
+  tier          Int
+  reachedAt     DateTime[]
+  updatedAt     DateTime   @updatedAt
+
+  account Account @relation(fields: [puuid], references: [puuid])
+
+  @@id([puuid, achievementId, scope])
+  @@index([achievementId, scope, tier])
 }
 
 model MatchBadge {

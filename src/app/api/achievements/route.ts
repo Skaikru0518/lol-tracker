@@ -1,76 +1,36 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/server/db";
+import { loadAchievementPayload } from "@/lib/achievements/payload";
 import { detectAchievements } from "@/lib/achievements/profile/detect";
 import { loadAchievementMatches } from "@/lib/achievements/profile/query";
+import { recomputeProgress } from "@/lib/achievements/progress/save";
+import { type AchievementPayload } from "@/lib/validators/achievements";
 
-export async function GET(
-	req: NextRequest,
-): Promise<
-	| NextResponse<{ error: string }>
-	| NextResponse<{ achievementId: string; earnedAt: Date }[]>
-> {
+type Response = NextResponse<{ error: string }> | NextResponse<AchievementPayload>;
+
+export async function GET(req: NextRequest): Promise<Response> {
 	const puuid = req.nextUrl.searchParams.get("puuid");
-	if (!puuid) {
-		return NextResponse.json({ error: "puuid required" }, { status: 400 });
-	}
+	if (!puuid) return NextResponse.json({ error: "puuid required" }, { status: 400 });
 
-	const achievement = await prisma.playerAchievement.findMany({
-		where: { puuid },
-		select: { achievementId: true, earnedAt: true },
-	});
-
-	return NextResponse.json(achievement);
+	return NextResponse.json(await loadAchievementPayload(puuid));
 }
 
-export async function POST(
-	req: NextRequest,
-): Promise<
-	| NextResponse<{ error: string }>
-	| NextResponse<{ achievementId: string; earnedAt: Date }[]>
-> {
-	const body = await req.json();
-	const { puuid } = body;
+/** Recomputes Current form, milestones and seasons for one account, then returns its payload. */
+export async function POST(req: NextRequest): Promise<Response> {
+	const { puuid } = await req.json();
+	if (!puuid) return NextResponse.json({ error: "puuid is required" }, { status: 400 });
 
-	if (!puuid) {
-		return NextResponse.json(
-			{ error: "puuid is required" },
-			{ status: 400 },
-		);
-	}
-
-	let earnedIds: string[];
 	try {
-		const matches = await loadAchievementMatches(puuid);
-		const ranked = await prisma.rankedEntry.findMany({ where: { puuid } });
-		earnedIds = detectAchievements({ matches, puuid, ranked });
+		const earnedIds = detectAchievements({ matches: await loadAchievementMatches(puuid), puuid });
+		if (earnedIds.length > 0) {
+			await prisma.playerAchievement.createMany({ data: earnedIds.map((achievementId) => ({ puuid, achievementId })), skipDuplicates: true });
+		}
+		await prisma.playerAchievement.deleteMany({ where: { puuid, achievementId: { notIn: earnedIds } } });
+		await recomputeProgress(puuid);
 	} catch (error) {
 		console.error("[api/achievements] detection failed:", error);
-		return NextResponse.json(
-			{ error: "Internal server error" },
-			{ status: 500 },
-		);
+		return NextResponse.json({ error: "Internal server error" }, { status: 500 });
 	}
 
-	if (earnedIds.length > 0) {
-		await prisma.playerAchievement.createMany({
-			data: earnedIds.map((achievementId) => ({ puuid, achievementId })),
-			skipDuplicates: true,
-		});
-	}
-
-	// Remove achievements no longer earned
-	await prisma.playerAchievement.deleteMany({
-		where: {
-			puuid,
-			achievementId: { notIn: earnedIds },
-		},
-	});
-
-	// Return all achievements
-	const all = await prisma.playerAchievement.findMany({
-		where: { puuid },
-		select: { achievementId: true, earnedAt: true },
-	});
-
-	return NextResponse.json(all);
+	return NextResponse.json(await loadAchievementPayload(puuid));
 }
