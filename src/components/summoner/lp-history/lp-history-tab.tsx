@@ -80,7 +80,7 @@ export function LpHistoryTab() {
 			{rows.length > 0 && (
 				<Panel>
 					<PanelHeader title="Changes" />
-					<LpChangesTable rows={rows} />
+					<LpChangesTable key={`${queue}-${range}`} rows={rows} />
 				</Panel>
 			)}
 		</div>
