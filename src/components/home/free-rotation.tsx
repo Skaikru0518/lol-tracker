@@ -13,21 +13,23 @@ import { rotationChampions } from "@/lib/home/format";
 /** This week's free champions as icons with their names on hover. */
 export function FreeRotation() {
 	const { data: rotation, isLoading, isError } = useRotation();
-	const { data: champions } = useChampions();
+	const { data: champions, isError: championsFailed } = useChampions();
 	const { data: version } = useDDragonVersion();
 	const list = rotationChampions(rotation?.freeChampionIds ?? [], champions);
 
 	return (
 		<Panel>
 			<PanelHeader title="Free rotation" />
-			{isLoading || (rotation && !champions) || !version ? (
+			{isError || championsFailed ? (
+				<EmptyState title="Rotation unavailable" description="This week's free champions could not be loaded." />
+			) : isLoading || (rotation && !champions) || !version ? (
 				<PanelBody className="grid grid-cols-5 gap-2">
 					{Array.from({ length: 10 }).map((_, i) => (
 						<Skeleton key={i} className="aspect-square" />
 					))}
 				</PanelBody>
-			) : isError || list.length === 0 ? (
-				<EmptyState title="Rotation unavailable" description="Riot did not return this week's free champions." />
+			) : list.length === 0 ? (
+				<EmptyState title="No free champions listed" description="Riot returned an empty rotation." />
 			) : (
 				<TooltipProvider delayDuration={150}>
 					<PanelBody className="grid grid-cols-5 gap-2">

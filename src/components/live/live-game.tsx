@@ -22,7 +22,7 @@ export function LiveGame() {
 	const { data: champions } = useChampions();
 	const { data: runeData } = useRunes();
 	const puuids = useMemo(() => live?.participants?.map((p) => p.puuid), [live?.participants]);
-	const { data: ranks, isLoading: ranksLoading } = usePlayerRanks(puuids);
+	const { data: ranks, isLoading: ranksLoading, isError: ranksFailed } = usePlayerRanks(puuids);
 
 	const view = liveViewState({ data: live, isLoading, isError });
 
@@ -65,6 +65,7 @@ export function LiveGame() {
 					runeData={runeData}
 					ranks={ranks}
 					ranksLoading={ranksLoading}
+					ranksFailed={ranksFailed}
 					highlightPuuid={puuid}
 				/>
 			</div>

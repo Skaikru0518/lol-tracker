@@ -24,8 +24,18 @@ export interface ChipStyle {
 	backgroundColor: string;
 }
 
-/** Chip style: text color, `44` alpha border, `20` alpha fill; muted fallback. */
+const TOKEN_PATTERN = /^var\(--[a-z0-9-]+\)$/i;
+
+/** Chip style: text color, `44` alpha border, `20` alpha fill (a `var(--token)` is mixed with transparency instead); muted fallback. */
 export function chipStyle(color: string): ChipStyle {
+	const token = color.trim();
+	if (TOKEN_PATTERN.test(token)) {
+		return {
+			color: token,
+			borderColor: `color-mix(in srgb, ${token} 27%, transparent)`,
+			backgroundColor: `color-mix(in srgb, ${token} 13%, transparent)`,
+		};
+	}
 	const hex = normalizeHex(color);
 
 	if (!hex) {

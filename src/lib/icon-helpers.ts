@@ -60,6 +60,30 @@ const SPELL_NAMES: Record<number, string> = {
 	32: 'Snowball', // Mark (ARAM)
 };
 
+const SPELL_LABELS: Record<number, string> = {
+	1: "Cleanse",
+	3: "Exhaust",
+	4: "Flash",
+	6: "Ghost",
+	7: "Heal",
+	11: "Smite",
+	12: "Teleport",
+	13: "Clarity",
+	14: "Ignite",
+	21: "Barrier",
+	32: "Mark",
+};
+
+/** In-game name of a summoner spell; null for ids we don't know (event and Arena spells). */
+export function getSummonerSpellName(spellId: number): string | null {
+	return SPELL_LABELS[spellId] ?? null;
+}
+
+/** Icon of a known summoner spell; null for unknown ids instead of a misleading Flash. */
+export function knownSummonerSpellIcon(version: string, spellId: number): string | null {
+	return SPELL_NAMES[spellId] ? getSummonerSpellIcon(version, spellId) : null;
+}
+
 export function getSummonerSpellIcon(version: string, spellId: number) {
 	return `https://ddragon.leagueoflegends.com/cdn/${version}/img/spell/Summoner${SPELL_NAMES[spellId] ?? 'Flash'}.png`;
 }

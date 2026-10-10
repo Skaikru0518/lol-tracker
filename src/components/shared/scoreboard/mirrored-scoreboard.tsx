@@ -36,12 +36,12 @@ export function MirroredScoreboard({
 	const rankOf = (puuid?: string) => (puuid ? ranks?.[puuid]?.find((e) => e.queueType === rankQueue) : undefined);
 
 	return (
-		<div className="bg-background/40">
+		<div className="@container/scoreboard bg-background/40">
 			<div className="flex items-start justify-between gap-4 border-b px-3 py-2">
 				<TeamHeader team={data.blue} side="blue" remake={data.remake} />
 				<TeamHeader team={data.red} side="red" remake={data.remake} />
 			</div>
-			<div className="grid grid-cols-1 md:grid-cols-2">
+			<div className="grid grid-cols-1 @[44rem]/scoreboard:grid-cols-2">
 				<div className="@container divide-y divide-border/50">
 					{data.rows.map((row, i) => (
 						<ScoreboardRow
@@ -58,7 +58,7 @@ export function MirroredScoreboard({
 						/>
 					))}
 				</div>
-				<div className="@container divide-y divide-border/50 border-t md:border-l md:border-t-0">
+				<div className="@container divide-y divide-border/50 border-t @[44rem]/scoreboard:border-l @[44rem]/scoreboard:border-t-0">
 					{data.rows.map((row, i) => (
 						<ScoreboardRow
 							key={row.red?.puuid ?? `r${i}`}

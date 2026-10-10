@@ -204,3 +204,24 @@ describe("lpChartNotice", () => {
 		expect(lpChartNotice(2)).toBeNull();
 	});
 });
+
+describe("zero-LP division changes", () => {
+	it("labels a move to a higher division as promotion even when the absolute LP is equal", () => {
+		const rows = lpChangeRows([
+			{ id: "a", tier: "DIAMOND", rank: "I", lp: 100, wins: null, losses: null, createdAt: "2026-10-01T12:00:00.000Z" },
+			{ id: "b", tier: "MASTER", rank: "I", lp: 0, wins: null, losses: null, createdAt: "2026-10-02T12:00:00.000Z" },
+		]);
+		expect([rows[0].kind, rows[0].delta]).toEqual(["promotion", 0]);
+	});
+});
+
+describe("zero-LP apex changes", () => {
+	it("labels Master → Grandmaster at the same LP as promotion", () => {
+		const rows = lpChangeRows([
+			{ id: "a", tier: "MASTER", rank: "I", lp: 500, wins: null, losses: null, createdAt: "2026-10-01T12:00:00.000Z" },
+			{ id: "b", tier: "GRANDMASTER", rank: "I", lp: 500, wins: null, losses: null, createdAt: "2026-10-02T12:00:00.000Z" },
+		]);
+		expect(rows[0].kind).toBe("promotion");
+	});
+});
+

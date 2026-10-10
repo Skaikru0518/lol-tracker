@@ -45,7 +45,7 @@ const LANES: Record<string, string> = { TOP_LANE: "Top", MID_LANE: "Mid", BOT_LA
 const TOWERS: Record<string, string> = { OUTER_TURRET: "T1", INNER_TURRET: "T2", BASE_TURRET: "T3", NEXUS_TURRET: "Nexus" };
 
 /** Blue for participants 1-5, red for 6-10. */
-export const sideOfParticipant = (id: number): Side => (id <= 5 ? "blue" : "red");
+const sideOfParticipant = (id: number): Side => (id <= 5 ? "blue" : "red");
 const enemy = (side: Side): Side => (side === "blue" ? "red" : "blue");
 const allEvents = (timeline: Timeline) => timeline.info.frames.flatMap((frame) => frame.events);
 
@@ -118,8 +118,8 @@ export interface ObjectiveSummary {
 }
 
 /** First blood, first tower and first dragon, plus dragon, grub, baron and tower counts per side. */
-export function objectiveSummary(timeline: Timeline): ObjectiveSummary {
-	const objectives = objectiveEvents(timeline);
+export function objectiveSummary(timeline: Timeline, precomputed?: { objectives: ObjectiveEvent[]; kills: KillTick[] }): ObjectiveSummary {
+	const objectives = precomputed?.objectives ?? objectiveEvents(timeline);
 	const first = (kinds: ObjectiveKind[]) => {
 		const hit = objectives.find((o) => kinds.includes(o.kind));
 		return hit ? { side: hit.side, timestamp: hit.timestamp } : null;
@@ -129,7 +129,7 @@ export function objectiveSummary(timeline: Timeline): ObjectiveSummary {
 		for (const o of objectives) if (kinds.includes(o.kind)) result[o.side]++;
 		return result;
 	};
-	const blood = killTicks(timeline)[0];
+	const blood = (precomputed?.kills ?? killTicks(timeline))[0];
 	return {
 		firstBlood: blood ? { side: blood.side, timestamp: blood.timestamp } : null,
 		firstTower: first(["tower"]),

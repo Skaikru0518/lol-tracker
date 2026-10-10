@@ -25,7 +25,9 @@ export function useSummonerSuggestions(input: string) {
 		enabled: terms !== null,
 		staleTime: 60_000,
 		placeholderData: keepPreviousData,
+		retry: 1,
+		refetchOnWindowFocus: false,
 	});
 	const typing = parseSearchTerms(input) !== null && input.trim() !== debounced.trim();
-	return { results: terms ? (query.data ?? []) : [], pending: typing || query.isFetching, terms: parseSearchTerms(input) };
+	return { results: terms ? (query.data ?? []) : [], pending: typing || query.isFetching, isError: query.isError, terms: parseSearchTerms(input) };
 }

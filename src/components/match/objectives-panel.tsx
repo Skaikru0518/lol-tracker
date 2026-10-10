@@ -43,9 +43,11 @@ function First({ label, taken }: { label: string; taken: FirstTaken | null }) {
 
 /** Objectives on a blue (top) and red (bottom) lane (grubs merged per wave), kill ticks with tooltips along the axis, the firsts and counts, and a collapsible list. */
 export function ObjectivesPanel({ timeline, participants }: { timeline: Timeline; participants: Participant[] }) {
-	const objectives = useMemo(() => grubWaves(objectiveEvents(timeline)), [timeline]);
+	const raw = useMemo(() => objectiveEvents(timeline), [timeline]);
+	const objectives = useMemo(() => grubWaves(raw), [raw]);
 	const kills = useMemo(() => killTicks(timeline), [timeline]);
-	const summary = useMemo(() => objectiveSummary(timeline), [timeline]);
+	// Counts use the unmerged events so grubs are counted one by one
+	const summary = useMemo(() => objectiveSummary(timeline, { objectives: raw, kills }), [timeline, raw, kills]);
 	const [open, setOpen] = useState(false);
 	const end = gameEndMs(timeline);
 	const left = (ms: number) => `${Math.min((ms / end) * 100, 100)}%`;

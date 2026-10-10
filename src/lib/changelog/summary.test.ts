@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { type ChangelogEntry } from "@/components/changelog/changelog-type";
-import { categoryCounts, groupChanges } from "./summary";
+import { categoryCounts, categoryLabel, formatEntryDate, groupChanges } from "./summary";
 
 const entry: ChangelogEntry = {
 	slug: "x",
@@ -32,3 +32,19 @@ describe("groupChanges", () => {
 		]);
 	});
 });
+
+describe("formatEntryDate", () => {
+	it("formats the entry day in UTC regardless of the server time zone", () => {
+		expect(formatEntryDate("2026-10-10", "long")).toBe("October 10, 2026");
+		expect(formatEntryDate("2026-10-10", "short")).toBe("Oct 10, 2026");
+	});
+});
+
+describe("categoryLabel", () => {
+	it("uses the singular for one change and the plural otherwise", () => {
+		expect(categoryLabel("fix", 1)).toBe("1 fix");
+		expect(categoryLabel("fix", 2)).toBe("2 fixes");
+		expect(categoryLabel("feature", 3)).toBe("3 features");
+	});
+});
+

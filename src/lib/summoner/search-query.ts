@@ -13,12 +13,6 @@ export function parseSearchTerms(raw: string): { name: string; tag: string | nul
 	return { name, tag: tag || null };
 }
 
-/** Rows whose name equals `name` (case-insensitive) first; otherwise the original order. */
-export function sortExactFirst<T extends { gameName: string }>(rows: T[], name: string): T[] {
-	const target = name.toLowerCase();
-	return [...rows.filter((r) => r.gameName.toLowerCase() === target), ...rows.filter((r) => r.gameName.toLowerCase() !== target)];
-}
-
 /** A full `Name#TAG` the results don't already contain, to offer as a Riot lookup; null otherwise. */
 export function lookupCandidate(raw: string, results: { gameName: string; tagLine: string }[]): { gameName: string; tagLine: string } | null {
 	const riotId = parseRiotId(raw.trim());

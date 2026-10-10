@@ -24,7 +24,9 @@ export function RecentlySearched() {
 						<Skeleton key={i} className="h-9" />
 					))}
 				</div>
-			) : isError || !data || data.length === 0 ? (
+			) : isError ? (
+				<EmptyState title="Couldn't load recent searches" description="Try again in a moment." />
+			) : !data || data.length === 0 ? (
 				<EmptyState title="No searches yet" description="Profiles show up here once someone looks them up." />
 			) : (
 				<ul className="divide-y divide-border/50">

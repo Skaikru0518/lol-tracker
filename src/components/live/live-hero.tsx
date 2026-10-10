@@ -33,7 +33,7 @@ export function LiveHero({
 					{champSelect ? "CHAMP SELECT" : "LIVE"}
 					{!champSelect && <span className="font-mono tabular-nums text-foreground">{formatDuration(elapsed)}</span>}
 				</p>
-				<h1 className="text-2xl font-bold text-foreground">{getQueueName(game.gameQueueConfigId ?? 0)}</h1>
+				<h2 className="text-2xl font-bold text-foreground">{getQueueName(game.gameQueueConfigId ?? 0)}</h2>
 				<p className="text-sm text-muted-foreground">
 					{playerLabel} · {mapName(game.mapId)}
 				</p>

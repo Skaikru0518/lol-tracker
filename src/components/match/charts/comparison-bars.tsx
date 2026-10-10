@@ -55,11 +55,13 @@ export function ComparisonBars({
 	version,
 	defaultMetric = "damage",
 	title = "Players",
+	metrics = COMPARISON_METRICS.map((m) => m.id),
 }: {
 	match: Match;
 	version: string;
 	defaultMetric?: ComparisonMetric;
 	title?: string;
+	metrics?: ComparisonMetric[];
 }) {
 	const [metric, setMetric] = useState<ComparisonMetric>(defaultMetric);
 	const data = useMemo(() => buildScoreboard(match), [match]);
@@ -70,8 +72,9 @@ export function ComparisonBars({
 			<PanelHeader
 				title={title}
 				actions={
+					metrics.length > 1 &&
 					<div className="flex gap-1 overflow-x-auto">
-						{COMPARISON_METRICS.map((m) => (
+						{COMPARISON_METRICS.filter((m) => metrics.includes(m.id)).map((m) => (
 							<button
 								key={m.id}
 								type="button"

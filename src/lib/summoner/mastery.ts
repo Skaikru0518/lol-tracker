@@ -2,6 +2,7 @@ import { prisma } from "@/lib/db";
 import { getAllMasteries, getTopMasteries } from "@/lib/riot/mastery";
 import { isRecent, revalidateInBackground } from "@/lib/cache-utils";
 import { type ChampionMastery } from "@/lib/validators/mastery";
+import { allMasteryPlan } from "./mastery-plan";
 
 const MASTERY_MAX_AGE_SECONDS = 1800;
 
@@ -49,13 +50,43 @@ export async function resolveTopMasteries(puuid: string, count: number): Promise
 	return cached.map((entry) => ({ ...entry, lastPlayTime: Number(entry.lastPlayTime) }));
 }
 
-/** Every champion's mastery straight from Riot (not stored); stored rows are the fallback when Riot fails. */
+async function storeMasteries(puuid: string, masteries: { championId: number; championLevel: number; championPoints: number; lastPlayTime: number | bigint }[]) {
+	await prisma.$transaction([
+		...masteries.map((m) => {
+			const data = { championLevel: m.championLevel, championPoints: m.championPoints, lastPlayTime: BigInt(m.lastPlayTime) };
+			return prisma.championMastery.upsert({
+				where: { puuid_championId: { puuid, championId: m.championId } },
+				update: data,
+				create: { puuid, championId: m.championId, ...data },
+			});
+		}),
+		// Marks the stored rows as the complete list; top-mastery refreshes never set this
+		prisma.account.updateMany({ where: { puuid }, data: { masteriesSyncedAt: new Date() } }),
+	]);
+}
+
+async function fetchAllAndStore(puuid: string): Promise<MasteryEntry[]> {
+	const masteries = await getAllMasteries(puuid);
+	revalidateInBackground(() => storeMasteries(puuid, masteries));
+	return masteries.map((m) => ({ ...m, lastPlayTime: Number(m.lastPlayTime) }));
+}
+
+/** Every champion's mastery: the stored list once a full sync happened (refreshed in the background after 30 min), else Riot, whose answer is then stored and marked synced. */
 export async function resolveAllMasteries(puuid: string): Promise<MasteryEntry[]> {
-	try {
-		const masteries = await getAllMasteries(puuid);
-		return masteries.map((m) => ({ ...m, lastPlayTime: Number(m.lastPlayTime) }));
-	} catch {
-		const stored = await prisma.championMastery.findMany({ where: { puuid }, orderBy: { championPoints: "desc" } });
-		return stored.map((m) => ({ ...m, lastPlayTime: Number(m.lastPlayTime) }));
+	const [account, stored] = await Promise.all([
+		prisma.account.findUnique({ where: { puuid }, select: { masteriesSyncedAt: true } }),
+		prisma.championMastery.findMany({ where: { puuid }, orderBy: { championPoints: "desc" } }),
+	]);
+	const plan = allMasteryPlan(account?.masteriesSyncedAt ?? null, new Date());
+	const fromDb = () => stored.map((m) => ({ ...m, lastPlayTime: Number(m.lastPlayTime) }));
+
+	if (plan === "riot") {
+		try {
+			return await fetchAllAndStore(puuid);
+		} catch {
+			return fromDb();
+		}
 	}
+	if (plan === "cached-revalidate") revalidateInBackground(async () => void (await fetchAllAndStore(puuid)));
+	return fromDb();
 }

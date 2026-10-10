@@ -22,6 +22,9 @@ model Account {
   lpHistory         LPHistory[]
   achievements      PlayerAchievement[]
 
+  /// Set when every champion's mastery was stored; null while only the top masteries are.
+  masteriesSyncedAt DateTime?
+
   updatedAt DateTime @updatedAt
 
   @@index([gameName, tagLine])

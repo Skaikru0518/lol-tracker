@@ -4,12 +4,12 @@ export type ChangeCategory = ChangelogEntry["changes"][number]["category"];
 
 const ORDER: ChangeCategory[] = ["feature", "improvement", "design", "fix"];
 
-/** Label, plural heading and chip hex (chart palette) for each change category. */
+/** Label, plural heading and chip color (chart palette tokens) for each change category. */
 export const CATEGORY_META: Record<ChangeCategory, { label: string; plural: string; color: string }> = {
-	feature: { label: "Feature", plural: "Features", color: "#b05ad6" },
-	improvement: { label: "Improvement", plural: "Improvements", color: "#34c38f" },
-	design: { label: "Design", plural: "Design", color: "#4f8fe6" },
-	fix: { label: "Fix", plural: "Fixes", color: "#e9b949" },
+	feature: { label: "Feature", plural: "Features", color: "var(--chart-1)" },
+	improvement: { label: "Improvement", plural: "Improvements", color: "var(--chart-3)" },
+	design: { label: "Design", plural: "Design", color: "var(--chart-2)" },
+	fix: { label: "Fix", plural: "Fixes", color: "var(--chart-4)" },
 };
 
 /** Categories present in an entry with their change counts, in a fixed order. */
@@ -21,3 +21,15 @@ export function categoryCounts(entry: ChangelogEntry): { category: ChangeCategor
 export function groupChanges(entry: ChangelogEntry): { category: ChangeCategory; items: ChangelogEntry["changes"] }[] {
 	return ORDER.map((category) => ({ category, items: entry.changes.filter((c) => c.category === category) })).filter((g) => g.items.length > 0);
 }
+
+/** An entry's `YYYY-MM-DD` date in UTC, so the day never shifts with the server's time zone. */
+export function formatEntryDate(iso: string, style: "long" | "short"): string {
+	return new Date(iso).toLocaleDateString("en-US", { year: "numeric", month: style, day: "numeric", timeZone: "UTC" });
+}
+
+/** Count chip text such as `1 fix` or `3 features`. */
+export function categoryLabel(category: ChangeCategory, count: number): string {
+	const meta = CATEGORY_META[category];
+	return `${count} ${(count === 1 ? meta.label : meta.plural).toLowerCase()}`;
+}
+

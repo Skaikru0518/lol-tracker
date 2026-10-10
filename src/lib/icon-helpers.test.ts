@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getChampionSplash, getRankEmblem } from "./icon-helpers";
+import { getChampionSplash, getRankEmblem, getSummonerSpellName, knownSummonerSpellIcon } from "./icon-helpers";
 
 describe("getChampionSplash", () => {
 	it("builds the default skin splash URL", () => {
@@ -37,4 +37,17 @@ describe("getRankEmblem", () => {
 			expect(getRankEmblem(tier)).toBe("/icons/rank/unranked.png");
 		},
 	);
+});
+
+describe("summoner spell names and icons", () => {
+	it("names known spells by their in-game name", () => {
+		expect(getSummonerSpellName(14)).toBe("Ignite");
+		expect(getSummonerSpellName(32)).toBe("Mark");
+	});
+
+	it("has no name or icon for unknown spell ids instead of falling back to Flash", () => {
+		expect(getSummonerSpellName(2202)).toBeNull();
+		expect(knownSummonerSpellIcon("16.20.1", 2202)).toBeNull();
+		expect(knownSummonerSpellIcon("16.20.1", 4)).toContain("SummonerFlash.png");
+	});
 });

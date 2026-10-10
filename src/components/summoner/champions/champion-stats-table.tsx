@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ChampionIcon } from "@/components/ui/champion-icon";
 import { Chip } from "@/components/ui/chip";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -6,7 +9,7 @@ import { formatPoints } from "@/lib/format";
 import { getChampionDisplayName } from "@/lib/icon-helpers";
 import { type ChampionTableRow } from "@/lib/summoner/champion-rows";
 
-const MASTERY_COLOR = "#b05ad6";
+const MASTERY_COLOR = "var(--primary)";
 
 function WinRateBar({ value }: { value: number }) {
 	return (
@@ -21,6 +24,7 @@ function WinRateBar({ value }: { value: number }) {
 
 /** Per-champion stats with mastery; rows link to the champion sub-page. */
 export function ChampionStatsTable({ rows, version, basePath }: { rows: ChampionTableRow[]; version: string; basePath: string }) {
+	const router = useRouter();
 	return (
 		<Table>
 			<TableHeader>
@@ -37,7 +41,15 @@ export function ChampionStatsTable({ rows, version, basePath }: { rows: Champion
 			</TableHeader>
 			<TableBody>
 				{rows.map(({ stat, mastery }, index) => (
-					<TableRow key={stat.championId}>
+					<TableRow
+						key={stat.championId}
+						className="cursor-pointer"
+						onClick={(e) => {
+							// The champion name is a real link; let it handle its own (and modifier) clicks
+							if ((e.target as Element).closest("a")) return;
+							router.push(`${basePath}/champions/${stat.championName}`);
+						}}
+					>
 						<TableCell className="text-muted-foreground">{index + 1}</TableCell>
 						<TableCell>
 							<Link href={`${basePath}/champions/${stat.championName}`} className="flex items-center gap-2 font-semibold text-foreground hover:text-primary">

@@ -20,5 +20,5 @@ async function fetchPerks(): Promise<Map<number, PerkInfo>> {
 
 /** Every rune and stat shard by id, with its short description and end-of-game stat templates (CommunityDragon). */
 export function usePerks() {
-	return useQuery({ queryKey: ["perks"], queryFn: fetchPerks, staleTime: Infinity, retry: retryUnlessNotFound });
+	return useQuery({ queryKey: ["perks"], queryFn: fetchPerks, staleTime: Infinity, gcTime: Infinity, retry: retryUnlessNotFound });
 }

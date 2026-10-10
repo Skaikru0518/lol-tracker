@@ -22,7 +22,7 @@ export default function SummonerSearch({
 	const [input, setInput] = useState("");
 	const router = useRouter();
 	const [focused, setFocused] = useState(false);
-	const { results, pending, terms } = useSummonerSuggestions(input);
+	const { results, pending, isError, terms } = useSummonerSuggestions(input);
 
 	function go(gameName: string, tagLine: string) {
 		addSearchHistory(`${gameName}#${tagLine}`);
@@ -50,7 +50,10 @@ export default function SummonerSearch({
 				/>
 				<Input
 					value={input}
-					onChange={(e) => setInput(e.target.value)}
+					onChange={(e) => {
+						setInput(e.target.value);
+						setFocused(true);
+					}}
 					placeholder="GameName#TAG"
 					autoFocus={autoFocus}
 					onFocus={() => setFocused(true)}
@@ -63,7 +66,7 @@ export default function SummonerSearch({
 				/>
 				{focused && terms && (
 					<div className="absolute inset-x-0 top-full z-50 mt-1 overflow-hidden rounded-md border bg-popover text-left shadow-lg">
-						<SearchSuggestions input={input} results={results} pending={pending} onPick={go} />
+						<SearchSuggestions input={input} results={results} pending={pending} isError={isError} onPick={go} />
 					</div>
 				)}
 			</div>

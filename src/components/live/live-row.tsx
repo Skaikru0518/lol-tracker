@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 import { ChampionIcon } from "@/components/ui/champion-icon";
 import { RankEmblem } from "@/components/ui/rank-emblem";
 import { Skeleton } from "@/components/ui/skeleton";
-import { type Champion, getRuneIcon, getSummonerSpellIcon, RANK_COLORS } from "@/lib/icon-helpers";
+import { type Champion, getRuneIcon, getSummonerSpellName, knownSummonerSpellIcon, RANK_COLORS } from "@/lib/icon-helpers";
 import { type RankSummary } from "@/lib/live/live-game";
 import { formatRankLabel } from "@/lib/rank-calculator";
 import { riotIdToSlug } from "@/lib/riot-id";
@@ -22,6 +22,7 @@ export function LiveRow({
 	runeData,
 	rank,
 	ranksLoading,
+	ranksFailed = false,
 	highlighted,
 }: {
 	participant: LiveGameParticipant | null;
@@ -31,6 +32,7 @@ export function LiveRow({
 	runeData?: RuneMaps;
 	rank: RankSummary | null;
 	ranksLoading: boolean;
+	ranksFailed?: boolean;
 	highlighted: boolean;
 }) {
 	if (!participant) return <div className="h-14" />;
@@ -46,9 +48,9 @@ export function LiveRow({
 		<div className={cn("flex h-14 items-center gap-2.5 px-3", side === "red" && "flex-row-reverse", highlighted && "bg-gold/10")}>
 			{champion ? <ChampionIcon version={version} championName={champion.id} size={36} /> : <span className="size-9 rounded-md bg-muted" />}
 			<div className="grid shrink-0 grid-cols-2 gap-0.5">
-				{icon(getSummonerSpellIcon(version, p.spell1Id), "Spell")}
+				{icon(knownSummonerSpellIcon(version, p.spell1Id), getSummonerSpellName(p.spell1Id) ?? "Summoner spell")}
 				{icon(keystone && getRuneIcon(keystone.icon), keystone?.name ?? "Keystone")}
-				{icon(getSummonerSpellIcon(version, p.spell2Id), "Spell")}
+				{icon(knownSummonerSpellIcon(version, p.spell2Id), getSummonerSpellName(p.spell2Id) ?? "Summoner spell")}
 				{icon(secondary && getRuneIcon(secondary.icon), secondary?.name ?? "Secondary tree")}
 			</div>
 			<div className={cn("min-w-0 flex-1 leading-tight", side === "red" && "text-right")}>
@@ -66,7 +68,7 @@ export function LiveRow({
 					<RankEmblem tier={rank?.tier} size={28} />
 					<div className={cn("leading-tight", side === "red" && "text-right")}>
 						<p className="text-xs font-semibold" style={{ color: rank ? RANK_COLORS[rank.tier] : undefined }}>
-							{rank ? formatRankLabel(rank.tier, rank.rank) : "Unranked"}
+							{rank ? formatRankLabel(rank.tier, rank.rank) : ranksFailed ? "Rank unavailable" : "Unranked"}
 						</p>
 						{rank && (
 							<p className="text-3xs text-muted-foreground">

@@ -27,6 +27,7 @@ export interface LpChangeRow {
 }
 
 const absolute = (s: LPSnapshot) => toAbsoluteLp(s.tier, s.rank, s.lp);
+const divisionOrder = (s: LPSnapshot) => TIERS.indexOf(s.tier) * DIVISIONS.length + Math.max(DIVISIONS.indexOf(s.rank), 0);
 /** Snapshots whose tier is on the ladder; unknown tiers would read as 0 LP. */
 export const knownTierSnapshots = (snapshots: LPSnapshot[]) => snapshots.filter((s) => TIERS.includes(s.tier));
 const division = (s: LPSnapshot) => `${s.tier} ${s.rank}`;
@@ -57,7 +58,8 @@ export function lpChangeRows(all: LPSnapshot[]): LpChangeRow[] {
 			const delta = prev && !reset ? absolute(s) - absolute(prev) : null;
 			let kind: LpChangeKind = reset ? "reset" : "start";
 			if (prev && delta !== null) {
-				if (division(s) !== division(prev)) kind = delta > 0 ? "promotion" : "demotion";
+				// At equal absolute LP (Diamond I 100 → Master 0, Master → Grandmaster) the tier, then division order decides
+				if (division(s) !== division(prev)) kind = delta > 0 || (delta === 0 && divisionOrder(s) > divisionOrder(prev)) ? "promotion" : "demotion";
 				else kind = delta > 0 ? "gain" : delta < 0 ? "loss" : "same";
 			}
 			return { id: s.id, createdAt: s.createdAt, tier: s.tier, rank: s.rank, lp: s.lp, wins: s.wins, losses: s.losses, delta, kind };

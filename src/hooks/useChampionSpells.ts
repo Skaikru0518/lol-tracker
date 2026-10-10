@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { HttpError, retryUnlessNotFound } from "@/lib/http-error";
+import { HttpError } from "@/lib/http-error";
 import { ddragonChampionId } from "@/lib/icon-helpers";
 
 interface ChampionJson {
@@ -22,6 +22,8 @@ export function useChampionSpells(version: string | undefined, championName: str
 		queryFn: () => fetchSpells(version!, championName!),
 		staleTime: Infinity,
 		enabled: !!version && !!championName,
-		retry: retryUnlessNotFound,
+		// A static file: missing champions answer 403, so retrying never helps
+		retry: false,
+		gcTime: Infinity,
 	});
 }

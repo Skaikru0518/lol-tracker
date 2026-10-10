@@ -18,7 +18,7 @@ export function VisionTab({ match, player, version }: PlayerTabProps) {
 					<StatList title="Vision" stats={groups.vision} />
 				</PanelBody>
 			</Panel>
-			<ComparisonBars match={match} version={version} defaultMetric="vision" title="Vision" />
+			<ComparisonBars match={match} version={version} defaultMetric="vision" title="Vision" metrics={["vision"]} />
 		</div>
 	);
 }

@@ -26,15 +26,17 @@ async function getCachedMatchIds(
 	return rows.map((row) => row.matchId);
 }
 
-/** Stored match ids where the player played one champion, newest first; Riot's ids endpoint cannot filter by champion. */
-async function getStoredChampionMatchIds(
+type StoredRow = { matchId: string; data: unknown };
+
+/** Stored matches (with data) where the player played one champion, newest first; Riot's ids endpoint cannot filter by champion. */
+async function getStoredChampionMatches(
 	puuid: string,
 	championId: number,
 	count: number,
 	start: number,
-): Promise<string[]> {
-	const rows = await prisma.$queryRaw<{ matchId: string }[]>`
-		SELECT m."matchId" FROM "Match" m
+): Promise<StoredRow[]> {
+	return prisma.$queryRaw<StoredRow[]>`
+		SELECT m."matchId", m.data FROM "Match" m
 		WHERE m.data->'metadata'->'participants' @> ${JSON.stringify(puuid)}::jsonb
 			AND EXISTS (
 				SELECT 1 FROM jsonb_array_elements(m.data->'info'->'participants') p
@@ -43,21 +45,17 @@ async function getStoredChampionMatchIds(
 		ORDER BY m."gameCreation" DESC
 		LIMIT ${count} OFFSET ${start}
 	`;
-
-	return rows.map((row) => row.matchId);
 }
 
-/** Stored match ids in the given queues, newest first. */
-async function getStoredQueueMatchIds(puuid: string, queueIds: number[], count: number, start: number): Promise<string[]> {
-	const rows = await prisma.$queryRaw<{ matchId: string }[]>`
-		SELECT "matchId" FROM "Match"
+/** Stored matches (with data) in the given queues, newest first. */
+async function getStoredQueueMatches(puuid: string, queueIds: number[], count: number, start: number): Promise<StoredRow[]> {
+	return prisma.$queryRaw<StoredRow[]>`
+		SELECT "matchId", data FROM "Match"
 		WHERE data->'metadata'->'participants' @> ${JSON.stringify(puuid)}::jsonb
 			AND "queueId" = ANY(${queueIds}::int[])
 		ORDER BY "gameCreation" DESC
 		LIMIT ${count} OFFSET ${start}
 	`;
-
-	return rows.map((row) => row.matchId);
 }
 
 export async function GET(req: NextRequest) {
@@ -75,14 +73,18 @@ export async function GET(req: NextRequest) {
 	try {
 		let matchIds: string[];
 		let riotReachable = true;
+		// Stored-only paths already carry the match data, so the batch lookup below is skipped for them
+		let stored: StoredRow[] | null = null;
 
 		if (championId) {
-			matchIds = await getStoredChampionMatchIds(puuid, championId, count, start);
+			stored = await getStoredChampionMatches(puuid, championId, count, start);
+			matchIds = stored.map((row) => row.matchId);
 		} else if (rift) {
-			matchIds = await getStoredQueueMatchIds(puuid, RIFT_QUEUE_IDS, count, start);
+			stored = await getStoredQueueMatches(puuid, RIFT_QUEUE_IDS, count, start);
+			matchIds = stored.map((row) => row.matchId);
 		} else {
 			try {
-				matchIds = await getMatchIdsByPuuid(puuid, count, undefined, start);
+				matchIds = await getMatchIdsByPuuid(puuid, count, start);
 			} catch (error) {
 				if (!(error instanceof RiotApiError)) throw error;
 
@@ -93,9 +95,7 @@ export async function GET(req: NextRequest) {
 		}
 
 		// Batch DB lookup — single query instead of 50 individual ones
-		const cachedMatches = await prisma.match.findMany({
-			where: { matchId: { in: matchIds } },
-		});
+		const cachedMatches = stored ?? (await prisma.match.findMany({ where: { matchId: { in: matchIds } } }));
 		const cachedMap = new Map(cachedMatches.map((m) => [m.matchId, m.data]));
 
 		// Find which matches are missing from DB

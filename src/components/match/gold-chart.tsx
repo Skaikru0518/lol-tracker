@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useId, useMemo } from "react";
 import { Area, AreaChart, CartesianGrid, ReferenceDot, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Panel, PanelBody, PanelHeader } from "@/components/ui/panel";
 import { formatThousands } from "@/lib/format";
@@ -21,6 +21,7 @@ export default function GoldChart({ timeline }: { timeline?: Timeline }) {
 			}),
 		[timeline],
 	);
+	const gradientId = `gold-split-${useId().replace(/:/g, "")}`;
 	const markers = useMemo(() => (timeline ? grubWaves(objectiveEvents(timeline)).filter((o) => MARKER_KINDS.has(o.kind)) : []), [timeline]);
 
 	if (!timeline || data.length === 0) return null;
@@ -47,7 +48,7 @@ export default function GoldChart({ timeline }: { timeline?: Timeline }) {
 					<ResponsiveContainer width="100%" height="100%">
 						<AreaChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 34 }}>
 							<defs>
-								<linearGradient id="gold-split" x1="0" y1="0" x2="0" y2="1">
+								<linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
 									<stop offset="0%" stopColor={TEAM_COLOR.blue} stopOpacity={0.45} />
 									<stop offset={split} stopColor={TEAM_COLOR.blue} stopOpacity={0.05} />
 									<stop offset={split} stopColor={TEAM_COLOR.red} stopOpacity={0.05} />
@@ -66,7 +67,7 @@ export default function GoldChart({ timeline }: { timeline?: Timeline }) {
 									return [v === 0 ? "Even" : `${v > 0 ? "Blue" : "Red"} +${formatThousands(Math.abs(v))}`, "Gold"];
 								}}
 							/>
-							<Area type="monotone" dataKey="diff" stroke="var(--foreground)" strokeWidth={1.5} fill="url(#gold-split)" baseValue={0} />
+							<Area type="monotone" dataKey="diff" stroke="var(--foreground)" strokeWidth={1.5} fill={`url(#${gradientId})`} baseValue={0} />
 							{markers.map((o, i) => (
 								<ReferenceDot
 									key={`${o.timestamp}-${i}`}

@@ -47,3 +47,14 @@ describe("chipStyle", () => {
 		});
 	});
 });
+
+describe("chipStyle with tokens", () => {
+	it("mixes a CSS variable color with transparency so chips follow the theme", () => {
+		expect(chipStyle("var(--primary)")).toEqual({
+			color: "var(--primary)",
+			borderColor: "color-mix(in srgb, var(--primary) 27%, transparent)",
+			backgroundColor: "color-mix(in srgb, var(--primary) 13%, transparent)",
+		});
+	});
+});
+

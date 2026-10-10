@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Chip } from "@/components/ui/chip";
 import { Panel, PanelHeader } from "@/components/ui/panel";
 import { type ChangelogEntry } from "../changelog-type";
-import { CATEGORY_META, categoryCounts, groupChanges } from "@/lib/changelog/summary";
+import { CATEGORY_META, categoryCounts, categoryLabel, formatEntryDate, groupChanges } from "@/lib/changelog/summary";
 import { ChangelogTable } from "./changelog-table";
 
 /** One changelog entry: back link, date, title, summary and count chips, then one panel per category. */
@@ -14,7 +14,7 @@ export function ChangelogDetail({ entry }: { entry: ChangelogEntry }) {
 					&larr; Changelog
 				</Link>
 				<p className="mt-4 text-sm text-muted-foreground">
-					{new Date(entry.date).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
+					{formatEntryDate(entry.date, "long")}
 				</p>
 				<h1 className="mt-1 text-3xl font-bold tracking-tight text-foreground">{entry.title}</h1>
 				<p className="mt-3 text-muted-foreground">{entry.summary}</p>
@@ -22,7 +22,7 @@ export function ChangelogDetail({ entry }: { entry: ChangelogEntry }) {
 					{categoryCounts(entry).map(({ category, count }) => (
 						<a key={category} href={`#${category}`}>
 							<Chip color={CATEGORY_META[category].color}>
-								{count} {count === 1 ? CATEGORY_META[category].label.toLowerCase() : CATEGORY_META[category].plural.toLowerCase()}
+								{categoryLabel(category, count)}
 							</Chip>
 						</a>
 					))}

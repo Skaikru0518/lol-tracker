@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { useSummonerContext } from "@/components/summoner/shell/summoner-provider";
 import { Panel, PanelHeader } from "@/components/ui/panel";
 import { useAchievements } from "@/hooks/useAchievements";
+import { earnedCount } from "@/lib/achievements/count";
 import { ACHIEVEMENTS, type AchievementDef } from "@/lib/achievements/definitions";
 
 const CATEGORIES: { id: AchievementDef["category"]; label: string }[] = [
@@ -22,7 +23,7 @@ export function AchievementsTab() {
 	return (
 		<div className="space-y-4">
 			<p className="text-sm text-muted-foreground">
-				{earned.size} of {ACHIEVEMENTS.length} earned. The achievement system is being reworked; this view is temporary.
+				{earnedCount(saved, ACHIEVEMENTS)} of {ACHIEVEMENTS.length} earned. The achievement system is being reworked; this view is temporary.
 			</p>
 			{CATEGORIES.map((category) => (
 				<Panel key={category.id}>

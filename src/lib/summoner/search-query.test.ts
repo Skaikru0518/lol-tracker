@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { likeLiteral, lookupCandidate, parseSearchTerms, sortExactFirst } from "./search-query";
+import { likeLiteral, lookupCandidate, parseSearchTerms } from "./search-query";
 
 describe("parseSearchTerms", () => {
 	it("needs at least two name characters", () => {
@@ -19,13 +19,6 @@ describe("parseSearchTerms", () => {
 
 	it("caps very long input", () => {
 		expect(parseSearchTerms("a".repeat(100))?.name).toHaveLength(40);
-	});
-});
-
-describe("sortExactFirst", () => {
-	it("puts case-insensitive exact name matches first, keeping the rest in order", () => {
-		const rows = [{ gameName: "Skaikru2" }, { gameName: "skaikru" }, { gameName: "Skaikrux" }];
-		expect(sortExactFirst(rows, "Skaikru").map((r) => r.gameName)).toEqual(["skaikru", "Skaikru2", "Skaikrux"]);
 	});
 });
 
