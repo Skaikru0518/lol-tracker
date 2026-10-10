@@ -2,7 +2,7 @@
 
 import { type Timeline } from "@/lib/validators/timeline";
 import { type Participant } from "@/lib/validators/match";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Panel, PanelBody, PanelHeader } from "@/components/ui/panel";
 import {
 	LineChart,
 	Line,
@@ -66,13 +66,9 @@ export default function KillTimeline({
 	);
 
 	return (
-		<Card>
-			<CardHeader>
-				<CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-					Kills Over Time
-				</CardTitle>
-			</CardHeader>
-			<CardContent>
+		<Panel>
+			<PanelHeader title="Kills over time" />
+			<PanelBody>
 				<div className="h-[250px] w-full">
 					<ResponsiveContainer width="100%" height="100%">
 						<LineChart data={data}>
@@ -146,7 +142,7 @@ export default function KillTimeline({
 						</LineChart>
 					</ResponsiveContainer>
 				</div>
-			</CardContent>
-		</Card>
+			</PanelBody>
+		</Panel>
 	);
 }

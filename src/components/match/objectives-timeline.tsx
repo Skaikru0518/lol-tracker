@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { type Timeline } from "@/lib/validators/timeline";
 import { type Participant } from "@/lib/validators/match";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Panel, PanelBody, PanelHeader } from "@/components/ui/panel";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import {
@@ -201,13 +201,9 @@ export default function ObjectivesTimeline({
 	});
 
 	return (
-		<Card>
-			<CardHeader>
-				<CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-					Objectives & Events
-				</CardTitle>
-			</CardHeader>
-			<CardContent>
+		<Panel>
+			<PanelHeader title="Objectives & events" />
+			<PanelBody>
 				{/* Timeline bar (objectives only) */}
 				{timelineObjectives.length > 0 && (
 					<div className="relative h-20 mx-1 sm:mx-2">
@@ -540,7 +536,7 @@ export default function ObjectivesTimeline({
 						</>
 					)}
 				</div>
-			</CardContent>
-		</Card>
+			</PanelBody>
+		</Panel>
 	);
 }

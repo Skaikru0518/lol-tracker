@@ -2,7 +2,7 @@
 
 import { type Participant } from "@/lib/validators/match";
 import { getChampionDisplayName } from "@/lib/icon-helpers";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Panel, PanelBody, PanelHeader } from "@/components/ui/panel";
 import {
 	BarChart,
 	Bar,
@@ -42,13 +42,9 @@ export default function DamageChart({ participants }: DamageChartProps) {
 	const maxDmg = Math.max(...data.map((d) => d.total));
 
 	return (
-		<Card>
-			<CardHeader>
-				<CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-					Damage to Champions
-				</CardTitle>
-			</CardHeader>
-			<CardContent>
+		<Panel>
+			<PanelHeader title="Damage dealt" />
+			<PanelBody>
 				<div className="h-[300px] md:h-[400px] w-full">
 					<ResponsiveContainer width="100%" height="100%">
 						<BarChart
@@ -149,7 +145,7 @@ export default function DamageChart({ participants }: DamageChartProps) {
 						</BarChart>
 					</ResponsiveContainer>
 				</div>
-			</CardContent>
-		</Card>
+			</PanelBody>
+		</Panel>
 	);
 }

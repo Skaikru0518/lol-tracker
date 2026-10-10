@@ -1,7 +1,7 @@
 "use client";
 
 import { type Timeline } from "@/lib/validators/timeline";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Panel, PanelBody, PanelHeader } from "@/components/ui/panel";
 import {
 	LineChart,
 	Line,
@@ -54,13 +54,9 @@ export default function GoldChart({ timeline }: GoldChartProps) {
 	const lastMinute = data[data.length - 1]?.minute ?? 0;
 
 	return (
-		<Card>
-			<CardHeader>
-				<CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-					Gold Advantage
-				</CardTitle>
-			</CardHeader>
-			<CardContent>
+		<Panel>
+			<PanelHeader title="Team gold advantage" />
+			<PanelBody>
 				<div className="h-[250px] w-full">
 					<ResponsiveContainer width="100%" height="100%">
 						<LineChart data={data}>
@@ -70,7 +66,7 @@ export default function GoldChart({ timeline }: GoldChartProps) {
 								y2={yDomain}
 								x1={0}
 								x2={lastMinute}
-								fill="#3b82f6"
+								fill="var(--team-blue)"
 								fillOpacity={0.06}
 							/>
 							{/* Red background (bottom half) */}
@@ -79,13 +75,13 @@ export default function GoldChart({ timeline }: GoldChartProps) {
 								y2={0}
 								x1={0}
 								x2={lastMinute}
-								fill="#ef4444"
+								fill="var(--team-red)"
 								fillOpacity={0.06}
 							/>
 							<XAxis
 								dataKey="minute"
 								tickFormatter={(v) => `${v}m`}
-								stroke="hsl(220 15% 30%)"
+								stroke="var(--muted-foreground)"
 								fontSize={12}
 								tickLine={false}
 								axisLine={false}
@@ -97,7 +93,7 @@ export default function GoldChart({ timeline }: GoldChartProps) {
 										? "0"
 										: `+${(Math.abs(v) / 1000).toFixed(0)}k`
 								}
-								stroke="hsl(220 15% 30%)"
+								stroke="var(--muted-foreground)"
 								fontSize={12}
 								tickLine={false}
 								axisLine={false}
@@ -144,13 +140,13 @@ export default function GoldChart({ timeline }: GoldChartProps) {
 							/>
 							<ReferenceLine
 								y={0}
-								stroke="hsl(220 15% 35%)"
+								stroke="var(--border)"
 								strokeWidth={1}
 							/>
 							<Line
 								type="monotone"
 								dataKey="diff"
-								stroke="hsl(220 15% 75%)"
+								stroke="var(--foreground)"
 								strokeWidth={2}
 								dot={false}
 								activeDot={{
@@ -163,7 +159,7 @@ export default function GoldChart({ timeline }: GoldChartProps) {
 						</LineChart>
 					</ResponsiveContainer>
 				</div>
-			</CardContent>
-		</Card>
+			</PanelBody>
+		</Panel>
 	);
 }

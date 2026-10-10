@@ -1,13 +1,29 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { ChampionIcon } from "@/components/ui/champion-icon";
+import { ItemSlots } from "@/components/ui/item-slots";
+import { badgeIdsFor } from "@/lib/match/detail";
+import { participantItems } from "@/lib/summoner/match-row";
+import { MatchBadges } from "./match-badges";
 import { getArenaTeams, getPlacementColor, getPlacementSuffix } from "@/lib/arena-helpers";
 import { formatThousands } from "@/lib/format";
 import { toSummonerSlug } from "@/lib/riot-id";
 import { type Participant } from "@/lib/validators/match";
 
-/** Arena leaderboard: eight duo teams by placement, top four above the divider. */
-export function ArenaScoreboard({ participants, version, highlightPuuid }: { participants: Participant[]; version: string; highlightPuuid: string }) {
+/** Arena leaderboard: eight duo teams by placement, top four above the divider; the match page adds items and badges. */
+export function ArenaScoreboard({
+	participants,
+	version,
+	highlightPuuid,
+	badges,
+	showItems = false,
+}: {
+	participants: Participant[];
+	version: string;
+	highlightPuuid: string;
+	badges?: { puuid: string; badgeId: string }[];
+	showItems?: boolean;
+}) {
 	return (
 		<div className="divide-y divide-border/50 bg-background/40">
 			{getArenaTeams(participants).map((team) => (
@@ -30,7 +46,9 @@ export function ArenaScoreboard({ participants, version, highlightPuuid }: { par
 								>
 									{p.riotIdGameName}
 								</Link>
-								<span className="ml-auto text-muted-foreground">
+								{badges && <MatchBadges badgeIds={badgeIdsFor(badges, p.puuid)} max={2} />}
+								{showItems && <ItemSlots version={version} items={participantItems(p)} size={18} className="ml-auto hidden md:flex" />}
+								<span className={cn("ml-auto text-muted-foreground", showItems && "md:ml-0")}>
 									{p.kills}/{p.deaths}/{p.assists} · {formatThousands(p.totalDamageDealtToChampions)}
 								</span>
 							</div>

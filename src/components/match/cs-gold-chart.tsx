@@ -1,7 +1,7 @@
 "use client";
 
 import { type Timeline } from "@/lib/validators/timeline";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Panel, PanelBody, PanelHeader } from "@/components/ui/panel";
 import {
 	LineChart,
 	Line,
@@ -52,13 +52,9 @@ export default function CsGoldChart({ timeline }: CsGoldChartProps) {
 	if (!timeline || data.length === 0) return null;
 
 	return (
-		<Card>
-			<CardHeader>
-				<CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-					CS & Total Gold
-				</CardTitle>
-			</CardHeader>
-			<CardContent>
+		<Panel>
+			<PanelHeader title="CS & total gold" />
+			<PanelBody>
 				<div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
 					{/* CS chart */}
 					<div>
@@ -243,7 +239,7 @@ export default function CsGoldChart({ timeline }: CsGoldChartProps) {
 						</div>
 					</div>
 				</div>
-			</CardContent>
-		</Card>
+			</PanelBody>
+		</Panel>
 	);
 }
