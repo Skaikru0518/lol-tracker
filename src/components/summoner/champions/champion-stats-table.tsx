@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { ChampionIcon } from "@/components/ui/champion-icon";
 import { Chip } from "@/components/ui/chip";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { formatPoints } from "@/lib/format";
+import { formatPoints, formatThousands } from "@/lib/format";
 import { getChampionDisplayName } from "@/lib/icon-helpers";
 import { type ChampionTableRow } from "@/lib/summoner/champion-rows";
 
@@ -35,7 +35,7 @@ export function ChampionStatsTable({ rows, version, basePath }: { rows: Champion
 					<TableHead>Winrate</TableHead>
 					<TableHead>KDA</TableHead>
 					<TableHead className="hidden text-right sm:table-cell">CS/min</TableHead>
-					<TableHead className="hidden text-right md:table-cell">Dmg/min</TableHead>
+					<TableHead className="hidden text-right md:table-cell">Avg dmg</TableHead>
 					<TableHead className="hidden lg:table-cell">Mastery</TableHead>
 				</TableRow>
 			</TableHeader>
@@ -68,11 +68,11 @@ export function ChampionStatsTable({ rows, version, basePath }: { rows: Champion
 							</span>
 						</TableCell>
 						<TableCell className="hidden text-right sm:table-cell">{stat.csPerMin}</TableCell>
-						<TableCell className="hidden text-right md:table-cell">{Math.round(stat.damagePerMin)}</TableCell>
+						<TableCell className="hidden text-right md:table-cell">{formatThousands(stat.avgDamage)}</TableCell>
 						<TableCell className="hidden lg:table-cell">
 							{mastery ? (
 								<Chip color={MASTERY_COLOR}>
-									M{mastery.championLevel} · {formatPoints(mastery.championPoints)}
+									{formatPoints(mastery.championPoints)}
 								</Chip>
 							) : (
 								<span className="text-muted-foreground">—</span>

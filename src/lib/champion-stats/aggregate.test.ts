@@ -15,7 +15,7 @@ const row = {
 };
 
 describe("toChampionStat", () => {
-	it("derives per-game averages, ratios and per-minute rates", () => {
+	it("derives per-game averages (damage included), ratios and CS per minute", () => {
 		expect(toChampionStat(row)).toEqual({
 			championId: 267,
 			championName: "Nami",
@@ -27,7 +27,7 @@ describe("toChampionStat", () => {
 			assists: 15,
 			kda: 8,
 			csPerMin: 1,
-			damagePerMin: 400,
+			avgDamage: 12000,
 		});
 	});
 
@@ -38,7 +38,7 @@ describe("toChampionStat", () => {
 	it("never produces non-finite numbers for zero duration", () => {
 		const stat = toChampionStat({ ...row, durationSeconds: 0 });
 		expect(stat.csPerMin).toBe(0);
-		expect(stat.damagePerMin).toBe(0);
+		expect(stat.avgDamage).toBe(12000);
 	});
 
 	it("rounds to two decimals", () => {

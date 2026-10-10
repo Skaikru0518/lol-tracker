@@ -11,7 +11,7 @@ export function MasteryOnlyList({ rows, version }: { rows: MasteryOnlyRow[]; ver
 					<ChampionIcon version={version} championName={row.championKey} size={24} />
 					<span className="min-w-0 flex-1 truncate text-foreground">{row.championName}</span>
 					<span className="text-xs text-muted-foreground">
-						M{row.mastery.championLevel} · {formatPoints(row.mastery.championPoints)}
+						{formatPoints(row.mastery.championPoints)} pts
 					</span>
 				</div>
 			))}

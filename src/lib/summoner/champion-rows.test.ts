@@ -12,7 +12,7 @@ const stat = (championId: number, championName: string, games: number) => ({
 	assists: 1,
 	kda: 2,
 	csPerMin: 1,
-	damagePerMin: 1,
+	avgDamage: 1,
 });
 const mastery = (championId: number, championPoints: number) => ({
 	puuid: "p1",

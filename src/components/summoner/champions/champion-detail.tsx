@@ -74,7 +74,7 @@ export function ChampionDetail({ slug }: { slug: string }) {
 					<h2 className="text-2xl font-bold text-foreground">{champion.name}</h2>
 					<p className="text-sm text-muted-foreground">
 						{gameName}#{tagLine}
-						{mastery && ` · Mastery ${mastery.championLevel} · ${formatPoints(mastery.championPoints)} pts`}
+						{mastery && ` · ${formatPoints(mastery.championPoints)} mastery pts`}
 					</p>
 				</div>
 			</HeroBanner>

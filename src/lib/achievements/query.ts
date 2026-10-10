@@ -1,10 +1,11 @@
 import { prisma } from "@/lib/db";
+import { ACHIEVEMENT_QUEUE_IDS, MIN_ACHIEVEMENT_GAME_SECONDS } from "./eligibility";
 import {
 	achievementMatchSchema,
 	type AchievementMatch,
 } from "@/lib/validators/match";
 
-/** How many of the player's most recent matches detection looks at. */
+/** How many of the player's most recent ranked matches detection looks at. */
 const MATCH_WINDOW = 50;
 
 /**
@@ -43,7 +44,8 @@ export async function loadAchievementMatches(
 						'visionScore',                 p->'visionScore',
 						'totalDamageDealtToChampions', p->'totalDamageDealtToChampions',
 						'totalDamageTaken',            p->'totalDamageTaken',
-						'dragonKills',                 p->'dragonKills'
+						'dragonKills',                 p->'dragonKills',
+						'baronKills',                  p->'baronKills'
 					))
 					FROM jsonb_array_elements(data->'info'->'participants') AS p
 				), '[]'::jsonb)
@@ -51,6 +53,8 @@ export async function loadAchievementMatches(
 		) AS match
 		FROM "Match"
 		WHERE data->'metadata'->'participants' @> ${JSON.stringify(puuid)}::jsonb
+			AND "queueId" = ANY(${ACHIEVEMENT_QUEUE_IDS}::int[])
+			AND "gameDuration" >= ${MIN_ACHIEVEMENT_GAME_SECONDS}
 		ORDER BY "gameCreation" DESC
 		LIMIT ${MATCH_WINDOW}
 	`;

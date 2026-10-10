@@ -1,167 +1,99 @@
+import { isAchievementEligible } from "@/lib/achievements/eligibility";
 import { type Participant } from "@/lib/validators/match";
+
+/** Participant fields badge detection reads. */
+export type BadgeParticipant = Pick<
+	Participant,
+	| "puuid"
+	| "teamId"
+	| "win"
+	| "championId"
+	| "kills"
+	| "deaths"
+	| "assists"
+	| "totalDamageDealtToChampions"
+	| "totalDamageTaken"
+	| "visionScore"
+	| "totalMinionsKilled"
+	| "neutralMinionsKilled"
+	| "goldEarned"
+	| "timeCCingOthers"
+	| "totalHealsOnTeammates"
+	| "turretKills"
+	| "firstBloodKill"
+	| "pentaKills"
+	| "quadraKills"
+>;
 
 interface BadgeAssignment {
 	puuid: string;
 	badgeId: string;
 }
 
-/** Detect badges for all 10 players in a match
- * @returns puuid + badgeId
- */
-export function detectMatchBadges(
-	participants: Participant[],
-	gameDuration?: number,
-): BadgeAssignment[] {
+const YASUO = 157;
+const TEEMO = 17;
+
+/** The one player with the highest value of at least `min`; null on a tie or when nobody reaches it. */
+function soleLeader(players: BadgeParticipant[], value: (p: BadgeParticipant) => number, min = Number.MIN_VALUE): BadgeParticipant | null {
+	if (players.length === 0) return null;
+	const best = Math.max(...players.map(value));
+	const leaders = players.filter((p) => value(p) === best);
+	return leaders.length === 1 && best >= min ? leaders[0] : null;
+}
+
+const killsAndAssists = (p: BadgeParticipant) => p.kills + p.assists;
+const cs = (p: BadgeParticipant) => p.totalMinionsKilled + p.neutralMinionsKilled;
+
+/** Badges for every player of a ranked game; other queues and remakes get none. */
+export function detectMatchBadges(info: { queueId: number; gameDuration: number; participants: BadgeParticipant[] }): BadgeAssignment[] {
+	const { participants } = info;
 	const badges: BadgeAssignment[] = [];
+	if (participants.length === 0 || !isAchievementEligible(info.queueId, info.gameDuration)) return badges;
 
-	// Skip badge detection for short games (< 5 minutes)
-	if (participants.length === 0) return badges;
-	if (gameDuration !== undefined && gameDuration < 300) return badges;
-
-	// Helper: find player with max value
-	function maxBy(fn: (p: Participant) => number): Participant {
-		return participants.reduce((best, p) => (fn(p) > fn(best) ? p : best));
-	}
-
-	// MVP - most kills + assists on the winning team
+	const award = (player: BadgeParticipant | null, badgeId: string) => {
+		if (player) badges.push({ puuid: player.puuid, badgeId });
+	};
 	const winners = participants.filter((p) => p.win);
-	if (winners.length > 0) {
-		const mvp = winners.reduce((best, p) =>
-			p.kills + p.assists > best.kills + best.assists ? p : best,
-		);
-
-		badges.push({ puuid: mvp.puuid, badgeId: "mvp" });
-	}
-
-	// Damage King — most damage to champions
-	const dmgKing = maxBy((p) => p.totalDamageDealtToChampions);
-	badges.push({ puuid: dmgKing.puuid, badgeId: "damage-king" });
-
-	// Tank God — most damage taken
-	const tankGod = maxBy((p) => p.totalDamageTaken);
-	badges.push({ puuid: tankGod.puuid, badgeId: "tank-god" });
-
-	// Vision King — highest vision score
-	const visionKing = maxBy((p) => p.visionScore);
-	badges.push({ puuid: visionKing.puuid, badgeId: "vision-king" });
-
-	// CS King — most CS
-	const csKing = maxBy((p) => p.totalMinionsKilled + p.neutralMinionsKilled);
-	badges.push({ puuid: csKing.puuid, badgeId: "cs-king" });
-
-	// Gold Lead — most gold
-	const goldLead = maxBy((p) => p.goldEarned);
-	badges.push({ puuid: goldLead.puuid, badgeId: "gold-lead" });
-
-	// CC Machine — most CC time
-	const ccMachine = maxBy((p) => p.timeCCingOthers);
-	badges.push({ puuid: ccMachine.puuid, badgeId: "cc-machine" });
-
-	// First Blood — per player
-	for (const p of participants) {
-		if (p.firstBloodKill) {
-			badges.push({ puuid: p.puuid, badgeId: "first-blood" });
-		}
-	}
-
-	// Pentakill — per player
-	for (const p of participants) {
-		if (p.pentaKills > 0) {
-			badges.push({ puuid: p.puuid, badgeId: "pentakill" });
-		}
-	}
-
-	// Unkillable — per player (0 deaths, 3+ K+A)
-	for (const p of participants) {
-		if (p.deaths === 0 && p.kills + p.assists >= 3) {
-			badges.push({ puuid: p.puuid, badgeId: "unkillable" });
-		}
-	}
-
-	// Quadrakill — per player
-	for (const p of participants) {
-		if (p.quadraKills > 0) {
-			badges.push({ puuid: p.puuid, badgeId: "quadrakill" });
-		}
-	}
-
-	// Solo Carry — most kills + fewest deaths on their team
-	const teams = [
-		participants.filter((p) => p.teamId === 100),
-		participants.filter((p) => p.teamId === 200),
-	];
-	for (const team of teams) {
-		const mostKills = Math.max(...team.map((p) => p.kills));
-		const killLeaders = team.filter((p) => p.kills === mostKills);
-		if (killLeaders.length === 1) {
-			const leader = killLeaders[0];
-			const fewestDeaths = Math.min(...team.map((p) => p.deaths));
-			if (leader.deaths === fewestDeaths && leader.kills >= 5) {
-				badges.push({ puuid: leader.puuid, badgeId: "solo-carry" });
-			}
-		}
-	}
-
-	// Healer — most healing on teammates (min 10k)
-	const healer = maxBy((p) => p.totalHealsOnTeammates);
-	if (healer.totalHealsOnTeammates >= 10000) {
-		badges.push({ puuid: healer.puuid, badgeId: "healer" });
-	}
-
-	// Tower Destroyer — most turret kills (min 2)
-	const towerKing = maxBy((p) => p.turretKills);
-	if (towerKing.turretKills >= 2) {
-		badges.push({ puuid: towerKing.puuid, badgeId: "tower-destroyer" });
-	}
-
-	// Bad Luck — solo carry on the losing team
 	const losers = participants.filter((p) => !p.win);
-	if (losers.length > 0) {
-		const bestLoser = losers.reduce((best, p) =>
-			p.kills + p.assists > best.kills + best.assists ? p : best,
-		);
-		const fewestDeathsLosing = Math.min(...losers.map((p) => p.deaths));
-		if (bestLoser.deaths === fewestDeathsLosing && bestLoser.kills >= 5) {
-			badges.push({ puuid: bestLoser.puuid, badgeId: "bad-luck" });
-		}
-	}
 
-	// Powerspike — Yasuo with 10+ deaths
+	// --- Best in the match ---
+	award(soleLeader(winners, killsAndAssists, 5), "mvp");
+	award(soleLeader(participants, (p) => p.totalDamageDealtToChampions), "damage-king");
+	award(soleLeader(participants, (p) => p.totalDamageTaken), "tank-god");
+	award(soleLeader(participants, (p) => p.visionScore), "vision-king");
+	award(soleLeader(participants, cs), "cs-king");
+	award(soleLeader(participants, (p) => p.goldEarned), "gold-lead");
+	award(soleLeader(participants, (p) => p.timeCCingOthers), "cc-machine");
+	award(soleLeader(participants, (p) => p.totalHealsOnTeammates, 10000), "healer");
+	award(soleLeader(participants, (p) => p.turretKills, 2), "tower-destroyer");
+
+	const mostDamage = soleLeader(participants, (p) => p.totalDamageDealtToChampions);
+	const mostDeaths = soleLeader(participants, (p) => p.deaths, 5);
+	if (mostDamage && mostDamage === mostDeaths) award(mostDamage, "glass-cannon");
+
+	// --- Per player ---
 	for (const p of participants) {
-		if ((p.championName === "Yasuo" || p.championId === 157) && p.deaths >= 10) {
-			badges.push({ puuid: p.puuid, badgeId: "powerspike" });
-		}
+		if (p.firstBloodKill) award(p, "first-blood");
+		if (p.pentaKills > 0) award(p, "pentakill");
+		else if (p.quadraKills > 0) award(p, "quadrakill");
+		if (p.deaths === 0 && killsAndAssists(p) >= 3) award(p, "unkillable");
+		if (p.championId === YASUO && p.deaths >= 10) award(p, "powerspike");
+		if (p.championId === TEEMO) award(p, "soulless");
+		if (cs(p) >= 200 && p.kills === 0 && p.assists === 0) award(p, "afk-farmer");
 	}
 
-	// Honorable — MVP of the losing team (most K+A)
-	if (losers.length > 0) {
-		const honorable = losers.reduce((best, p) =>
-			p.kills + p.assists > best.kills + best.assists ? p : best,
-		);
-		if (honorable.kills + honorable.assists >= 5) {
-			badges.push({ puuid: honorable.puuid, badgeId: "honorable" });
-		}
+	// --- Within a team ---
+	for (const teamId of [100, 200]) {
+		const team = participants.filter((p) => p.teamId === teamId);
+		const leader = soleLeader(team, (p) => p.kills, 5);
+		if (leader && leader.deaths === Math.min(...team.map((p) => p.deaths))) award(leader, "solo-carry");
 	}
 
-	// Soulless — picked Teemo
-	for (const p of participants) {
-		if (p.championName === "Teemo" || p.championId === 17) {
-			badges.push({ puuid: p.puuid, badgeId: "soulless" });
-		}
-	}
-
-	// Glass Cannon — most damage AND most deaths
-	const mostDmg = maxBy((p) => p.totalDamageDealtToChampions);
-	const mostDeaths = maxBy((p) => p.deaths);
-	if (mostDmg.puuid === mostDeaths.puuid && mostDmg.deaths >= 5) {
-		badges.push({ puuid: mostDmg.puuid, badgeId: "glass-cannon" });
-	}
-
-	// AFK Farmer — 200+ CS but 0 kills and 0 assists
-	for (const p of participants) {
-		if (p.totalMinionsKilled + p.neutralMinionsKilled >= 200 && p.kills === 0 && p.assists === 0) {
-			badges.push({ puuid: p.puuid, badgeId: "afk-farmer" });
-		}
+	// The losing side's best K+A gets Bad Luck when they also died the least, Honorable otherwise
+	const bestLoser = soleLeader(losers, killsAndAssists, 5);
+	if (bestLoser) {
+		const diedLeast = bestLoser.deaths === Math.min(...losers.map((p) => p.deaths));
+		award(bestLoser, diedLeast && bestLoser.kills >= 5 ? "bad-luck" : "honorable");
 	}
 
 	return badges;

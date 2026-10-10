@@ -50,8 +50,8 @@ export async function GET(req: Request) {
 						achievementId: { notIn: earnedIds },
 					},
 				});
-			} catch {
-				// Skip individual account errors
+			} catch (error) {
+				console.error(`[cron/achievements] failed for ${account.puuid}:`, error);
 			}
 		}
 
@@ -60,7 +60,8 @@ export async function GET(req: Request) {
 			accounts: accounts.length,
 			totalAwarded,
 		});
-	} catch {
+	} catch (error) {
+		console.error("[cron/achievements] run failed:", error);
 		return NextResponse.json(
 			{ error: "Internal server error" },
 			{ status: 500 },

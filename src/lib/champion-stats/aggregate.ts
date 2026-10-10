@@ -18,7 +18,7 @@ function round2(value: number): number {
 	return Math.round(value * 100) / 100;
 }
 
-/** Totals to per-game averages and rates; perfect KDA is kills + assists, zero duration gives 0 rates. */
+/** Totals to per-game averages and CS/min; perfect KDA is kills + assists, zero duration gives 0 CS/min. */
 export function toChampionStat(row: ChampionStatRow): ChampionStat {
 	const minutes = row.durationSeconds / 60;
 	const perMinute = (total: number) => (minutes > 0 ? round2(total / minutes) : 0);
@@ -35,6 +35,6 @@ export function toChampionStat(row: ChampionStatRow): ChampionStat {
 		assists: perGame(row.assists),
 		kda: round2(row.deaths > 0 ? (row.kills + row.assists) / row.deaths : row.kills + row.assists),
 		csPerMin: perMinute(row.cs),
-		damagePerMin: perMinute(row.damage),
+		avgDamage: perGame(row.damage),
 	};
 }

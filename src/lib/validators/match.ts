@@ -140,6 +140,7 @@ export const achievementParticipantSchema = z.object({
 	totalDamageDealtToChampions: z.number(),
 	totalDamageTaken: z.number(),
 	dragonKills: z.number(),
+	baronKills: z.number(),
 });
 
 export const achievementMatchSchema = z.object({
