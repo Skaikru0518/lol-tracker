@@ -1,7 +1,5 @@
 import { RiotApiError } from "@/lib/riot/riot";
-import { getAccountById } from "@/lib/riot/account";
-import { prisma } from "@/lib/db";
-import { isRecent, revalidateInBackground } from "@/lib/cache-utils";
+import { resolveAccount } from "@/lib/summoner/account";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
@@ -16,58 +14,12 @@ export async function GET(req: NextRequest) {
 	}
 
 	try {
-		const cached = await prisma.account.findFirst({
-			where: { gameName, tagLine },
-		});
-
-		if (cached) {
-			if (!isRecent(cached.updatedAt, 600)) {
-				revalidateInBackground(async () => {
-					const account = await getAccountById(gameName, tagLine);
-					await prisma.account.upsert({
-						where: { puuid: account.puuid },
-						update: { gameName: account.gameName, tagLine: account.tagLine },
-						create: {
-							puuid: account.puuid,
-							gameName: account.gameName,
-							tagLine: account.tagLine,
-						},
-					});
-				});
-			}
-
-			return NextResponse.json({
-				puuid: cached.puuid,
-				gameName: cached.gameName,
-				tagLine: cached.tagLine,
-			});
-		}
-
-		// Not found in DB — first time, must await Riot API
-		const account = await getAccountById(gameName, tagLine);
-
-		await prisma.account.upsert({
-			where: { puuid: account.puuid },
-			update: { gameName: account.gameName, tagLine: account.tagLine },
-			create: {
-				puuid: account.puuid,
-				gameName: account.gameName,
-				tagLine: account.tagLine,
-			},
-		});
-
-		return NextResponse.json(account);
+		return NextResponse.json(await resolveAccount(gameName, tagLine));
 	} catch (error) {
 		if (error instanceof RiotApiError) {
-			return NextResponse.json(
-				{ error: error.message },
-				{ status: error.status },
-			);
+			return NextResponse.json({ error: error.message }, { status: error.status });
 		}
 		console.error("[api/account] Unhandled error:", error);
-		return NextResponse.json(
-			{ error: "Internal server error" },
-			{ status: 500 },
-		);
+		return NextResponse.json({ error: "Internal server error" }, { status: 500 });
 	}
 }
