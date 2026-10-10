@@ -24,6 +24,12 @@ const changelog: ChangelogEntry = {
 			title: "Profile highlights",
 			description: "The profile overview shows your three best milestones next to your current form.",
 		},
+		{
+			category: "feature",
+			title: "Win rate by time",
+			description:
+				"The LP History tab has a heatmap of your ranked win rate by weekday and three-hour slot in Budapest time, with your best and worst slots, for the selected range.",
+		},
 	],
 };
 
