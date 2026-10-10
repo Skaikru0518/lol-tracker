@@ -26,7 +26,7 @@ export function TabsNav({
 	return (
 		<nav
 			className={cn(
-				"flex gap-6 overflow-x-auto border-b [scrollbar-width:none]",
+				"flex gap-6 overflow-x-auto overflow-y-hidden border-b [scrollbar-width:none]",
 				className,
 			)}
 		>

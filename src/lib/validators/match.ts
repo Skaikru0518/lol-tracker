@@ -104,6 +104,7 @@ export const matchSchema = z.object({
 				championId: z.number(),
 				pickTurn: z.number(),
 			})),
+			objectives: z.record(z.string(), z.object({ kills: z.number() })).optional(),
 		})),
 	}),
 });

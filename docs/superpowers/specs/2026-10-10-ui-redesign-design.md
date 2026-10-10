@@ -109,7 +109,7 @@ Defined in `globals.css` as CSS variables, with both dark and light variants. Th
 Rules:
 
 - No aurora, glow or neon shadows.
-- Result color appears as a 3px left accent bar on match rows, not as a full-row tint.
+- Result color on match rows is a win/loss gradient that fades out from left to right (user decision, 2026-10-10; replaces the earlier 3px accent bar).
 - Badges keep the existing style: colored text, `${color}44` border, `${color}20` background.
 
 ### Primitives — `src/components/ui/`
@@ -198,7 +198,7 @@ Rules: components stay small; a file around 200 lines is a signal to split it. C
 
 The row shows, in order:
 
-1. a 3px result accent bar
+1. a win/loss color fading out from the left edge
 2. result, queue, duration and time ago
 3. champion icon with level
 4. spells and runes (2×2)

@@ -1,0 +1,53 @@
+"use client";
+
+import { useMemo } from "react";
+import Link from "next/link";
+import { MirroredScoreboard } from "@/components/shared/scoreboard/mirrored-scoreboard";
+import { useChampions } from "@/hooks/useChampions";
+import { usePlayerRanks } from "@/hooks/usePlayerRanks";
+import { isArenaMatch } from "@/lib/arena-helpers";
+import { buildScoreboard } from "@/lib/summoner/scoreboard";
+import { type Match } from "@/lib/validators/match";
+import { ArenaScoreboard } from "./arena-scoreboard";
+
+/** Expanded match: mirrored 5v5 (ranks fetched on open) or the Arena leaderboard, plus a full-match link. */
+export function MatchRowExpanded({ match, puuid, version }: { match: Match; puuid: string; version: string }) {
+	const arena = isArenaMatch(match.info.queueId);
+	const puuids = useMemo(() => (arena ? undefined : match.info.participants.map((p) => p.puuid)), [arena, match]);
+	const { data: ranks } = usePlayerRanks(puuids);
+	const { data: champions } = useChampions();
+	const data = useMemo(() => buildScoreboard(match), [match]);
+
+	const fullMatch = (
+		<Link
+			href={`/match/${match.metadata.matchId}?puuid=${puuid}`}
+			onClick={(e) => e.stopPropagation()}
+			className="font-medium text-primary hover:underline"
+		>
+			Full match &rarr;
+		</Link>
+	);
+
+	if (arena) {
+		return (
+			<div className="border-t">
+				<ArenaScoreboard participants={match.info.participants} version={version} highlightPuuid={puuid} />
+				<div className="border-t px-3 py-2 text-center text-xs">{fullMatch}</div>
+			</div>
+		);
+	}
+
+	return (
+		<div className="border-t">
+			<MirroredScoreboard
+				data={data}
+				version={version}
+				highlightPuuid={puuid}
+				ranks={ranks}
+				rankQueue={match.info.queueId === 440 ? "RANKED_FLEX_SR" : "RANKED_SOLO_5x5"}
+				champions={champions}
+				footer={fullMatch}
+			/>
+		</div>
+	);
+}
