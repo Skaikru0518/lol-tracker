@@ -13,6 +13,7 @@ import { dailyLpPoints, lpChangeRows, lpChartNotice, lpSummary } from "@/lib/lp-
 import { LpChangesTable } from "./lp-changes-table";
 import { LpChart } from "./lp-chart";
 import { LpSummary } from "./lp-summary";
+import { WinrateHeatmap } from "./winrate-heatmap";
 
 type Queue = RankedQueueType;
 
@@ -48,7 +49,7 @@ function Toggle<T extends string>({ options, value, onChange }: { options: { val
 	);
 }
 
-/** LP History tab: queue and range toggles, summary, chart and the changes table. */
+/** LP History tab: queue and range toggles, summary, chart, the win rate heatmap and the changes table. */
 export function LpHistoryTab() {
 	const { puuid } = useSummonerContext();
 	const [queue, setQueue] = useState<Queue>("RANKED_SOLO_5x5");
@@ -77,6 +78,7 @@ export function LpHistoryTab() {
 					</>
 				)}
 			</Panel>
+			<WinrateHeatmap puuid={puuid} range={range} rangeLabel={rangeLabel} />
 			{rows.length > 0 && (
 				<Panel>
 					<PanelHeader title="Changes" />
