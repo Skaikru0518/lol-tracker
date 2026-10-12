@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/server/db";
 import { ACHIEVEMENT_QUEUE_IDS, MIN_ACHIEVEMENT_GAME_SECONDS } from "@/lib/achievements/eligibility";
+import { type MetricValues } from "./metrics";
 import { QUANTILE_STEPS } from "./percentile";
 import { METRIC_IDS, type MetricId } from "./weights";
 
@@ -15,9 +16,9 @@ const quantileColumns = Prisma.raw(
 	METRIC_IDS.map((id) => `percentile_cont(ARRAY[${QUANTILE_STEPS.join(",")}]) WITHIN GROUP (ORDER BY "${id}") AS "${id}"`).join(",\n"),
 );
 
-export async function loadRoleQuantiles(since: Date): Promise<RoleQuantiles[]> {
-	const rows = await prisma.$queryRaw<({ role: string; games: number } & Record<MetricId, number[] | null>)[]>`
-		WITH p AS (
+function metricsCte(since: Date): Prisma.Sql {
+	return Prisma.sql`
+		p AS (
 			SELECT
 				m."matchId",
 				m."gameDuration" / 60.0 AS mins,
@@ -80,9 +81,29 @@ export async function loadRoleQuantiles(since: Date): Promise<RoleQuantiles[]> {
 			LEFT JOIN ranked o ON o."matchId" = r."matchId" AND o.role = r.role AND o.team <> r.team AND o.same_role = 1 AND r.same_role = 1
 			WHERE r.role IN ('TOP', 'JUNGLE', 'MIDDLE', 'BOTTOM', 'UTILITY')
 		)
+	`;
+}
+
+export async function loadRoleQuantiles(since: Date): Promise<RoleQuantiles[]> {
+	const rows = await prisma.$queryRaw<({ role: string; games: number } & Record<MetricId, number[] | null>)[]>`
+		WITH ${metricsCte(since)}
 		SELECT role, COUNT(*)::int AS games, ${quantileColumns}
 		FROM metrics
 		GROUP BY role
 	`;
 	return rows.map(({ role, games, ...metrics }) => ({ role, games, metrics: metrics as Record<MetricId, number[] | null> }));
+}
+
+const metricColumns = Prisma.raw(METRIC_IDS.map((id) => `"${id}"`).join(", "));
+
+export async function loadMetricRows(since: Date): Promise<{ role: string; values: MetricValues }[]> {
+	const rows = await prisma.$queryRaw<({ role: string } & Record<MetricId, number | null>)[]>`
+		WITH ${metricsCte(since)}
+		SELECT role, ${metricColumns}
+		FROM metrics
+	`;
+	return rows.map(({ role, ...metrics }) => ({
+		role,
+		values: Object.fromEntries(Object.entries(metrics).flatMap(([id, v]) => (v === null ? [] : [[id, Number(v)]]))) as MetricValues,
+	}));
 }

@@ -3,9 +3,12 @@ import { GRADES } from "@/lib/performance/grades";
 import { ROLES } from "@/lib/performance/roles";
 import { CATEGORIES, METRIC_IDS } from "@/lib/performance/weights";
 
+const quantilesSchema = z.array(z.number()).length(21);
+
 const roleBaselineSchema = z.object({
 	games: z.number(),
-	metrics: z.partialRecord(z.enum(METRIC_IDS), z.array(z.number()).length(21)),
+	metrics: z.partialRecord(z.enum(METRIC_IDS), quantilesSchema),
+	calibration: z.object({ overall: quantilesSchema, categories: z.partialRecord(z.enum(CATEGORIES), quantilesSchema) }).optional(),
 });
 
 export const baselinesSchema = z.object({
@@ -15,6 +18,7 @@ export const baselinesSchema = z.object({
 });
 
 export type Baselines = z.infer<typeof baselinesSchema>;
+export type RoleBaseline = z.infer<typeof roleBaselineSchema>;
 
 const gradeSchema = z.enum(GRADES);
 

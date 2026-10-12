@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/server/db";
 import { baselinesSchema, type Baselines } from "@/lib/validators/performance";
-import { loadRoleQuantiles } from "./baselines-query";
+import { loadMetricRows, loadRoleQuantiles } from "./baselines-query";
+import { calibrate } from "./calibration";
 import { asRole } from "./roles";
 import { type MetricId } from "./weights";
 
@@ -18,6 +19,15 @@ export async function computeAndSaveBaselines(now: Date = new Date()): Promise<{
 		roles[role] = { games: row.games, metrics };
 	}
 	const sampleSize = rows.reduce((s, r) => s + r.games, 0);
+
+	const metricRows = (await loadMetricRows(since)).flatMap((r) => {
+		const role = asRole(r.role);
+		return role ? [{ role, values: r.values }] : [];
+	});
+	for (const [role, calibration] of Object.entries(calibrate(metricRows, roles))) {
+		const baseline = roles[role as keyof typeof roles];
+		if (baseline) baseline.calibration = calibration;
+	}
 
 	await prisma.performanceBaseline.create({ data: { sampleSize, data: { roles } } });
 	const stale = await prisma.performanceBaseline.findMany({ orderBy: { computedAt: "desc" }, skip: KEEP, select: { id: true } });

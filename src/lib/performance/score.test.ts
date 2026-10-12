@@ -43,6 +43,13 @@ function baselinesAround(centers: Partial<Record<string, number>>, games = 500):
 	return { computedAt: "2026-10-13T00:00:00.000Z", sampleSize: games, roles: { MIDDLE: { games, metrics } } };
 }
 
+// Raw scores spread 40 … 60 around 50, so a raw 50 sits at the calibration's median
+function calibrated(b: Baselines): Baselines {
+	const around50 = Array.from({ length: 21 }, (_, i) => 40 + i);
+	const categories = Object.fromEntries(["laning", "farming", "combat", "teamfight", "objectives", "vision"].map((id) => [id, around50]));
+	return { ...b, roles: { MIDDLE: { ...b.roles.MIDDLE!, calibration: { overall: around50, categories } } } };
+}
+
 const me = p({ puuid: "me" });
 const opp = p({ puuid: "opp", teamId: 200, championName: "Syndra" });
 
@@ -126,8 +133,8 @@ describe("scorePerformance", () => {
 });
 
 describe("scoreMatch", () => {
-	it("scores every placed participant and is cacheable with enough baseline games", () => {
-		const { scores, cacheable } = scoreMatch(match([me, opp]), baselinesAround(medianCenters, 500));
+	it("scores every placed participant and is cacheable with enough calibrated baseline games", () => {
+		const { scores, cacheable } = scoreMatch(match([me, opp]), calibrated(baselinesAround(medianCenters, 500)));
 		expect(Object.keys(scores).sort()).toEqual(["me", "opp"]);
 		expect(scores.me.baselineGames).toBe(500);
 		expect(cacheable).toBe(true);
@@ -140,7 +147,7 @@ describe("scoreMatch", () => {
 	});
 
 	it("stays cacheable when a participant has no position", () => {
-		const { scores, cacheable } = scoreMatch(match([me, opp, p({ puuid: "afk", teamPosition: "" })]), baselinesAround(medianCenters));
+		const { scores, cacheable } = scoreMatch(match([me, opp, p({ puuid: "afk", teamPosition: "" })]), calibrated(baselinesAround(medianCenters)));
 		expect(Object.keys(scores).sort()).toEqual(["me", "opp"]);
 		expect(cacheable).toBe(true);
 	});
@@ -164,5 +171,18 @@ describe("summarize", () => {
 	it("keeps only score and grade per puuid", () => {
 		const { scores } = scoreMatch(match([me, opp]), baselinesAround(medianCenters));
 		expect(summarize(scores)).toEqual({ me: { score: 50, grade: "C" }, opp: { score: 50, grade: "C" } });
+	});
+});
+
+describe("calibrated scoring", () => {
+	it("puts a median game at the friendly curve's median (63, grade B)", () => {
+		const result = scorePerformance(match([me, opp]), "me", calibrated(baselinesAround(medianCenters)));
+		expect(result?.score).toBe(63);
+		expect(result?.grade).toBe("B");
+		expect(result?.categories.every((c) => c.score === 63)).toBe(true);
+	});
+
+	it("does not cache before the baseline has a calibration", () => {
+		expect(scoreMatch(match([me, opp]), baselinesAround(medianCenters)).cacheable).toBe(false);
 	});
 });

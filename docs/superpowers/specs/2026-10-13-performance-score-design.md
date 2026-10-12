@@ -216,3 +216,11 @@ At the user's request, scores are now cached and every query is kept lean toward
   - `20261013120000_add_performance_baseline` (`PerformanceBaseline`), already applied.
   - `20261013130000_add_match_performance` (`MatchPerformance`).
 - **Changing the formula** later means clearing the cache with `DELETE FROM "MatchPerformance"`, as was done with match badges.
+
+## Revision 2: calibrated, friendlier scale (2026-10-13)
+
+Averaging metric percentiles pulls every game towards 50, so even the best games stayed around 70. The fix has three parts.
+
+- **Calibration in the cron:** the cron also scores every participant in the window, computes the raw overall and category scores, and stores their 21 quantiles per role as `calibration` in the baseline JSON.
+- **Friendly curve:** a raw score is ranked against that calibration (a percentile), and the percentile is mapped onto a curve through the points (0,15), (10,40), (35,55), (65,70), (85,80), (95,90), (100,100). The average game is about 62 (B). The target shares are S+ top 5%, S 10%, A 20%, B 30%, C 25%, D 10%; on real data they came out at 8 / 13 / 20 / 29 / 23 / 8%.
+- **Caching:** a game is cached only when its roles' baselines carry a calibration. Migration `20261013140000_reset_match_performance` clears the older, uncalibrated cache.
