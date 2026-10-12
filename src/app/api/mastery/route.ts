@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { RiotApiError } from "@/lib/riot/riot";
 import { resolveAllMasteries, resolveTopMasteries } from "@/lib/summoner/champions/mastery";
+import { withApiLog } from "@/lib/server/log";
 
-export async function GET(req: NextRequest) {
+async function getHandler(req: NextRequest) {
 	const puuid = req.nextUrl.searchParams.get("puuid");
 	const count = req.nextUrl.searchParams.get("count") ?? "5";
 	const all = req.nextUrl.searchParams.get("all") === "true";
@@ -20,3 +21,5 @@ export async function GET(req: NextRequest) {
 		return NextResponse.json({ error: "Internal server error" }, { status: 500 });
 	}
 }
+
+export const GET = withApiLog(getHandler);

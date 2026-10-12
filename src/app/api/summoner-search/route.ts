@@ -2,9 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { parseSearchTerms } from "@/lib/summoner/search/search-query";
 import { searchSummoners } from "@/lib/summoner/search/search";
 import { type RecentSearch } from "@/lib/validators/recent-searches";
+import { withApiLog } from "@/lib/server/log";
 
 /** Summoner name suggestions from stored accounts; short input returns an empty list without a query. */
-export async function GET(req: NextRequest): Promise<NextResponse<RecentSearch[] | { error: string }>> {
+async function getHandler(req: NextRequest): Promise<NextResponse<RecentSearch[] | { error: string }>> {
 	const terms = parseSearchTerms(req.nextUrl.searchParams.get("q") ?? "");
 	if (!terms) return NextResponse.json([]);
 	try {
@@ -14,3 +15,5 @@ export async function GET(req: NextRequest): Promise<NextResponse<RecentSearch[]
 		return NextResponse.json({ error: "Internal server error" }, { status: 500 });
 	}
 }
+
+export const GET = withApiLog(getHandler);

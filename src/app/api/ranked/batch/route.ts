@@ -2,8 +2,9 @@ import { getRankedByPuuid } from "@/lib/riot/ranked";
 import { prisma } from "@/lib/server/db";
 import { isRecent } from "@/lib/server/cache-utils";
 import { NextRequest, NextResponse } from "next/server";
+import { withApiLog } from "@/lib/server/log";
 
-export async function GET(req: NextRequest) {
+async function getHandler(req: NextRequest) {
 	const puuidsParam = req.nextUrl.searchParams.get("puuids");
 
 	if (!puuidsParam)
@@ -114,3 +115,5 @@ export async function GET(req: NextRequest) {
 
 	return NextResponse.json(result);
 }
+
+export const GET = withApiLog(getHandler);

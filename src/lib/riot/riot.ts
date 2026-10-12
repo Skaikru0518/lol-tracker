@@ -1,3 +1,5 @@
+import { logPath } from "@/lib/server/log";
+
 const RIOT_API_KEY = process.env.RIOT_API_KEY!;
 export const BASE_URL = "https://eun1.api.riotgames.com";
 export const EURPOE_URL = "https://europe.api.riotgames.com";
@@ -18,6 +20,8 @@ export async function riotFetch<T>(url: string): Promise<T> {
 	});
 
 	if (!res.ok) {
+		const retryAfter = res.headers.get("retry-after");
+		console.warn(`[riot] ${res.status} ${logPath(url)}${retryAfter ? ` retry-after=${retryAfter}s` : ""}`);
 		const messages: Record<number, string> = {
 			401: "Invalid API key",
 			403: "Forbidden",

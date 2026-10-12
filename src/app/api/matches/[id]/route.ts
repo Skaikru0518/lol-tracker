@@ -3,8 +3,9 @@ import { RiotApiError } from "@/lib/riot/riot";
 import { prisma } from "@/lib/server/db";
 import { projectMatch } from "@/lib/match/projection";
 import { NextRequest, NextResponse } from "next/server";
+import { withApiLog } from "@/lib/server/log";
 
-export async function GET(
+async function getHandler(
 	req: NextRequest,
 	{ params }: { params: Promise<{ id: string }> },
 ) {
@@ -40,3 +41,5 @@ export async function GET(
 		);
 	}
 }
+
+export const GET = withApiLog(getHandler);

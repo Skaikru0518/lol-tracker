@@ -1,8 +1,9 @@
 import { RiotApiError } from "@/lib/riot/riot";
 import { resolveAccount } from "@/lib/summoner/profile/account";
 import { NextRequest, NextResponse } from "next/server";
+import { withApiLog } from "@/lib/server/log";
 
-export async function GET(req: NextRequest) {
+async function getHandler(req: NextRequest) {
 	const gameName = req.nextUrl.searchParams.get("gameName");
 	const tagLine = req.nextUrl.searchParams.get("tagLine");
 
@@ -23,3 +24,5 @@ export async function GET(req: NextRequest) {
 		return NextResponse.json({ error: "Internal server error" }, { status: 500 });
 	}
 }
+
+export const GET = withApiLog(getHandler);

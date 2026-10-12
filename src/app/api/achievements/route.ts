@@ -5,10 +5,11 @@ import { detectAchievements } from "@/lib/achievements/profile/detect";
 import { loadAchievementMatches } from "@/lib/achievements/profile/query";
 import { recomputeProgress } from "@/lib/achievements/progress/save";
 import { type AchievementPayload } from "@/lib/validators/achievements";
+import { withApiLog } from "@/lib/server/log";
 
 type Response = NextResponse<{ error: string }> | NextResponse<AchievementPayload>;
 
-export async function GET(req: NextRequest): Promise<Response> {
+async function getHandler(req: NextRequest): Promise<Response> {
 	const puuid = req.nextUrl.searchParams.get("puuid");
 	if (!puuid) return NextResponse.json({ error: "puuid required" }, { status: 400 });
 
@@ -16,7 +17,7 @@ export async function GET(req: NextRequest): Promise<Response> {
 }
 
 /** Recomputes Current form, milestones and seasons for one account, then returns its payload. */
-export async function POST(req: NextRequest): Promise<Response> {
+async function postHandler(req: NextRequest): Promise<Response> {
 	const { puuid } = await req.json();
 	if (!puuid) return NextResponse.json({ error: "puuid is required" }, { status: 400 });
 
@@ -34,3 +35,6 @@ export async function POST(req: NextRequest): Promise<Response> {
 
 	return NextResponse.json(await loadAchievementPayload(puuid));
 }
+
+export const GET = withApiLog(getHandler);
+export const POST = withApiLog(postHandler);

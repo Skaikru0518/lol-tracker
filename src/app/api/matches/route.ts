@@ -5,6 +5,7 @@ import { prisma } from "@/lib/server/db";
 import { projectMatch } from "@/lib/match/projection";
 import { parseChampionId, parseMatchCount } from "@/lib/match/query";
 import { RIFT_QUEUE_IDS } from "@/lib/game/queue-filters";
+import { withApiLog } from "@/lib/server/log";
 
 /**
  * Match ids already stored for a player, newest first. Used as a fallback when
@@ -58,7 +59,7 @@ async function getStoredQueueMatches(puuid: string, queueIds: number[], count: n
 	`;
 }
 
-export async function GET(req: NextRequest) {
+async function getHandler(req: NextRequest) {
 	const puuid = req.nextUrl.searchParams.get("puuid");
 	const count = parseMatchCount(req.nextUrl.searchParams.get("count"));
 	const championId = parseChampionId(req.nextUrl.searchParams.get("championId"));
@@ -145,3 +146,5 @@ export async function GET(req: NextRequest) {
 		);
 	}
 }
+
+export const GET = withApiLog(getHandler);

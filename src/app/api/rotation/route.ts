@@ -2,8 +2,9 @@ import { NextResponse } from "next/server";
 import { RiotApiError } from "@/lib/riot/riot";
 import { getFreeRotation } from "@/lib/home/rotation";
 import { type FreeRotation } from "@/lib/validators/rotation";
+import { withApiLog } from "@/lib/server/log";
 
-export async function GET(): Promise<NextResponse<FreeRotation | { error: string }>> {
+async function getHandler(): Promise<NextResponse<FreeRotation | { error: string }>> {
 	try {
 		return NextResponse.json(await getFreeRotation());
 	} catch (error) {
@@ -14,3 +15,5 @@ export async function GET(): Promise<NextResponse<FreeRotation | { error: string
 		return NextResponse.json({ error: "Internal server error" }, { status: 500 });
 	}
 }
+
+export const GET = withApiLog(getHandler);
