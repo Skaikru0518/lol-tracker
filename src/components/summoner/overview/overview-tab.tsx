@@ -16,6 +16,7 @@ import { AchievementPreview } from "./achievement-preview";
 import { MostPlayedPanel } from "./most-played-panel";
 import { RankedPanel } from "./ranked-panel";
 import { RecentlyPlayedPanel } from "./recently-played-panel";
+import { RecentPerformancePanel } from "./recent-performance/recent-performance-panel";
 import { RolesPerformancePanel } from "./roles-performance-panel";
 
 const INITIAL_MATCH_COUNT = 20;
@@ -53,7 +54,8 @@ export function OverviewTab() {
 					<MostPlayedPanel puuid={puuid} version={version} basePath={basePath} />
 					{matches && <RecentlyPlayedPanel matches={matches} puuid={puuid} version={version} />}
 				</div>
-				<div className="min-w-0">
+				<div className="min-w-0 space-y-4">
+					<RecentPerformancePanel puuid={puuid} version={version} newestMatchId={settled ? matches?.[0]?.metadata.matchId : undefined} />
 					<MatchList
 						matches={matches}
 						puuid={puuid}

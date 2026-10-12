@@ -45,3 +45,22 @@ export type MatchPerformance = z.infer<typeof matchPerformanceSchema>;
 
 export const performanceSummariesSchema = z.record(z.string(), z.object({ score: z.number(), grade: gradeSchema }).nullable());
 export type PerformanceSummaries = z.infer<typeof performanceSummariesSchema>;
+
+export const recentSummarySchema = z.object({
+	games: z.number(),
+	wins: z.number(),
+	losses: z.number(),
+	winRate: z.number(),
+	kills: z.number(),
+	deaths: z.number(),
+	assists: z.number(),
+	kda: z.number(),
+	champions: z.array(z.object({ championName: z.string(), games: z.number(), wins: z.number(), winRate: z.number(), kda: z.number() })),
+	scoredGames: z.number(),
+	score: z.object({ average: z.number(), grade: gradeSchema }).nullable(),
+	lobbyRank: z.number().nullable(),
+	mvp: z.number(),
+	ace: z.number(),
+	categories: z.array(z.object({ id: z.enum(CATEGORIES), score: z.number(), grade: gradeSchema })),
+});
+export type RecentSummaryPayload = z.infer<typeof recentSummarySchema>;

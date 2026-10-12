@@ -1,5 +1,12 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { matchPerformanceSchema, performanceSummariesSchema, type MatchPerformance, type PerformanceSummaries } from "@/lib/validators/performance";
+import {
+	matchPerformanceSchema,
+	performanceSummariesSchema,
+	recentSummarySchema,
+	type MatchPerformance,
+	type PerformanceSummaries,
+	type RecentSummaryPayload,
+} from "@/lib/validators/performance";
 
 const RETRY_UNSCORED_MS = 10 * 60 * 1000;
 
@@ -31,5 +38,22 @@ export function useMatchPerformance(matchId: string) {
 		queryKey: ["match-performance", matchId],
 		queryFn: () => fetchMatchPerformance(matchId),
 		staleTime: (query) => (Object.keys(query.state.data ?? {}).length === 0 ? RETRY_UNSCORED_MS : Infinity),
+	});
+}
+
+async function fetchRecent(puuid: string): Promise<RecentSummaryPayload> {
+	const res = await fetch(`/api/performance/recent?${new URLSearchParams({ puuid })}`);
+	if (!res.ok) throw new Error("Failed to fetch recent performance");
+	return recentSummarySchema.parse(await res.json());
+}
+
+// Keyed by the newest match so the panel refreshes once new games are stored
+export function useRecentPerformance(puuid: string | undefined, newestMatchId: string | undefined) {
+	return useQuery<RecentSummaryPayload>({
+		queryKey: ["recent-performance", puuid, newestMatchId],
+		queryFn: () => fetchRecent(puuid!),
+		enabled: !!puuid,
+		placeholderData: keepPreviousData,
+		staleTime: RETRY_UNSCORED_MS,
 	});
 }

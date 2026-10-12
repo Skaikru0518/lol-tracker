@@ -58,7 +58,7 @@ export async function loadScoringMatches(matchIds: string[]): Promise<(ScoringMa
 	}));
 }
 
-async function scoreAndCache(matchIds: string[]): Promise<Record<string, MatchScores>> {
+export async function scoreAndCache(matchIds: string[]): Promise<Record<string, MatchScores>> {
 	const result: Record<string, MatchScores> = {};
 	const stored = matchIds.length > 0 ? await latestBaselines() : null;
 	if (!stored) return result;
