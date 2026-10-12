@@ -10,8 +10,8 @@ import { useMatchBadgesBatch } from "@/hooks/useMatchBadges";
 import { usePerformanceSummaries } from "@/hooks/usePerformance";
 import { isAchievementEligible } from "@/lib/achievements/eligibility";
 import { type QueueFilter } from "@/lib/game/queue-filters";
-import { type LpHistories, rankedQueueForQueueId } from "@/lib/game/ranked-queues";
-import { calculateLPChange } from "@/lib/summoner/profile/lp-change";
+import { type LpHistories, RANKED_QUEUE_TYPES, rankedQueueForQueueId } from "@/lib/game/ranked-queues";
+import { lpChangesForGames } from "@/lib/summoner/profile/lp-estimate";
 import { filterMatches } from "@/lib/summoner/matches/match-filter";
 import { type RuneMaps } from "@/lib/summoner/matches/match-row";
 import { type Match } from "@/lib/validators/match";
@@ -46,6 +46,18 @@ export function MatchList({
 		[matches],
 	);
 	const { data: performance, isLoading: performanceLoading } = usePerformanceSummaries(scorableIds, puuid);
+	const lpChanges = useMemo(() => {
+		const changes = new Map<string, number>();
+		for (const queue of RANKED_QUEUE_TYPES) {
+			const games = (matches ?? []).flatMap((m) => {
+				const player = m.info.participants.find((p) => p.puuid === puuid);
+				if (!player || rankedQueueForQueueId(m.info.queueId) !== queue || !isAchievementEligible(m.info.queueId, m.info.gameDuration)) return [];
+				return [{ id: m.metadata.matchId, end: m.info.gameCreation + m.info.gameDuration * 1000, win: player.win }];
+			});
+			for (const [id, lp] of lpChangesForGames(lpHistories?.[queue], games)) changes.set(id, lp);
+		}
+		return changes;
+	}, [matches, puuid, lpHistories]);
 	const filtered = useMemo(() => (matches ? filterMatches(matches, puuid, queue, null) : []), [matches, puuid, queue]);
 
 	return (
@@ -81,9 +93,8 @@ export function MatchList({
 					{filtered.slice(0, visible).map((match) => {
 						const player = match.info.participants.find((p) => p.puuid === puuid);
 						if (!player) return null;
-						const { queueId, gameCreation, gameDuration } = match.info;
-						const rankedQueue = rankedQueueForQueueId(queueId);
-						const lpChange = rankedQueue ? calculateLPChange(lpHistories?.[rankedQueue], gameCreation + gameDuration * 1000) : null;
+						const { queueId, gameDuration } = match.info;
+						const lpChange = lpChanges.get(match.metadata.matchId) ?? null;
 						const badgeIds = (badges?.[match.metadata.matchId] ?? []).filter((b) => b.puuid === puuid).map((b) => b.badgeId);
 
 						return (
