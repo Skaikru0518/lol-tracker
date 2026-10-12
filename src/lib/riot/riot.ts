@@ -21,7 +21,8 @@ export async function riotFetch<T>(url: string): Promise<T> {
 
 	if (!res.ok) {
 		const retryAfter = res.headers.get("retry-after");
-		console.warn(`[riot] ${res.status} ${logPath(url)}${retryAfter ? ` retry-after=${retryAfter}s` : ""}`);
+		// 404 is an expected answer (not in game, no such summoner), not worth a log line
+		if (res.status !== 404) console.warn(`[riot] ${res.status} ${logPath(url)}${retryAfter ? ` retry-after=${retryAfter}s` : ""}`);
 		const messages: Record<number, string> = {
 			401: "Invalid API key",
 			403: "Forbidden",
