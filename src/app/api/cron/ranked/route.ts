@@ -8,7 +8,6 @@ import { isRateLimited, nextBatch, RANKED_CRON_BATCH, RANKED_CRON_CURSOR_KEY } f
 import { NextResponse } from "next/server";
 import { withApiLog } from "@/lib/server/log";
 
-/** Refreshes ranks for the next batch of tracked accounts, resuming where the last run stopped; stops at the first 429. */
 async function getHandler(req: Request) {
 	if (!isAuthorizedCronRequest(req)) {
 		return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
