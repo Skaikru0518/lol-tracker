@@ -1,8 +1,9 @@
 import { getLiveGame } from "@/lib/riot/spectator";
 import { RiotApiError } from "@/lib/riot/riot";
 import { NextRequest, NextResponse } from "next/server";
+import { withApiLog } from "@/lib/server/log";
 
-export async function GET(req: NextRequest) {
+async function getHandler(req: NextRequest) {
 	const puuid = req.nextUrl.searchParams.get("puuid");
 
 	if (!puuid)
@@ -31,3 +32,5 @@ export async function GET(req: NextRequest) {
 		);
 	}
 }
+
+export const GET = withApiLog(getHandler);

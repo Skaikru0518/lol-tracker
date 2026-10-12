@@ -3,8 +3,9 @@ import { getRankedByPuuid } from "@/lib/riot/ranked";
 import { isAuthorizedCronRequest } from "@/lib/server/cron-auth";
 import { saveRankedEntries } from "@/lib/summoner/profile/ranked";
 import { NextResponse } from "next/server";
+import { withApiLog } from "@/lib/server/log";
 
-export async function GET(req: Request) {
+async function getHandler(req: Request) {
 	if (!isAuthorizedCronRequest(req)) {
 		return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 	}
@@ -39,3 +40,5 @@ export async function GET(req: Request) {
 		);
 	}
 }
+
+export const GET = withApiLog(getHandler);

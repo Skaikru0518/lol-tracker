@@ -3,8 +3,9 @@ import { prisma } from "@/lib/server/db";
 import { ACHIEVEMENT_QUEUE_IDS, MIN_ACHIEVEMENT_GAME_SECONDS } from "@/lib/achievements/eligibility";
 import { detectMatchBadges } from "@/lib/achievements/badges/detect";
 import { matchSchema } from "@/lib/validators/match";
+import { withApiLog } from "@/lib/server/log";
 
-export async function GET(req: NextRequest) {
+async function getHandler(req: NextRequest) {
 	const matchIdsParam = req.nextUrl.searchParams.get("matchIds");
 	if (!matchIdsParam)
 		return NextResponse.json({ error: "matchIds required" }, { status: 400 });
@@ -69,3 +70,5 @@ export async function GET(req: NextRequest) {
 
 	return NextResponse.json(result);
 }
+
+export const GET = withApiLog(getHandler);

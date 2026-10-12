@@ -7,10 +7,11 @@ import {
 	RANGE_SNAPSHOT_LIMIT,
 } from "@/lib/lp-history/range";
 import { type LPSnapshot } from "@/lib/validators/lp-history";
+import { withApiLog } from "@/lib/server/log";
 
 const LEGACY_SNAPSHOT_LIMIT = 100;
 
-export async function GET(
+async function getHandler(
 	req: NextRequest,
 ): Promise<NextResponse<LPSnapshot[] | { error: string }>> {
 	const puuid = req.nextUrl.searchParams.get("puuid");
@@ -50,3 +51,5 @@ export async function GET(
 		return NextResponse.json({ error: "Internal server error" }, { status: 500 });
 	}
 }
+
+export const GET = withApiLog(getHandler);

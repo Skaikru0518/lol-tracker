@@ -3,8 +3,9 @@ import { parseQueueFilter, QUEUE_FILTERS } from "@/lib/game/queue-filters";
 import { queryChampionStats } from "@/lib/summoner/champions/stats-query";
 import { toChampionStat } from "@/lib/summoner/champions/stats-aggregate";
 import { type ChampionStat } from "@/lib/validators/champion-stats";
+import { withApiLog } from "@/lib/server/log";
 
-export async function GET(
+async function getHandler(
 	req: NextRequest,
 ): Promise<NextResponse<ChampionStat[] | { error: string }>> {
 	const puuid = req.nextUrl.searchParams.get("puuid");
@@ -26,3 +27,5 @@ export async function GET(
 		return NextResponse.json({ error: "Internal server error" }, { status: 500 });
 	}
 }
+
+export const GET = withApiLog(getHandler);

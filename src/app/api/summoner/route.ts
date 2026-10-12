@@ -1,8 +1,9 @@
 import { RiotApiError } from "@/lib/riot/riot";
 import { resolveSummoner } from "@/lib/summoner/profile/summoner";
 import { NextRequest, NextResponse } from "next/server";
+import { withApiLog } from "@/lib/server/log";
 
-export async function GET(req: NextRequest) {
+async function getHandler(req: NextRequest) {
 	const puuid = req.nextUrl.searchParams.get("puuid");
 	if (!puuid)
 		return NextResponse.json({ error: "puuid is required" }, { status: 400 });
@@ -16,3 +17,5 @@ export async function GET(req: NextRequest) {
 		return NextResponse.json({ error: "Internal server error" }, { status: 500 });
 	}
 }
+
+export const GET = withApiLog(getHandler);

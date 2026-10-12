@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { getRecentSearches } from "@/lib/home/recent-searches";
 import { type RecentSearch } from "@/lib/validators/recent-searches";
+import { withApiLog } from "@/lib/server/log";
 
-export async function GET(): Promise<NextResponse<RecentSearch[] | { error: string }>> {
+async function getHandler(): Promise<NextResponse<RecentSearch[] | { error: string }>> {
 	try {
 		return NextResponse.json(await getRecentSearches());
 	} catch (error) {
@@ -10,3 +11,5 @@ export async function GET(): Promise<NextResponse<RecentSearch[] | { error: stri
 		return NextResponse.json({ error: "Internal server error" }, { status: 500 });
 	}
 }
+
+export const GET = withApiLog(getHandler);

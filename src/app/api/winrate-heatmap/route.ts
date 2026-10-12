@@ -3,9 +3,10 @@ import { winrateHeatmap } from "@/lib/lp-history/heatmap";
 import { loadRankedResults } from "@/lib/lp-history/heatmap-query";
 import { LP_RANGES, lpRangeStart, parseLpRange } from "@/lib/lp-history/range";
 import { type WinrateHeatmap } from "@/lib/validators/winrate-heatmap";
+import { withApiLog } from "@/lib/server/log";
 
 /** Ranked win rate per Budapest weekday and 3-hour slot over the LP history range. */
-export async function GET(req: NextRequest): Promise<NextResponse<WinrateHeatmap | { error: string }>> {
+async function getHandler(req: NextRequest): Promise<NextResponse<WinrateHeatmap | { error: string }>> {
 	const puuid = req.nextUrl.searchParams.get("puuid");
 	const range = parseLpRange(req.nextUrl.searchParams.get("range") ?? "season");
 
@@ -20,3 +21,5 @@ export async function GET(req: NextRequest): Promise<NextResponse<WinrateHeatmap
 		return NextResponse.json({ error: "Internal server error" }, { status: 500 });
 	}
 }
+
+export const GET = withApiLog(getHandler);
