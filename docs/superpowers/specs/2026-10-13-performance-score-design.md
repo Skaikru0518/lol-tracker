@@ -192,3 +192,27 @@ The SQL is not run in tests, and the API payload is checked against its Zod sche
 - Both teams with an empty `teamPosition` (rare ranked edge cases): no Laning category and no opponent block.
 - Remakes and short games are never scored.
 - Very small samples right after deployment: until the first cron run there are no baselines and the UI hides scores.
+
+## Revision (2026-10-13, during implementation)
+
+At the user's request, scores are now cached and every query is kept lean towards both the database and Riot. This section supersedes the earlier "scores are not stored", "API", "File layout" and migration lines.
+
+- **`MatchPerformance` table:**
+  - Fields: `matchId` (primary key), `baselineId`, `data` (every participant's `PerformanceScore` keyed by puuid, values rounded), `summary` (`{ score, grade }` per puuid), `createdAt`.
+  - A game is cached only when every role in it has at least **100** baseline games. Below that it is scored on the fly and not stored.
+- **Endpoints** (they replace `/api/performance/baselines`):
+  - `GET /api/performance/summary?matchIds=…&puuid=…`: at most 100 ids, returns `{ score, grade } | null` per match. Cached games are read from the small `summary` column; missing ones are scored and cached.
+  - `GET /api/performance/{matchId}`: the full breakdown for the Performance tab.
+- **Scoring on the server:**
+  - Missing games are loaded with a SQL projection of only the scoring fields, never the full match document.
+  - The newest baseline is kept in memory for 10 minutes; "no baseline yet" is kept for only 60 s.
+  - New scores are stored with one `createMany`.
+  - Scoring makes no Riot calls.
+- **Client:**
+  - `usePerformanceSummaries` keeps the previous data while the list grows from 20 to 50 games, and `useMatchPerformance` serves the tab.
+  - Scored games never go stale. Unscored ones are asked again after 10 minutes.
+- **Data fields:** `champExperience`, `damageDealtToObjectives` and `objectivesStolen` live only on `ScoringParticipant`, not on `participantSchema`, so `/api/matches` does not grow.
+- **Migrations:**
+  - `20261013120000_add_performance_baseline` (`PerformanceBaseline`), already applied.
+  - `20261013130000_add_match_performance` (`MatchPerformance`).
+- **Changing the formula** later means clearing the cache with `DELETE FROM "MatchPerformance"`, as was done with match badges.

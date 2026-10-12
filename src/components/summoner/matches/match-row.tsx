@@ -4,7 +4,10 @@ import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ScoreCircle } from "@/components/match/performance/score-circle";
 import { ChampionIcon } from "@/components/ui/champion-icon";
+import { Skeleton } from "@/components/ui/skeleton";
+import { type ScoreSummary } from "@/lib/performance/score";
 import { ItemSlots } from "@/components/ui/item-slots";
 import { SpellRuneStack } from "@/components/ui/spell-rune-stack";
 import { getPlacementColor, getPlacementSuffix, isArenaMatch } from "@/lib/game/arena-helpers";
@@ -33,6 +36,8 @@ export function MatchRow({
 	lpChange,
 	badgeIds,
 	matchBadges,
+	performance,
+	performanceLoading,
 }: {
 	match: Match;
 	player: Participant;
@@ -41,6 +46,8 @@ export function MatchRow({
 	lpChange: number | null;
 	badgeIds: string[];
 	matchBadges?: { puuid: string; badgeId: string }[];
+	performance: ScoreSummary | null;
+	performanceLoading: boolean;
 }) {
 	const [open, setOpen] = useState(false);
 	const { info } = match;
@@ -78,6 +85,12 @@ export function MatchRow({
 						{formatDuration(info.gameDuration)} · {timeAgo(info.gameCreation)}
 					</p>
 				</div>
+
+				{performance ? (
+					<ScoreCircle score={performance.score} grade={performance.grade} />
+				) : (
+					performanceLoading && <Skeleton className="size-9 rounded-full" />
+				)}
 
 				<ChampionIcon version={version} championName={player.championName} size={44} level={player.champLevel} />
 				<SpellRuneStack

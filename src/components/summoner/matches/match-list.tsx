@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useMatchBadgesBatch } from "@/hooks/useMatchBadges";
+import { usePerformanceSummaries } from "@/hooks/usePerformance";
+import { isAchievementEligible } from "@/lib/achievements/eligibility";
 import { type QueueFilter } from "@/lib/game/queue-filters";
 import { type LpHistories, rankedQueueForQueueId } from "@/lib/game/ranked-queues";
 import { calculateLPChange } from "@/lib/summoner/profile/lp-change";
@@ -38,6 +40,11 @@ export function MatchList({
 	const [visible, setVisible] = useState(PAGE_SIZE);
 	const matchIds = useMemo(() => matches?.map((m) => m.metadata.matchId), [matches]);
 	const { data: badges } = useMatchBadgesBatch(matchIds);
+	const scorableIds = useMemo(
+		() => matches?.filter((m) => isAchievementEligible(m.info.queueId, m.info.gameDuration)).map((m) => m.metadata.matchId),
+		[matches],
+	);
+	const { data: performance, isLoading: performanceLoading } = usePerformanceSummaries(scorableIds, puuid);
 	const filtered = useMemo(() => (matches ? filterMatches(matches, puuid, queue, null) : []), [matches, puuid, queue]);
 
 	return (
@@ -83,6 +90,8 @@ export function MatchList({
 								lpChange={lpChange}
 								badgeIds={badgeIds}
 								matchBadges={badges?.[match.metadata.matchId]}
+								performance={performance?.[match.metadata.matchId] ?? null}
+								performanceLoading={performanceLoading && isAchievementEligible(queueId, gameDuration)}
 							/>
 						);
 					})}
