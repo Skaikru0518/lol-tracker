@@ -1,11 +1,11 @@
-// Percentile → score; tuned so the average game is ~62 and S+ (90+) is the top 5%
+// Percentile → score; tuned so the average game is ~65 and S+ (90+) is the top 7%
 const POINTS: [number, number][] = [
-	[0, 15],
-	[10, 40],
-	[35, 55],
-	[65, 70],
-	[85, 80],
-	[95, 90],
+	[0, 20],
+	[8, 40],
+	[30, 55],
+	[60, 70],
+	[80, 80],
+	[93, 90],
 	[100, 100],
 ];
 

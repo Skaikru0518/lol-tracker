@@ -175,11 +175,11 @@ describe("summarize", () => {
 });
 
 describe("calibrated scoring", () => {
-	it("puts a median game at the friendly curve's median (63, grade B)", () => {
+	it("puts a median game at the friendly curve's median (65, grade B)", () => {
 		const result = scorePerformance(match([me, opp]), "me", calibrated(baselinesAround(medianCenters)));
-		expect(result?.score).toBe(63);
+		expect(result?.score).toBe(65);
 		expect(result?.grade).toBe("B");
-		expect(result?.categories.every((c) => c.score === 63)).toBe(true);
+		expect(result?.categories.every((c) => c.score === 65)).toBe(true);
 	});
 
 	it("does not cache before the baseline has a calibration", () => {

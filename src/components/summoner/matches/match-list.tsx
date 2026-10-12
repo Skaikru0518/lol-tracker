@@ -15,6 +15,7 @@ import { calculateLPChange } from "@/lib/summoner/profile/lp-change";
 import { filterMatches } from "@/lib/summoner/matches/match-filter";
 import { type RuneMaps } from "@/lib/summoner/matches/match-row";
 import { type Match } from "@/lib/validators/match";
+import { PerformanceHelp } from "@/components/match/performance/performance-help";
 import { MatchFilters } from "./match-filters";
 import { MatchRow } from "./match-row";
 
@@ -50,7 +51,12 @@ export function MatchList({
 	return (
 		<Panel>
 			<div className="flex flex-col gap-2 border-b px-4 py-2.5 sm:flex-row sm:items-center">
-				<h2 className="text-sm font-semibold text-foreground">Recent games</h2>
+				<div className="flex items-center gap-1.5">
+					<h2 className="text-sm font-semibold text-foreground">Recent games</h2>
+					<TooltipProvider delayDuration={200}>
+						<PerformanceHelp />
+					</TooltipProvider>
+				</div>
 				<div className="sm:ml-auto sm:w-auto">
 					<MatchFilters
 						queue={queue}
