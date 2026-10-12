@@ -4,7 +4,7 @@ import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { ScoreCircle } from "@/components/match/performance/score-circle";
+import { ScoreCircle, ScorePlaceholder } from "@/components/match/performance/score-circle";
 import { ChampionIcon } from "@/components/ui/champion-icon";
 import { Skeleton } from "@/components/ui/skeleton";
 import { type ScoreSummary } from "@/lib/performance/score";
@@ -88,8 +88,10 @@ export function MatchRow({
 
 				{performance ? (
 					<ScoreCircle score={performance.score} grade={performance.grade} />
+				) : performanceLoading ? (
+					<Skeleton className="size-9 rounded-full" />
 				) : (
-					performanceLoading && <Skeleton className="size-9 rounded-full" />
+					<ScorePlaceholder />
 				)}
 
 				<ChampionIcon version={version} championName={player.championName} size={44} level={player.champLevel} />

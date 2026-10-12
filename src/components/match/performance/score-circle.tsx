@@ -13,3 +13,11 @@ export function ScoreCircle({ score, grade, size = "sm", className }: { score: n
 		</div>
 	);
 }
+
+export function ScorePlaceholder() {
+	return (
+		<div title="No performance score for this game" className="flex size-9 shrink-0 items-center justify-center rounded-full border-2 border-dashed border-muted-foreground/30 text-xs text-muted-foreground">
+			—
+		</div>
+	);
+}
