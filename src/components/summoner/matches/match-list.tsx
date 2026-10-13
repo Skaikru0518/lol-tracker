@@ -7,12 +7,18 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useMatchBadgesBatch } from "@/hooks/useMatchBadges";
+import { useApexCutoffs } from "@/hooks/useApexCutoffs";
+import { usePerformanceSummaries } from "@/hooks/usePerformance";
+import { isAchievementEligible } from "@/lib/achievements/eligibility";
 import { type QueueFilter } from "@/lib/game/queue-filters";
-import { type LpHistories, rankedQueueForQueueId } from "@/lib/game/ranked-queues";
-import { calculateLPChange } from "@/lib/summoner/profile/lp-change";
+import { type LpHistories, RANKED_QUEUE_TYPES, rankedQueueForQueueId } from "@/lib/game/ranked-queues";
+import { baseRankAt, performanceRank } from "@/lib/performance/performance-rank";
+import { lpChangesForGames } from "@/lib/summoner/profile/lp-estimate";
 import { filterMatches } from "@/lib/summoner/matches/match-filter";
 import { type RuneMaps } from "@/lib/summoner/matches/match-row";
 import { type Match } from "@/lib/validators/match";
+import { type RankedEntry } from "@/lib/validators/ranked";
+import { PerformanceHelp } from "@/components/match/performance/performance-help";
 import { MatchFilters } from "./match-filters";
 import { MatchRow } from "./match-row";
 
@@ -26,6 +32,7 @@ export function MatchList({
 	isLoading,
 	runeData,
 	lpHistories,
+	rankedEntries,
 }: {
 	matches?: Match[];
 	puuid: string;
@@ -33,17 +40,53 @@ export function MatchList({
 	isLoading: boolean;
 	runeData?: RuneMaps;
 	lpHistories?: LpHistories;
+	rankedEntries?: RankedEntry[];
 }) {
 	const [queue, setQueue] = useState<QueueFilter>("all");
 	const [visible, setVisible] = useState(PAGE_SIZE);
 	const matchIds = useMemo(() => matches?.map((m) => m.metadata.matchId), [matches]);
 	const { data: badges } = useMatchBadgesBatch(matchIds);
+	const scorableIds = useMemo(
+		() => matches?.filter((m) => isAchievementEligible(m.info.queueId, m.info.gameDuration)).map((m) => m.metadata.matchId),
+		[matches],
+	);
+	const { data: performance, isLoading: performanceLoading } = usePerformanceSummaries(scorableIds, puuid);
+	const lpChanges = useMemo(() => {
+		const changes = new Map<string, number>();
+		for (const queue of RANKED_QUEUE_TYPES) {
+			const games = (matches ?? []).flatMap((m) => {
+				const player = m.info.participants.find((p) => p.puuid === puuid);
+				if (!player || rankedQueueForQueueId(m.info.queueId) !== queue || !isAchievementEligible(m.info.queueId, m.info.gameDuration)) return [];
+				return [{ id: m.metadata.matchId, end: m.info.gameCreation + m.info.gameDuration * 1000, win: player.win }];
+			});
+			for (const [id, lp] of lpChangesForGames(lpHistories?.[queue], games)) changes.set(id, lp);
+		}
+		return changes;
+	}, [matches, puuid, lpHistories]);
+	const { data: cutoffs } = useApexCutoffs();
+	const performanceRanks = useMemo(() => {
+		const ranks = new Map<string, { tier: string; rank: string }>();
+		for (const m of matches ?? []) {
+			const queue = rankedQueueForQueueId(m.info.queueId);
+			const score = performance?.[m.metadata.matchId];
+			if (!queue || !score) continue;
+			const end = m.info.gameCreation + m.info.gameDuration * 1000;
+			const base = baseRankAt(lpHistories?.[queue], end, rankedEntries?.find((e) => e.queueType === queue));
+			if (base) ranks.set(m.metadata.matchId, performanceRank(base, score.score, cutoffs?.[queue]));
+		}
+		return ranks;
+	}, [matches, performance, lpHistories, rankedEntries, cutoffs]);
 	const filtered = useMemo(() => (matches ? filterMatches(matches, puuid, queue, null) : []), [matches, puuid, queue]);
 
 	return (
 		<Panel>
 			<div className="flex flex-col gap-2 border-b px-4 py-2.5 sm:flex-row sm:items-center">
-				<h2 className="text-sm font-semibold text-foreground">Recent games</h2>
+				<div className="flex items-center gap-1.5">
+					<h2 className="text-sm font-semibold text-foreground">Recent games</h2>
+					<TooltipProvider delayDuration={200}>
+						<PerformanceHelp />
+					</TooltipProvider>
+				</div>
 				<div className="sm:ml-auto sm:w-auto">
 					<MatchFilters
 						queue={queue}
@@ -68,9 +111,8 @@ export function MatchList({
 					{filtered.slice(0, visible).map((match) => {
 						const player = match.info.participants.find((p) => p.puuid === puuid);
 						if (!player) return null;
-						const { queueId, gameCreation, gameDuration } = match.info;
-						const rankedQueue = rankedQueueForQueueId(queueId);
-						const lpChange = rankedQueue ? calculateLPChange(lpHistories?.[rankedQueue], gameCreation + gameDuration * 1000) : null;
+						const { queueId, gameDuration } = match.info;
+						const lpChange = lpChanges.get(match.metadata.matchId) ?? null;
 						const badgeIds = (badges?.[match.metadata.matchId] ?? []).filter((b) => b.puuid === puuid).map((b) => b.badgeId);
 
 						return (
@@ -83,6 +125,9 @@ export function MatchList({
 								lpChange={lpChange}
 								badgeIds={badgeIds}
 								matchBadges={badges?.[match.metadata.matchId]}
+								performance={performance?.[match.metadata.matchId] ?? null}
+								performanceLoading={performanceLoading && isAchievementEligible(queueId, gameDuration)}
+								performanceRank={performanceRanks.get(match.metadata.matchId) ?? null}
 							/>
 						);
 					})}

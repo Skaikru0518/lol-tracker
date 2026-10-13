@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useRankedLpHistories } from "@/hooks/useRankedLpHistories";
 import { useMatches } from "@/hooks/useMatches";
 import { useRanked } from "@/hooks/useRanked";
+import { useMmrEstimates } from "@/hooks/useMmrEstimates";
 import { RANKED_QUEUE_TYPES } from "@/lib/game/ranked-queues";
 import { useRiftMatches } from "@/hooks/useRiftMatches";
 import { useRunes } from "@/hooks/useRunes";
@@ -16,6 +17,7 @@ import { AchievementPreview } from "./achievement-preview";
 import { MostPlayedPanel } from "./most-played-panel";
 import { RankedPanel } from "./ranked-panel";
 import { RecentlyPlayedPanel } from "./recently-played-panel";
+import { RecentPerformancePanel } from "./recent-performance/recent-performance-panel";
 import { RolesPerformancePanel } from "./roles-performance-panel";
 
 const INITIAL_MATCH_COUNT = 20;
@@ -38,6 +40,7 @@ export function OverviewTab() {
 	// Read stored Rift games only after the Riot fetch has saved the newest ones
 	const { data: riftMatches } = useRiftMatches(settled ? puuid : undefined, matches?.[0]?.metadata.matchId);
 	const lpHistories = useRankedLpHistories(puuid);
+	const { data: mmr } = useMmrEstimates(puuid, matches?.[0]?.metadata.matchId, settled);
 
 	return (
 		<>
@@ -46,14 +49,21 @@ export function OverviewTab() {
 				<div className="space-y-4">
 					{ranked
 						? RANKED_QUEUE_TYPES.map((queueType) => (
-								<RankedPanel key={queueType} puuid={puuid} queueType={queueType} entry={ranked.find((e) => e.queueType === queueType)} />
+								<RankedPanel
+									key={queueType}
+									puuid={puuid}
+									queueType={queueType}
+									entry={ranked.find((e) => e.queueType === queueType)}
+									mmr={mmr?.estimates.find((e) => e.queueType === queueType)}
+								/>
 							))
 						: RANKED_QUEUE_TYPES.map((queueType) => <Skeleton key={queueType} className="h-36" />)}
 					{riftMatches ? <RolesPerformancePanel matches={riftMatches} puuid={puuid} /> : <Skeleton className="h-72" />}
 					<MostPlayedPanel puuid={puuid} version={version} basePath={basePath} />
 					{matches && <RecentlyPlayedPanel matches={matches} puuid={puuid} version={version} />}
 				</div>
-				<div className="min-w-0">
+				<div className="min-w-0 space-y-4">
+					<RecentPerformancePanel puuid={puuid} version={version} newestMatchId={settled ? matches?.[0]?.metadata.matchId : undefined} />
 					<MatchList
 						matches={matches}
 						puuid={puuid}
@@ -61,6 +71,7 @@ export function OverviewTab() {
 						isLoading={isLoading}
 						runeData={runeData}
 						lpHistories={lpHistories}
+						rankedEntries={ranked}
 					/>
 				</div>
 			</div>

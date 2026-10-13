@@ -1,6 +1,7 @@
+import { type ApexCutoff } from "@/lib/validators/apex";
 import { type LPSnapshot } from "@/lib/validators/lp-history";
 
-const TIERS = ["IRON", "BRONZE", "SILVER", "GOLD", "PLATINUM", "EMERALD", "DIAMOND", "MASTER", "GRANDMASTER", "CHALLENGER"];
+export const TIERS = ["IRON", "BRONZE", "SILVER", "GOLD", "PLATINUM", "EMERALD", "DIAMOND", "MASTER", "GRANDMASTER", "CHALLENGER"];
 const DIVISIONS = ["IV", "III", "II", "I"];
 const APEX_INDEX = 7;
 
@@ -10,6 +11,19 @@ export function toAbsoluteLp(tier: string, rank: string, lp: number): number {
 	if (tierIndex === -1) return 0;
 	if (tierIndex >= APEX_INDEX) return APEX_INDEX * 400 + lp;
 	return tierIndex * 400 + Math.max(DIVISIONS.indexOf(rank), 0) * 100 + lp;
+}
+
+const APEX_START = APEX_INDEX * 400;
+
+export function fromAbsoluteLp(points: number, cutoff: ApexCutoff | null | undefined): { tier: string; rank: string } {
+	if (points >= APEX_START) {
+		const lp = points - APEX_START;
+		if (cutoff && lp >= cutoff.challenger) return { tier: "CHALLENGER", rank: "" };
+		if (cutoff && lp >= cutoff.grandmaster) return { tier: "GRANDMASTER", rank: "" };
+		return { tier: "MASTER", rank: "" };
+	}
+	const p = Math.max(points, 0);
+	return { tier: TIERS[Math.floor(p / 400)], rank: DIVISIONS[Math.floor((p % 400) / 100)] };
 }
 
 /** Ranked games played between two snapshots; 1 when W/L is unknown. */

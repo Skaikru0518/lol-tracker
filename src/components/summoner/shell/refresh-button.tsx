@@ -10,7 +10,7 @@ import { refreshTick } from "@/lib/summoner/profile/refresh-tick";
 
 const REFRESH_INTERVAL = 300;
 const COOLDOWN = 180;
-const REFRESHED_KEYS = ["matches", "ranked", "summoner", "mastery", "lp-history", "champion-stats"];
+const REFRESHED_KEYS = ["matches", "ranked", "summoner", "mastery", "lp-history", "champion-stats", "mmr"];
 
 async function forceRefreshData(puuid: string) {
 	await fetch(`/api/ranked?puuid=${puuid}&force=true`);

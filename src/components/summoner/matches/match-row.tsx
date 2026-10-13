@@ -4,7 +4,10 @@ import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ScoreCircle, ScorePlaceholder } from "@/components/match/performance/score-circle";
 import { ChampionIcon } from "@/components/ui/champion-icon";
+import { Skeleton } from "@/components/ui/skeleton";
+import { type ScoreSummary } from "@/lib/performance/score";
 import { ItemSlots } from "@/components/ui/item-slots";
 import { SpellRuneStack } from "@/components/ui/spell-rune-stack";
 import { getPlacementColor, getPlacementSuffix, isArenaMatch } from "@/lib/game/arena-helpers";
@@ -13,6 +16,7 @@ import { killParticipation, participantItems, rowResult, runeIcons, shortQueueNa
 import { type Match, type Participant } from "@/lib/validators/match";
 import { MatchBadges } from "./match-badges";
 import { MatchRowExpanded } from "./match-row-expanded";
+import { PerformanceRankSlot } from "./performance-rank-slot";
 import { rankedQueueForQueueId } from "@/lib/game/ranked-queues";
 
 function Stat({ value, label, className }: { value: React.ReactNode; label: string; className?: string }) {
@@ -33,6 +37,9 @@ export function MatchRow({
 	lpChange,
 	badgeIds,
 	matchBadges,
+	performance,
+	performanceLoading,
+	performanceRank,
 }: {
 	match: Match;
 	player: Participant;
@@ -41,6 +48,9 @@ export function MatchRow({
 	lpChange: number | null;
 	badgeIds: string[];
 	matchBadges?: { puuid: string; badgeId: string }[];
+	performance: ScoreSummary | null;
+	performanceLoading: boolean;
+	performanceRank: { tier: string; rank: string } | null;
 }) {
 	const [open, setOpen] = useState(false);
 	const { info } = match;
@@ -79,6 +89,14 @@ export function MatchRow({
 					</p>
 				</div>
 
+				{performance ? (
+					<ScoreCircle score={performance.score} grade={performance.grade} />
+				) : performanceLoading ? (
+					<Skeleton className="size-9 rounded-full" />
+				) : (
+					<ScorePlaceholder />
+				)}
+
 				<ChampionIcon version={version} championName={player.championName} size={44} level={player.champLevel} />
 				<SpellRuneStack
 					version={version}
@@ -104,6 +122,7 @@ export function MatchRow({
 							className={lpChange === null ? "text-muted-foreground" : lpChange >= 0 ? "text-win" : "text-loss"}
 						/>
 					)}
+					{ranked && <PerformanceRankSlot rank={performanceRank} />}
 				</div>
 
 				<div className="ml-auto flex basis-full flex-col items-start gap-1 sm:basis-auto sm:items-end">

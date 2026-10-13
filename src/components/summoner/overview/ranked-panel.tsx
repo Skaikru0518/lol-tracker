@@ -6,18 +6,22 @@ import { useLPHistory } from "@/hooks/useLPHistory";
 import { RANK_COLORS } from "@/lib/game/icon-helpers";
 import { formatRankLabel } from "@/lib/game/rank-calculator";
 import { RANKED_QUEUE_TITLES, type RankedQueueType } from "@/lib/game/ranked-queues";
+import { type MmrEstimate } from "@/lib/validators/mmr";
 import { type RankedEntry } from "@/lib/validators/ranked";
 import { LpSparkline } from "./lp-sparkline";
+import { MmrLine } from "./mmr-line";
 
 /** Rank card for one queue with a 30-day LP sparkline; shows Unranked without an entry. */
 export function RankedPanel({
 	puuid,
 	queueType,
 	entry,
+	mmr,
 }: {
 	puuid: string;
 	queueType: RankedQueueType;
 	entry?: RankedEntry;
+	mmr?: MmrEstimate;
 }) {
 	const { data: snapshots } = useLPHistory(entry ? puuid : undefined, queueType, "30d");
 
@@ -41,6 +45,7 @@ export function RankedPanel({
 										{" "}· {Math.round((entry.wins / Math.max(entry.wins + entry.losses, 1)) * 100)}%
 									</span>
 								</p>
+								{mmr && <MmrLine estimate={mmr} />}
 							</div>
 						</div>
 						<LpSparkline snapshots={snapshots} />

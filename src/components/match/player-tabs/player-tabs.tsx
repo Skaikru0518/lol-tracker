@@ -12,6 +12,7 @@ import { FarmingTab } from "./farming-tab";
 import { FightingTab } from "./fighting-tab";
 import { ObjectivesTab } from "./objectives-tab";
 import { OverviewTab } from "./overview-tab";
+import { PerformanceTab } from "./performance-tab";
 import { VisionTab } from "./vision-tab";
 
 export interface PlayerTabProps {
@@ -28,13 +29,14 @@ export interface PlayerTabProps {
 
 const TABS = [
 	{ id: "overview", label: "Overview", needsTimeline: false, Component: OverviewTab },
+	{ id: "performance", label: "Performance", needsTimeline: false, Component: PerformanceTab },
 	{ id: "fighting", label: "Fighting", needsTimeline: false, Component: FightingTab },
 	{ id: "farming", label: "Farming", needsTimeline: false, Component: FarmingTab },
 	{ id: "objectives", label: "Objectives", needsTimeline: true, Component: ObjectivesTab },
 	{ id: "vision", label: "Vision", needsTimeline: false, Component: VisionTab },
 ] as const;
 
-/** Tab bar for the selected player's Overview, Fighting, Farming, Objectives and Vision views. */
+/** Tab bar for the selected player's views. */
 export function PlayerTabs(props: PlayerTabProps) {
 	const [active, setActive] = useState<(typeof TABS)[number]["id"]>("overview");
 	const tab = TABS.find((t) => t.id === active) ?? TABS[0];
