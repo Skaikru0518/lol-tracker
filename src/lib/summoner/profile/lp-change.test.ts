@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { calculateLPChange, toAbsoluteLp } from "./lp-change";
+import { calculateLPChange, fromAbsoluteLp, toAbsoluteLp } from "./lp-change";
 
 const snap = (createdAt: string, tier: string, rank: string, lp: number) => ({
 	id: createdAt,
@@ -85,5 +85,35 @@ describe("calculateLPChange", () => {
 				end,
 			),
 		).toBeNull();
+	});
+});
+
+describe("fromAbsoluteLp", () => {
+	const cutoff = { grandmaster: 250, challenger: 600 };
+
+	it("maps divisions below Master", () => {
+		expect(fromAbsoluteLp(0, cutoff)).toEqual({ tier: "IRON", rank: "IV" });
+		expect(fromAbsoluteLp(1550, cutoff)).toEqual({ tier: "GOLD", rank: "I" });
+		expect(fromAbsoluteLp(2799, cutoff)).toEqual({ tier: "DIAMOND", rank: "I" });
+	});
+
+	it("clamps below Iron IV", () => {
+		expect(fromAbsoluteLp(-120, cutoff)).toEqual({ tier: "IRON", rank: "IV" });
+	});
+
+	it("names apex tiers by the cut-offs", () => {
+		expect(fromAbsoluteLp(2800, cutoff)).toEqual({ tier: "MASTER", rank: "" });
+		expect(fromAbsoluteLp(3050, cutoff)).toEqual({ tier: "GRANDMASTER", rank: "" });
+		expect(fromAbsoluteLp(3400, cutoff)).toEqual({ tier: "CHALLENGER", rank: "" });
+	});
+
+	it("keeps every apex value Master without cut-offs", () => {
+		expect(fromAbsoluteLp(4000, null)).toEqual({ tier: "MASTER", rank: "" });
+	});
+
+	it("round-trips with toAbsoluteLp", () => {
+		for (const [tier, rank] of [["SILVER", "III"], ["EMERALD", "II"], ["DIAMOND", "IV"]]) {
+			expect(fromAbsoluteLp(toAbsoluteLp(tier, rank, 42), cutoff)).toEqual({ tier, rank });
+		}
 	});
 });
