@@ -71,6 +71,7 @@ export function OverviewTab() {
 						isLoading={isLoading}
 						runeData={runeData}
 						lpHistories={lpHistories}
+						rankedEntries={ranked}
 					/>
 				</div>
 			</div>

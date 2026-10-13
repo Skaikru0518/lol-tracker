@@ -7,14 +7,17 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useMatchBadgesBatch } from "@/hooks/useMatchBadges";
+import { useApexCutoffs } from "@/hooks/useApexCutoffs";
 import { usePerformanceSummaries } from "@/hooks/usePerformance";
 import { isAchievementEligible } from "@/lib/achievements/eligibility";
 import { type QueueFilter } from "@/lib/game/queue-filters";
 import { type LpHistories, RANKED_QUEUE_TYPES, rankedQueueForQueueId } from "@/lib/game/ranked-queues";
+import { baseRankAt, performanceRank } from "@/lib/performance/performance-rank";
 import { lpChangesForGames } from "@/lib/summoner/profile/lp-estimate";
 import { filterMatches } from "@/lib/summoner/matches/match-filter";
 import { type RuneMaps } from "@/lib/summoner/matches/match-row";
 import { type Match } from "@/lib/validators/match";
+import { type RankedEntry } from "@/lib/validators/ranked";
 import { PerformanceHelp } from "@/components/match/performance/performance-help";
 import { MatchFilters } from "./match-filters";
 import { MatchRow } from "./match-row";
@@ -29,6 +32,7 @@ export function MatchList({
 	isLoading,
 	runeData,
 	lpHistories,
+	rankedEntries,
 }: {
 	matches?: Match[];
 	puuid: string;
@@ -36,6 +40,7 @@ export function MatchList({
 	isLoading: boolean;
 	runeData?: RuneMaps;
 	lpHistories?: LpHistories;
+	rankedEntries?: RankedEntry[];
 }) {
 	const [queue, setQueue] = useState<QueueFilter>("all");
 	const [visible, setVisible] = useState(PAGE_SIZE);
@@ -58,6 +63,19 @@ export function MatchList({
 		}
 		return changes;
 	}, [matches, puuid, lpHistories]);
+	const { data: cutoffs } = useApexCutoffs();
+	const performanceRanks = useMemo(() => {
+		const ranks = new Map<string, { tier: string; rank: string }>();
+		for (const m of matches ?? []) {
+			const queue = rankedQueueForQueueId(m.info.queueId);
+			const score = performance?.[m.metadata.matchId];
+			if (!queue || !score) continue;
+			const end = m.info.gameCreation + m.info.gameDuration * 1000;
+			const base = baseRankAt(lpHistories?.[queue], end, rankedEntries?.find((e) => e.queueType === queue));
+			if (base) ranks.set(m.metadata.matchId, performanceRank(base, score.score, cutoffs?.[queue]));
+		}
+		return ranks;
+	}, [matches, performance, lpHistories, rankedEntries, cutoffs]);
 	const filtered = useMemo(() => (matches ? filterMatches(matches, puuid, queue, null) : []), [matches, puuid, queue]);
 
 	return (
@@ -109,6 +127,7 @@ export function MatchList({
 								matchBadges={badges?.[match.metadata.matchId]}
 								performance={performance?.[match.metadata.matchId] ?? null}
 								performanceLoading={performanceLoading && isAchievementEligible(queueId, gameDuration)}
+								performanceRank={performanceRanks.get(match.metadata.matchId) ?? null}
 							/>
 						);
 					})}

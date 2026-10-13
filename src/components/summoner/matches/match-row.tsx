@@ -16,6 +16,7 @@ import { killParticipation, participantItems, rowResult, runeIcons, shortQueueNa
 import { type Match, type Participant } from "@/lib/validators/match";
 import { MatchBadges } from "./match-badges";
 import { MatchRowExpanded } from "./match-row-expanded";
+import { PerformanceRankSlot } from "./performance-rank-slot";
 import { rankedQueueForQueueId } from "@/lib/game/ranked-queues";
 
 function Stat({ value, label, className }: { value: React.ReactNode; label: string; className?: string }) {
@@ -38,6 +39,7 @@ export function MatchRow({
 	matchBadges,
 	performance,
 	performanceLoading,
+	performanceRank,
 }: {
 	match: Match;
 	player: Participant;
@@ -48,6 +50,7 @@ export function MatchRow({
 	matchBadges?: { puuid: string; badgeId: string }[];
 	performance: ScoreSummary | null;
 	performanceLoading: boolean;
+	performanceRank: { tier: string; rank: string } | null;
 }) {
 	const [open, setOpen] = useState(false);
 	const { info } = match;
@@ -119,6 +122,7 @@ export function MatchRow({
 							className={lpChange === null ? "text-muted-foreground" : lpChange >= 0 ? "text-win" : "text-loss"}
 						/>
 					)}
+					{ranked && <PerformanceRankSlot rank={performanceRank} />}
 				</div>
 
 				<div className="ml-auto flex basis-full flex-col items-start gap-1 sm:basis-auto sm:items-end">
