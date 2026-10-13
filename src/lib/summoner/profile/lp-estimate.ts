@@ -1,7 +1,7 @@
 import { type LPSnapshot } from "@/lib/validators/lp-history";
 import { toAbsoluteLp } from "./lp-change";
 
-interface GameResult {
+export interface GameResult {
 	id: string;
 	end: number;
 	win: boolean;
@@ -29,6 +29,11 @@ function gaps(snapshots: LPSnapshot[], games: GameResult[]): Gap[] {
 		result.push({ at: to, delta: toAbsoluteLp(after.tier, after.rank, after.lp) - toAbsoluteLp(before.tier, before.rank, before.lp), games: inGap });
 	}
 	return result;
+}
+
+export function exactLpChanges(snapshots: LPSnapshot[] | undefined, games: GameResult[]): Map<string, number> {
+	if (!snapshots || snapshots.length < 2) return new Map();
+	return new Map(gaps(snapshots, games).flatMap((g) => (g.games.length === 1 ? [[g.games[0].id, g.delta] as const] : [])));
 }
 
 /** LP change per game id; gaps with several games are split using the player's nearest known win gain. */

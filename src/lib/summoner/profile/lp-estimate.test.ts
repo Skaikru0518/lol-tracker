@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { lpChangesForGames } from "./lp-estimate";
+import { exactLpChanges, lpChangesForGames } from "./lp-estimate";
 
 const snap = (createdAt: string, lp: number, wins: number | null, losses: number | null, rank = "IV") => ({
 	id: createdAt,
@@ -79,5 +79,27 @@ describe("lpChangesForGames", () => {
 		];
 		const changes = lpChangesForGames(snapshots, games);
 		expect(["xerath", "seraphine", "karma", "thresh"].map((id) => changes.get(id))).toEqual([25, 25, -15, 25]);
+	});
+});
+
+describe("exactLpChanges", () => {
+	it("keeps only gaps with one game", () => {
+		const snapshots = [snap("2026-10-11T20:00:00Z", 0, 126, 99), snap("2026-10-11T21:00:00Z", 25, 127, 99), snap("2026-10-12T22:41:00Z", 85, 130, 100)];
+		const games = [
+			game("lux", "2026-10-11T20:40:00Z", true),
+			game("xerath", "2026-10-12T19:44:00Z", true),
+			game("seraphine", "2026-10-12T20:22:00Z", true),
+			game("karma", "2026-10-12T21:01:00Z", false),
+		];
+		expect([...exactLpChanges(snapshots, games)]).toEqual([["lux", 25]]);
+	});
+
+	it("skips a gap whose W/L counters disagree with the stored games", () => {
+		const snapshots = [snap("2026-10-11T20:00:00Z", 0, 126, 99), snap("2026-10-11T21:00:00Z", 40, 128, 99)];
+		expect(exactLpChanges(snapshots, [game("lux", "2026-10-11T20:40:00Z", true)]).size).toBe(0);
+	});
+
+	it("is empty without two snapshots", () => {
+		expect(exactLpChanges([snap("2026-10-11T20:00:00Z", 0, 126, 99)], [game("lux", "2026-10-11T20:40:00Z", true)]).size).toBe(0);
 	});
 });
