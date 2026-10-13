@@ -15,16 +15,17 @@ export async function refreshCutoffs(
 	attempts: CutoffAttempts,
 	fetchLowest: FetchLowest,
 	now: number,
+	{ force = false }: { force?: boolean } = {},
 ): Promise<{ cache: ApexCache; attempts: CutoffAttempts; changed: boolean }> {
 	const next: ApexCache = { ...cache };
 	const tried: CutoffAttempts = { ...attempts };
 	let changed = false;
 	for (const queue of APEX_QUEUES) {
 		const cached = cache[queue];
-		if (cached && now - cached.fetchedAt < CUTOFF_TTL_MS) continue;
+		if (!force && cached && now - cached.fetchedAt < CUTOFF_TTL_MS) continue;
 		const lastTry = tried[queue];
 		// Failures and empty leagues (season start) wait before Riot is asked again
-		if (lastTry !== undefined && now - lastTry < RETRY_AFTER_MS) continue;
+		if (!force && lastTry !== undefined && now - lastTry < RETRY_AFTER_MS) continue;
 		try {
 			const [grandmaster, challenger] = await Promise.all([fetchLowest("grandmaster", queue), fetchLowest("challenger", queue)]);
 			if (grandmaster === null || challenger === null) {

@@ -64,6 +64,16 @@ describe("refreshCutoffs backoff", () => {
 	});
 });
 
+describe("refreshCutoffs force", () => {
+	it("refetches a fresh cache and ignores the backoff", async () => {
+		let calls = 0;
+		const cached = { RANKED_SOLO_5x5: { ...lows, fetchedAt: NOW - 1000 }, RANKED_FLEX_SR: { ...lows, fetchedAt: NOW - 1000 } };
+		const { cache } = await refreshCutoffs(cached, { RANKED_SOLO_5x5: NOW - 1000 }, async (tier) => (calls++, tier === "grandmaster" ? 300 : 700), NOW, { force: true });
+		expect(calls).toBe(4);
+		expect(cache.RANKED_SOLO_5x5).toEqual({ grandmaster: 300, challenger: 700, fetchedAt: NOW });
+	});
+});
+
 describe("toCutoffs", () => {
 	it("drops the fetch time", () => {
 		expect(toCutoffs({ RANKED_FLEX_SR: { ...lows, fetchedAt: NOW } })).toEqual({ RANKED_FLEX_SR: lows });

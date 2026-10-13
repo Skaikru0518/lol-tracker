@@ -16,8 +16,8 @@ async function readCache(): Promise<ApexCache> {
 	return parsed.success ? parsed.data : {};
 }
 
-async function refresh(): Promise<ApexCutoffs> {
-	const result = await refreshCutoffs(await readCache(), attempts, async (tier, queue) => lowestLp((await getApexLeague(tier, queue)).entries), Date.now());
+async function refresh(force: boolean): Promise<ApexCutoffs> {
+	const result = await refreshCutoffs(await readCache(), attempts, async (tier, queue) => lowestLp((await getApexLeague(tier, queue)).entries), Date.now(), { force });
 	attempts = result.attempts;
 	if (result.changed) await setAppSetting(KEY, JSON.stringify(result.cache));
 	return toCutoffs(result.cache);
@@ -25,10 +25,16 @@ async function refresh(): Promise<ApexCutoffs> {
 
 // Profile loads ask for both routes at once, so concurrent refreshes share one Riot round
 export function apexCutoffs(): Promise<ApexCutoffs> {
-	inFlight ??= refresh().finally(() => {
+	inFlight ??= refresh(false).finally(() => {
 		inFlight = null;
 	});
 	return inFlight;
+}
+
+// Riot re-sorts Master+ once a day at the ladder update; the cron calls this right after it
+export async function forceRefreshApexCutoffs(): Promise<ApexCutoffs> {
+	await inFlight?.catch(() => undefined);
+	return refresh(true);
 }
 
 export async function cachedApexCutoffs(): Promise<ApexCutoffs> {
