@@ -59,9 +59,9 @@ export async function recentPerformance(puuid: string): Promise<RecentSummary> {
 				assists: player.assists,
 				teamId: player.teamId,
 				score: matchScores[puuid] ?? null,
-				lobby: players.flatMap((p) => (matchScores[p.puuid] ? [{ puuid: p.puuid, teamId: p.teamId, win: p.win, score: matchScores[p.puuid].score }] : [])),
+				lobby: players.flatMap((p) => (matchScores[p.puuid] ? [{ teamId: p.teamId, score: matchScores[p.puuid].score }] : [])),
 			},
 		];
 	});
-	return summarizeRecent(puuid, games);
+	return summarizeRecent(games);
 }

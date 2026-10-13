@@ -12,6 +12,15 @@ export const CATEGORY_LABELS: Record<CategoryId, string> = {
 	vision: "Vision",
 };
 
+export const CATEGORY_SHORT_LABELS: Record<CategoryId, string> = {
+	laning: "Lane",
+	farming: "Farm",
+	combat: "Combat",
+	teamfight: "Teamfight",
+	objectives: "Objective",
+	vision: "Vision",
+};
+
 export const METRIC_IDS = [
 	"goldDiffPerMin",
 	"xpDiffPerMin",

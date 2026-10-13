@@ -9,10 +9,10 @@ export function TopChampions({ champions, version }: { champions: RecentSummaryP
 				<li key={c.championName} className="flex items-center gap-2 text-xs">
 					<ChampionIcon version={version} championName={c.championName} size={28} />
 					<span className={cn("w-9 font-semibold", c.winRate >= 50 ? "text-win" : "text-loss")}>{c.winRate}%</span>
-					<span className="text-muted-foreground">
+					<span className="w-11 text-muted-foreground">
 						{c.wins}W–{c.games - c.wins}L
 					</span>
-					<span className="ml-auto text-muted-foreground">{c.kda} KDA</span>
+					<span className="text-muted-foreground">{c.kda} KDA</span>
 				</li>
 			))}
 		</ul>

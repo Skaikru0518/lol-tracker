@@ -14,6 +14,10 @@ export function gradeFor(score: number): Grade {
 	return MIN_SCORE.find(([, min]) => score >= min)?.[0] ?? "D";
 }
 
+export function gradeBands(): { grade: Grade; min: number; max: number }[] {
+	return MIN_SCORE.map(([grade, min], i) => ({ grade, min, max: i === 0 ? 100 : MIN_SCORE[i - 1][1] })).reverse();
+}
+
 export const GRADE_COLORS: Record<Grade, string> = {
 	"S+": "#f5c542",
 	S: "#a78bfa",

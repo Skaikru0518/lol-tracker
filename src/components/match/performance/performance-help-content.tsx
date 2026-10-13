@@ -1,14 +1,13 @@
-import { GRADE_COLORS, type Grade } from "@/lib/performance/grades";
+import { GRADE_COLORS, gradeBands } from "@/lib/performance/grades";
 import { ROLE_LABELS, ROLES } from "@/lib/performance/roles";
 import { CATEGORIES, CATEGORY_LABELS, ROLE_WEIGHTS, type CategoryId } from "@/lib/performance/weights";
+import { ScoreCircle } from "./score-circle";
 
-const GRADE_RANGES: [Grade, string][] = [
-	["S+", "90+"],
-	["S", "80–89"],
-	["A", "70–79"],
-	["B", "55–69"],
-	["C", "40–54"],
-	["D", "below 40"],
+const FACTS = [
+	"Every ranked Solo, Flex and 5s game gets a 0–100 score for each player.",
+	"You are compared with players in your role from games Summon.gg stored over the last 60 days.",
+	"An average game lands around 65 (B); S+ is roughly the top 7%.",
+	"Normals, ARAM, Arena and remakes are not scored. A score never changes once calculated.",
 ];
 
 const CATEGORY_HELP: Record<CategoryId, string> = {
@@ -32,25 +31,35 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 export function PerformanceHelpContent() {
 	return (
 		<div className="space-y-5 text-sm text-muted-foreground">
-			<Section title="The score">
-				<ul className="list-disc space-y-1 pl-5">
-					<li>Every ranked Solo, Flex and 5s game gets a score from 0 to 100 for each player.</li>
-					<li>You are compared with players in the same role from ranked games Summon.gg stored over the last 60 days.</li>
-					<li>An average game lands around 65 (B); S+ is roughly the top 7% of games.</li>
-					<li>Normals, ARAM, Arena and remakes are not scored. A game&apos;s score stays the same once it is calculated.</li>
+			<div className="flex items-center gap-4 rounded-xl border p-3.5" style={{ backgroundImage: `linear-gradient(110deg, ${GRADE_COLORS.B}22, transparent 60%)` }}>
+				<ScoreCircle score={65} grade="B" size="lg" />
+				<ul className="grid flex-1 gap-x-4 gap-y-1.5 text-xs sm:grid-cols-2">
+					{FACTS.map((fact) => (
+						<li key={fact} className="flex gap-2">
+							<span className="text-primary">◆</span>
+							{fact}
+						</li>
+					))}
 				</ul>
-			</Section>
+			</div>
 
 			<Section title="Grades">
-				<div className="flex flex-wrap gap-2">
-					{GRADE_RANGES.map(([grade, range]) => (
-						<span key={grade} className="rounded border px-2 py-0.5 text-xs">
-							<span className="font-bold" style={{ color: GRADE_COLORS[grade] }}>
+				<div>
+					<div className="flex h-7 overflow-hidden rounded-lg text-xs font-extrabold text-black/80">
+						{gradeBands().map(({ grade, min, max }) => (
+							<div key={grade} className="flex items-center justify-center" style={{ width: `${max - min}%`, backgroundColor: GRADE_COLORS[grade] }}>
 								{grade}
-							</span>{" "}
-							{range}
-						</span>
-					))}
+							</div>
+						))}
+					</div>
+					<div className="relative mt-1 flex text-3xs">
+						{gradeBands().map(({ grade, min, max }) => (
+							<span key={grade} style={{ width: `${max - min}%` }}>
+								{min}
+							</span>
+						))}
+						<span className="absolute right-0">100</span>
+					</div>
 				</div>
 			</Section>
 
