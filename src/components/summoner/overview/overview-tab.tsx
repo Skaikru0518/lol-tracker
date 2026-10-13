@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useRankedLpHistories } from "@/hooks/useRankedLpHistories";
 import { useMatches } from "@/hooks/useMatches";
 import { useRanked } from "@/hooks/useRanked";
+import { useMmrEstimates } from "@/hooks/useMmrEstimates";
 import { RANKED_QUEUE_TYPES } from "@/lib/game/ranked-queues";
 import { useRiftMatches } from "@/hooks/useRiftMatches";
 import { useRunes } from "@/hooks/useRunes";
@@ -34,6 +35,7 @@ export function useOverviewMatches(puuid: string): { matches?: Match[]; isLoadin
 export function OverviewTab() {
 	const { puuid, basePath, version } = useSummonerContext();
 	const { data: ranked } = useRanked(puuid);
+	const { data: mmr } = useMmrEstimates(puuid);
 	const { data: runeData } = useRunes();
 	const { matches, isLoading, settled } = useOverviewMatches(puuid);
 	// Read stored Rift games only after the Riot fetch has saved the newest ones
@@ -47,7 +49,13 @@ export function OverviewTab() {
 				<div className="space-y-4">
 					{ranked
 						? RANKED_QUEUE_TYPES.map((queueType) => (
-								<RankedPanel key={queueType} puuid={puuid} queueType={queueType} entry={ranked.find((e) => e.queueType === queueType)} />
+								<RankedPanel
+									key={queueType}
+									puuid={puuid}
+									queueType={queueType}
+									entry={ranked.find((e) => e.queueType === queueType)}
+									mmr={mmr?.estimates.find((e) => e.queueType === queueType)}
+								/>
 							))
 						: RANKED_QUEUE_TYPES.map((queueType) => <Skeleton key={queueType} className="h-36" />)}
 					{riftMatches ? <RolesPerformancePanel matches={riftMatches} puuid={puuid} /> : <Skeleton className="h-72" />}
