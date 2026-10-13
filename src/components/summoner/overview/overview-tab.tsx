@@ -35,12 +35,12 @@ export function useOverviewMatches(puuid: string): { matches?: Match[]; isLoadin
 export function OverviewTab() {
 	const { puuid, basePath, version } = useSummonerContext();
 	const { data: ranked } = useRanked(puuid);
-	const { data: mmr } = useMmrEstimates(puuid);
 	const { data: runeData } = useRunes();
 	const { matches, isLoading, settled } = useOverviewMatches(puuid);
 	// Read stored Rift games only after the Riot fetch has saved the newest ones
 	const { data: riftMatches } = useRiftMatches(settled ? puuid : undefined, matches?.[0]?.metadata.matchId);
 	const lpHistories = useRankedLpHistories(puuid);
+	const { data: mmr } = useMmrEstimates(puuid, matches?.[0]?.metadata.matchId, settled);
 
 	return (
 		<>

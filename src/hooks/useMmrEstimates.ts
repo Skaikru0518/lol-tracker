@@ -7,6 +7,12 @@ async function fetchMmr(puuid: string): Promise<MmrEstimates> {
 	return mmrEstimatesSchema.parse(await res.json());
 }
 
-export function useMmrEstimates(puuid: string | undefined) {
-	return useQuery<MmrEstimates>({ queryKey: ["mmr", puuid], queryFn: () => fetchMmr(puuid!), enabled: !!puuid, staleTime: 5 * 60 * 1000 });
+// Waits for the match list to store the newest games, so lobby ranks and LP gaps include them
+export function useMmrEstimates(puuid: string | undefined, newestMatchId: string | undefined, settled: boolean) {
+	return useQuery<MmrEstimates>({
+		queryKey: ["mmr", puuid, newestMatchId ?? null],
+		queryFn: () => fetchMmr(puuid!),
+		enabled: !!puuid && settled,
+		staleTime: 5 * 60 * 1000,
+	});
 }

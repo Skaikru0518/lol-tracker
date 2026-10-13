@@ -3,7 +3,7 @@ import { ACHIEVEMENT_QUEUE_IDS, MIN_ACHIEVEMENT_GAME_SECONDS } from "@/lib/achie
 import { RANKED_QUEUE_TYPES, rankedQueueForQueueId, type RankedQueueType } from "@/lib/game/ranked-queues";
 import { type LPSnapshot } from "@/lib/validators/lp-history";
 import { type MmrEstimates } from "@/lib/validators/mmr";
-import { apexCutoffs } from "./apex-cutoffs-store";
+import { cachedApexCutoffs } from "./apex-cutoffs-store";
 import { toAbsoluteLp } from "./lp-change";
 import { exactLpChanges } from "./lp-estimate";
 import { estimateMmr } from "./mmr-estimate";
@@ -45,7 +45,7 @@ export async function mmrEstimates(puuid: string): Promise<MmrEstimates> {
 		select: { puuid: true, queueType: true, tier: true, rank: true, leaguePoints: true },
 	});
 	const knownLp = new Map(known.map((k) => [`${k.puuid}:${k.queueType}`, toAbsoluteLp(k.tier, k.rank, k.leaguePoints)]));
-	const cutoffs = await apexCutoffs();
+	const cutoffs = await cachedApexCutoffs();
 
 	const estimates = await Promise.all(
 		entries.map(async (entry) => {
