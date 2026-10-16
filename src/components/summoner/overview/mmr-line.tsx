@@ -18,11 +18,13 @@ export function MmrLine({ estimate }: { estimate: MmrEstimate }) {
 					</p>
 				</TooltipTrigger>
 				<TooltipContent>
-					{mmrTooltipLines(estimate).map((line, i) => (
-						<p key={line} className={i === 0 ? "font-semibold" : undefined}>
-							{line}
-						</p>
-					))}
+					<div className="flex flex-col gap-0.5">
+						{mmrTooltipLines(estimate).map((line, i) => (
+							<p key={line} className={i === 0 ? "font-semibold" : undefined}>
+								{line}
+							</p>
+						))}
+					</div>
 				</TooltipContent>
 			</Tooltip>
 		</TooltipProvider>
