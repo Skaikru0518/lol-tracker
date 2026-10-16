@@ -111,12 +111,10 @@ export function lobbyRankAt(
 
 const CONFIDENCE_LABELS: Record<MmrEstimate["confidence"], string> = { high: "High confidence", medium: "Medium confidence", low: "Low confidence" };
 
-export function mmrTooltip(e: MmrEstimate): string {
+export function mmrTooltipLines(e: MmrEstimate): string[] {
 	return [
 		CONFIDENCE_LABELS[e.confidence],
 		e.lpGames > 0 && e.winGain !== null && e.lossLoss !== null ? `${e.lpGames} games · +${e.winGain} / −${e.lossLoss} LP` : null,
 		e.lobbyPlayers > 0 ? `${e.lobbyPlayers} known lobby players` : null,
-	]
-		.filter(Boolean)
-		.join(" · ");
+	].filter((line) => line !== null);
 }

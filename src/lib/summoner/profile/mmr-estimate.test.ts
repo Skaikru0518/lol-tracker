@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { estimateMmr, lobbyRankAt, mmrTooltip, pickLpChanges } from "./mmr-estimate";
+import { estimateMmr, lobbyRankAt, mmrTooltipLines, pickLpChanges } from "./mmr-estimate";
 
 const current = { tier: "DIAMOND", rank: "III", lp: 50 }; // absolute 2550
 const base = { queueType: "RANKED_FLEX_SR" as const, current, lpChanges: [], lobbies: [], cutoff: { grandmaster: 250, challenger: 600 } };
@@ -75,12 +75,12 @@ describe("estimateMmr", () => {
 	});
 });
 
-describe("mmrTooltip", () => {
-	it("lists the sample and skips missing parts", () => {
+describe("mmrTooltipLines", () => {
+	it("puts confidence, LP sample and lobby sample on separate lines, skipping missing parts", () => {
 		const e = estimateMmr({ ...base, lpChanges: games(4, 25, 2, 15) })!;
-		expect(mmrTooltip(e)).toBe("Low confidence · 6 games · +25 / −15 LP");
+		expect(mmrTooltipLines(e)).toEqual(["Low confidence", "6 games · +25 / −15 LP"]);
 		const lobbyOnly = estimateMmr({ ...base, lobbies: [[2800, 2900, 3000]] })!;
-		expect(mmrTooltip(lobbyOnly)).toBe("Low confidence · 3 known lobby players");
+		expect(mmrTooltipLines(lobbyOnly)).toEqual(["Low confidence", "3 known lobby players"]);
 	});
 });
 

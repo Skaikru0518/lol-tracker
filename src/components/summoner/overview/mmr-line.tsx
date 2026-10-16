@@ -1,7 +1,7 @@
 import { ArrowDown, ArrowUp } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { formatRankLabel } from "@/lib/game/rank-calculator";
-import { mmrTooltip } from "@/lib/summoner/profile/mmr-estimate";
+import { mmrTooltipLines } from "@/lib/summoner/profile/mmr-estimate";
 import { type MmrEstimate } from "@/lib/validators/mmr";
 import { ConfidenceBars } from "./confidence-bars";
 
@@ -17,7 +17,13 @@ export function MmrLine({ estimate }: { estimate: MmrEstimate }) {
 						<ConfidenceBars confidence={estimate.confidence} />
 					</p>
 				</TooltipTrigger>
-				<TooltipContent>{mmrTooltip(estimate)}</TooltipContent>
+				<TooltipContent>
+					{mmrTooltipLines(estimate).map((line, i) => (
+						<p key={line} className={i === 0 ? "font-semibold" : undefined}>
+							{line}
+						</p>
+					))}
+				</TooltipContent>
 			</Tooltip>
 		</TooltipProvider>
 	);
