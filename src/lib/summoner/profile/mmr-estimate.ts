@@ -64,6 +64,11 @@ export function estimateMmr({ queueType, current, lpChanges, lobbies, cutoff }: 
 	};
 }
 
+// LP gains drift with MMR, so only the newest exact games count, however far back they had to be found
+export function pickLpChanges(newestFirst: { id: string; win: boolean }[], changes: Map<string, number>, limit: number): MmrInput["lpChanges"] {
+	return newestFirst.flatMap((g) => (changes.has(g.id) ? [{ win: g.win, change: changes.get(g.id)! }] : [])).slice(0, limit);
+}
+
 export function mmrTooltip(e: MmrEstimate): string {
 	return [
 		e.lpGames > 0 && e.winGain !== null && e.lossLoss !== null ? `${e.lpGames} games · +${e.winGain} / −${e.lossLoss} LP` : null,

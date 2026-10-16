@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { estimateMmr, mmrTooltip } from "./mmr-estimate";
+import { estimateMmr, mmrTooltip, pickLpChanges } from "./mmr-estimate";
 
 const current = { tier: "DIAMOND", rank: "III", lp: 50 }; // absolute 2550
 const base = { queueType: "RANKED_FLEX_SR" as const, current, lpChanges: [], lobbies: [], cutoff: { grandmaster: 250, challenger: 600 } };
@@ -57,5 +57,26 @@ describe("mmrTooltip", () => {
 		expect(mmrTooltip(e)).toBe("6 games · +25 / −15 LP");
 		const lobbyOnly = estimateMmr({ ...base, lobbies: [[2800, 2900, 3000]] })!;
 		expect(mmrTooltip(lobbyOnly)).toBe("3 known lobby players");
+	});
+});
+
+describe("pickLpChanges", () => {
+	const games = Array.from({ length: 30 }, (_, i) => ({ id: `g${i}`, win: i % 2 === 0 }));
+
+	it("takes the newest exact changes up to the limit, skipping games without one", () => {
+		const changes = new Map(games.filter((_, i) => i % 3 !== 0).map((g) => [g.id, g.win ? 20 : -20] as const));
+		const picked = pickLpChanges(games, changes, 5);
+		// g0, g3, g6 have no exact change; g1, g2, g4, g5, g7 are the newest five that do
+		expect(picked).toEqual([
+			{ win: false, change: -20 },
+			{ win: true, change: 20 },
+			{ win: true, change: 20 },
+			{ win: false, change: -20 },
+			{ win: false, change: -20 },
+		]);
+	});
+
+	it("returns fewer when the window runs out", () => {
+		expect(pickLpChanges(games.slice(0, 3), new Map([["g1", -15]]), 20)).toEqual([{ win: false, change: -15 }]);
 	});
 });

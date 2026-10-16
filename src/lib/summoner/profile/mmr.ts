@@ -1,15 +1,17 @@
 import { prisma } from "@/lib/server/db";
 import { ACHIEVEMENT_QUEUE_IDS, MIN_ACHIEVEMENT_GAME_SECONDS } from "@/lib/achievements/eligibility";
+import { currentSeason } from "@/lib/achievements/seasons";
 import { RANKED_QUEUE_TYPES, rankedQueueForQueueId, type RankedQueueType } from "@/lib/game/ranked-queues";
 import { type LPSnapshot } from "@/lib/validators/lp-history";
 import { type MmrEstimates } from "@/lib/validators/mmr";
 import { cachedApexCutoffs } from "./apex-cutoffs-store";
 import { toAbsoluteLp } from "./lp-change";
 import { exactLpChanges } from "./lp-estimate";
-import { estimateMmr } from "./mmr-estimate";
+import { estimateMmr, pickLpChanges } from "./mmr-estimate";
 
-const RECENT_GAMES = 20;
-const SNAPSHOTS = 100;
+const RECENT_GAMES = 50;
+const LP_GAMES = 20;
+const SNAPSHOTS = 200;
 
 interface GameRow {
 	matchId: string;
@@ -35,6 +37,7 @@ export async function mmrEstimates(puuid: string): Promise<MmrEstimates> {
 			WHERE data->'metadata'->'participants' @> ${JSON.stringify(puuid)}::jsonb
 				AND "queueId" = ANY(${ACHIEVEMENT_QUEUE_IDS}::int[])
 				AND "gameDuration" >= ${MIN_ACHIEVEMENT_GAME_SECONDS}
+				AND "gameCreation" >= ${BigInt(Date.parse(currentSeason().start))}
 		) m
 		WHERE m.n <= ${RECENT_GAMES}
 	`;
@@ -50,7 +53,7 @@ export async function mmrEstimates(puuid: string): Promise<MmrEstimates> {
 	const estimates = await Promise.all(
 		entries.map(async (entry) => {
 			const queueType = entry.queueType as RankedQueueType;
-			const games = rows.filter((r) => rankedQueueForQueueId(r.queueId) === queueType && r.win !== null);
+			const games = rows.filter((r) => rankedQueueForQueueId(r.queueId) === queueType && r.win !== null).sort((a, b) => Number(b.end - a.end));
 			const snapshots: LPSnapshot[] = (
 				await prisma.lPHistory.findMany({ where: { puuid, queueType }, orderBy: { createdAt: "desc" }, take: SNAPSHOTS })
 			)
@@ -60,7 +63,7 @@ export async function mmrEstimates(puuid: string): Promise<MmrEstimates> {
 			return estimateMmr({
 				queueType,
 				current: { tier: entry.tier, rank: entry.rank, lp: entry.leaguePoints },
-				lpChanges: games.flatMap((g) => (changes.has(g.matchId) ? [{ win: g.win!, change: changes.get(g.matchId)! }] : [])),
+				lpChanges: pickLpChanges(games.map((g) => ({ id: g.matchId, win: g.win! })), changes, LP_GAMES),
 				lobbies: games.map((g) => g.participants.flatMap((p) => (p !== puuid && knownLp.has(`${p}:${queueType}`) ? [knownLp.get(`${p}:${queueType}`)!] : []))),
 				cutoff: cutoffs[queueType],
 			});
