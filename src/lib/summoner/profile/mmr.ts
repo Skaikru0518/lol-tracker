@@ -5,9 +5,8 @@ import { RANKED_QUEUE_TYPES, rankedQueueForQueueId, type RankedQueueType } from 
 import { type LPSnapshot } from "@/lib/validators/lp-history";
 import { type MmrEstimates } from "@/lib/validators/mmr";
 import { cachedApexCutoffs } from "./apex-cutoffs-store";
-import { toAbsoluteLp } from "./lp-change";
 import { exactLpChanges } from "./lp-estimate";
-import { estimateMmr, pickLpChanges } from "./mmr-estimate";
+import { estimateMmr, lobbyRankAt, pickLpChanges } from "./mmr-estimate";
 
 const RECENT_GAMES = 50;
 const LP_GAMES = 20;
@@ -26,6 +25,7 @@ export async function mmrEstimates(puuid: string): Promise<MmrEstimates> {
 	const entries = await prisma.rankedEntry.findMany({ where: { puuid, queueType: { in: [...RANKED_QUEUE_TYPES] } } });
 	if (entries.length === 0) return { estimates: [] };
 
+	const seasonStart = new Date(currentSeason().start);
 	const rows = await prisma.$queryRaw<GameRow[]>`
 		SELECT m."matchId", m."queueId", (m."gameCreation" + m."gameDuration" * 1000)::bigint AS "end",
 			(SELECT (x->>'win')::boolean FROM jsonb_array_elements(m.data->'info'->'participants') x WHERE x->>'puuid' = ${puuid}) AS win,
@@ -37,18 +37,31 @@ export async function mmrEstimates(puuid: string): Promise<MmrEstimates> {
 			WHERE data->'metadata'->'participants' @> ${JSON.stringify(puuid)}::jsonb
 				AND "queueId" = ANY(${ACHIEVEMENT_QUEUE_IDS}::int[])
 				AND "gameDuration" >= ${MIN_ACHIEVEMENT_GAME_SECONDS}
-				AND "gameCreation" >= ${BigInt(Date.parse(currentSeason().start))}
+				AND "gameCreation" >= ${BigInt(seasonStart.getTime())}
 		) m
 		WHERE m.n <= ${RECENT_GAMES}
 	`;
 
 	const others = [...new Set(rows.flatMap((r) => r.participants).filter((p) => p !== puuid))];
-	const known = await prisma.rankedEntry.findMany({
-		where: { puuid: { in: others } },
-		select: { puuid: true, queueType: true, tier: true, rank: true, leaguePoints: true },
-	});
-	const knownLp = new Map(known.map((k) => [`${k.puuid}:${k.queueType}`, toAbsoluteLp(k.tier, k.rank, k.leaguePoints)]));
-	const cutoffs = await cachedApexCutoffs();
+	const queueTypes = entries.map((e) => e.queueType);
+	const [known, knownHistory, cutoffs] = await Promise.all([
+		prisma.rankedEntry.findMany({
+			where: { puuid: { in: others }, queueType: { in: queueTypes } },
+			select: { puuid: true, queueType: true, tier: true, rank: true, leaguePoints: true, updatedAt: true },
+		}),
+		prisma.lPHistory.findMany({
+			where: { puuid: { in: others }, queueType: { in: queueTypes }, createdAt: { gte: seasonStart } },
+			select: { id: true, puuid: true, queueType: true, tier: true, rank: true, lp: true, wins: true, losses: true, createdAt: true },
+		}),
+		cachedApexCutoffs(),
+	]);
+	const entryOf = new Map(known.map((k) => [`${k.puuid}:${k.queueType}`, k]));
+	const historyOf = new Map<string, LPSnapshot[]>();
+	for (const h of knownHistory) {
+		const key = `${h.puuid}:${h.queueType}`;
+		historyOf.set(key, [...(historyOf.get(key) ?? []), { id: h.id, tier: h.tier, rank: h.rank, lp: h.lp, wins: h.wins, losses: h.losses, createdAt: h.createdAt.toISOString() }]);
+	}
+	const now = Date.now();
 
 	const estimates = await Promise.all(
 		entries.map(async (entry) => {
@@ -64,7 +77,13 @@ export async function mmrEstimates(puuid: string): Promise<MmrEstimates> {
 				queueType,
 				current: { tier: entry.tier, rank: entry.rank, lp: entry.leaguePoints },
 				lpChanges: pickLpChanges(games.map((g) => ({ id: g.matchId, win: g.win! })), changes, LP_GAMES),
-				lobbies: games.map((g) => g.participants.flatMap((p) => (p !== puuid && knownLp.has(`${p}:${queueType}`) ? [knownLp.get(`${p}:${queueType}`)!] : []))),
+				lobbies: games.map((g) =>
+					g.participants.flatMap((p) => {
+						if (p === puuid) return [];
+						const rank = lobbyRankAt(historyOf.get(`${p}:${queueType}`), Number(g.end), entryOf.get(`${p}:${queueType}`), now);
+						return rank === null ? [] : [rank];
+					}),
+				),
 				cutoff: cutoffs[queueType],
 			});
 		}),

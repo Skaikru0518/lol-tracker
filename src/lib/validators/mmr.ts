@@ -7,6 +7,7 @@ export const mmrEstimateSchema = z.object({
 	rank: z.string(),
 	absolute: z.number(),
 	direction: z.enum(["above", "below", "equal"]),
+	confidence: z.enum(["high", "medium", "low"]),
 	lpGames: z.number(),
 	winGain: z.number().nullable(),
 	lossLoss: z.number().nullable(),
