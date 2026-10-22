@@ -1,13 +1,14 @@
-import { DEFAULT_PLATFORM } from "@/lib/game/platforms";
 import { prisma } from "@/lib/server/db";
+import { type Platform } from "@/lib/game/platforms";
 import { getSummonerByPuuid } from "@/lib/riot/summoner";
+import { RiotApiError } from "@/lib/riot/riot";
 import { isRecent, revalidateInBackground } from "@/lib/server/cache-utils";
 import { type Summoner } from "@/lib/validators/summoner";
 
 const SUMMONER_MAX_AGE_SECONDS = 300;
 
-async function fetchAndStoreSummoner(puuid: string): Promise<Summoner> {
-	const summoner = await getSummonerByPuuid(DEFAULT_PLATFORM, puuid);
+async function fetchAndStoreSummoner(platform: Platform, puuid: string): Promise<Summoner> {
+	const summoner = await getSummonerByPuuid(platform, puuid);
 	const data = {
 		profileIconId: summoner.profileIconId,
 		summonerLevel: summoner.summonerLevel,
@@ -21,14 +22,21 @@ async function fetchAndStoreSummoner(puuid: string): Promise<Summoner> {
 	return summoner;
 }
 
-/** Summoner by puuid: DB first (revalidated in the background when stale), else Riot. */
-export async function resolveSummoner(puuid: string): Promise<Summoner> {
-	const cached = await prisma.summoner.findUnique({ where: { puuid } });
-	if (!cached) return fetchAndStoreSummoner(puuid);
+/** Summoner on `platform`, or null when it has none there; the stored row only counts for the account's stored platform. */
+export async function resolveSummoner(platform: Platform, puuid: string, stored: Platform | null): Promise<Summoner | null> {
+	const cached = stored === platform ? await prisma.summoner.findUnique({ where: { puuid } }) : null;
+	if (!cached) {
+		try {
+			return await fetchAndStoreSummoner(platform, puuid);
+		} catch (error) {
+			if (error instanceof RiotApiError && error.status === 404) return null;
+			throw error;
+		}
+	}
 
 	if (!isRecent(cached.updatedAt, SUMMONER_MAX_AGE_SECONDS)) {
 		revalidateInBackground(async () => {
-			await fetchAndStoreSummoner(puuid);
+			await fetchAndStoreSummoner(platform, puuid);
 		});
 	}
 

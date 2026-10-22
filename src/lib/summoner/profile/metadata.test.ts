@@ -4,6 +4,7 @@ import { buildProfileMetadata } from "./metadata";
 const base = {
 	account: { puuid: "p1", gameName: "Skaikru", tagLine: "HEAVN" },
 	summoner: { puuid: "p1", profileIconId: 1, summonerLevel: 692, revisionDate: 1 },
+	platform: "eune" as const,
 	topMasteryChampionId: null,
 };
 

@@ -2,7 +2,8 @@ import { cache } from "react";
 import { decodeSlug, parseSummonerSlug } from "@/lib/game/riot-id";
 import { RiotApiError } from "@/lib/riot/riot";
 import { resolveAccount } from "@/lib/summoner/profile/account";
-import { resolveSummoner } from "@/lib/summoner/profile/summoner";
+import { locateSummoner } from "@/lib/summoner/profile/locate-summoner";
+import { type Platform } from "@/lib/game/platforms";
 import { resolveRankedEntries } from "@/lib/summoner/profile/ranked";
 import { resolveTopMasteries } from "@/lib/summoner/champions/mastery";
 import { type Account, type Summoner } from "@/lib/validators/summoner";
@@ -17,6 +18,7 @@ export const PROFILE_MASTERY_COUNT = 5;
 export interface SummonerProfile {
 	account: Account;
 	summoner: Summoner;
+	platform: Platform;
 	ranked: RankedEntry[];
 	topMasteryChampionId: number | null;
 }
@@ -28,14 +30,15 @@ export const getSummonerProfile = cache(
 		if (!gameName || !tagLine) return null;
 
 		let account: Account;
-		let summoner: Summoner;
 		try {
 			account = await resolveAccount(gameName, tagLine);
-			summoner = await resolveSummoner(account.puuid); // 404 here: Riot ID exists on another platform
 		} catch (error) {
 			if (error instanceof RiotApiError && error.status === 404) return null;
 			throw error;
 		}
+		const located = await locateSummoner(account.puuid, null);
+		if (!located) return null;
+		const { summoner, platform } = located;
 
 		const [ranked, masteries] = await Promise.all([
 			resolveRankedEntries(account.puuid),
@@ -45,6 +48,7 @@ export const getSummonerProfile = cache(
 		return {
 			account,
 			summoner,
+			platform,
 			ranked,
 			topMasteryChampionId: masteries[0]?.championId ?? null,
 		};

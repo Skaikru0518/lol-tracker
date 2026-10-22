@@ -1,5 +1,6 @@
 import { RiotApiError } from "@/lib/riot/riot";
 import { resolveSummoner } from "@/lib/summoner/profile/summoner";
+import { platformOf } from "@/lib/summoner/profile/platform";
 import { NextRequest, NextResponse } from "next/server";
 import { withApiLog } from "@/lib/server/log";
 
@@ -9,7 +10,10 @@ async function getHandler(req: NextRequest) {
 		return NextResponse.json({ error: "puuid is required" }, { status: 400 });
 
 	try {
-		return NextResponse.json(await resolveSummoner(puuid));
+		const platform = await platformOf(puuid);
+		const summoner = await resolveSummoner(platform, puuid, platform);
+		if (!summoner) return NextResponse.json({ error: "Not Found" }, { status: 404 });
+		return NextResponse.json(summoner);
 	} catch (error) {
 		if (error instanceof RiotApiError)
 			return NextResponse.json({ error: error.message }, { status: error.status });

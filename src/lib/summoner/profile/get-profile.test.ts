@@ -2,12 +2,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { RiotApiError } from "@/lib/riot/riot";
 
 vi.mock("@/lib/summoner/profile/account", () => ({ resolveAccount: vi.fn() }));
-vi.mock("@/lib/summoner/profile/summoner", () => ({ resolveSummoner: vi.fn() }));
+vi.mock("@/lib/summoner/profile/locate-summoner", () => ({ locateSummoner: vi.fn() }));
 vi.mock("@/lib/summoner/profile/ranked", () => ({ resolveRankedEntries: vi.fn() }));
 vi.mock("@/lib/summoner/champions/mastery", () => ({ resolveTopMasteries: vi.fn() }));
 
 const { resolveAccount } = await import("@/lib/summoner/profile/account");
-const { resolveSummoner } = await import("@/lib/summoner/profile/summoner");
+const { locateSummoner } = await import("@/lib/summoner/profile/locate-summoner");
 const { resolveRankedEntries } = await import("@/lib/summoner/profile/ranked");
 const { resolveTopMasteries } = await import("@/lib/summoner/champions/mastery");
 const { decodeSlug, getSummonerProfile, PROFILE_MASTERY_COUNT } = await import("./get-profile");
@@ -32,7 +32,7 @@ describe("decodeSlug", () => {
 describe("getSummonerProfile", () => {
 	beforeEach(() => {
 		vi.mocked(resolveAccount).mockReset().mockResolvedValue(account);
-		vi.mocked(resolveSummoner).mockReset().mockResolvedValue(summoner);
+		vi.mocked(locateSummoner).mockReset().mockResolvedValue({ platform: "eune", summoner });
 		vi.mocked(resolveRankedEntries).mockReset().mockResolvedValue([]);
 		vi.mocked(resolveTopMasteries)
 			.mockReset()
@@ -44,7 +44,7 @@ describe("getSummonerProfile", () => {
 	it("resolves an encoded slug with a dash in the game name", async () => {
 		const profile = await getSummonerProfile("Cool-Guy%20X-EUNE");
 		expect(resolveAccount).toHaveBeenCalledWith("Cool-Guy X", "EUNE");
-		expect(profile).toEqual({ account, summoner, ranked: [], topMasteryChampionId: 267 });
+		expect(profile).toEqual({ account, summoner, platform: "eune", ranked: [], topMasteryChampionId: 267 });
 	});
 
 	it("asks for the same mastery count as the mastery panel", async () => {
@@ -62,14 +62,14 @@ describe("getSummonerProfile", () => {
 		expect(await getSummonerProfile("Nobody-0000")).toBeNull();
 	});
 
-	it("returns null when the account exists but has no summoner on this platform", async () => {
-		vi.mocked(resolveSummoner).mockRejectedValue(new RiotApiError(404, "Not Found"));
-		expect(await getSummonerProfile("Agurin-EUW")).toBeNull();
+	it("returns null when the account has no summoner on a supported platform", async () => {
+		vi.mocked(locateSummoner).mockResolvedValue(null);
+		expect(await getSummonerProfile("Agurin-NA1")).toBeNull();
 		expect(resolveRankedEntries).not.toHaveBeenCalled();
 	});
 
 	it("rethrows summoner errors other than 404", async () => {
-		vi.mocked(resolveSummoner).mockRejectedValue(new RiotApiError(500, "Riot API error: 500"));
+		vi.mocked(locateSummoner).mockRejectedValue(new RiotApiError(500, "Riot API error: 500"));
 		await expect(getSummonerProfile("Cool%20Guy-EUNE")).rejects.toBeInstanceOf(RiotApiError);
 	});
 
