@@ -20,3 +20,7 @@ export function platformFromRiotRegion(region: string | null | undefined): Platf
 	const host = region?.toLowerCase();
 	return PLATFORM_LIST.find((p) => PLATFORMS[p].host === host) ?? null;
 }
+
+export function storedPlatform(value: string | null | undefined): Platform | null {
+	return isPlatform(value) ? value : null;
+}

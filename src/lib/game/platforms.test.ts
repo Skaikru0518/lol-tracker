@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isPlatform, platformFromRiotRegion, platformUrl } from "./platforms";
+import { isPlatform, platformFromRiotRegion, platformUrl, storedPlatform } from "./platforms";
 
 describe("platforms", () => {
 	it("recognises supported platforms only", () => {
@@ -16,5 +16,11 @@ describe("platforms", () => {
 		expect(platformFromRiotRegion("EUW1")).toBe("euw");
 		expect(platformFromRiotRegion("na1")).toBeNull();
 		expect(platformFromRiotRegion(null)).toBeNull();
+	});
+
+	it("reads a stored platform, ignoring unknown values", () => {
+		expect(storedPlatform("euw")).toBe("euw");
+		expect(storedPlatform("na")).toBeNull();
+		expect(storedPlatform(null)).toBeNull();
 	});
 });
