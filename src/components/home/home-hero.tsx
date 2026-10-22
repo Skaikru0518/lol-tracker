@@ -12,7 +12,7 @@ export function HomeHero() {
 				<Logo className="text-5xl sm:text-6xl" />
 				<p className="text-sm text-muted-foreground">League of Legends summoner tracker · EUNE & EUW</p>
 				<div className="w-full max-w-xl space-y-3">
-					<SummonerSearch zoomOnFocus />
+					<SummonerSearch heroSurface />
 					<div className="flex justify-center">
 						<SearchHistory />
 					</div>

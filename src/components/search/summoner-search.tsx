@@ -23,11 +23,11 @@ const HERO_SURFACE = "bg-background/75 backdrop-blur-md border-primary/30 shadow
 export default function SummonerSearch({
 	compact,
 	autoFocus,
-	zoomOnFocus,
+	heroSurface,
 }: {
 	compact?: boolean;
 	autoFocus?: boolean;
-	zoomOnFocus?: boolean;
+	heroSurface?: boolean;
 }) {
 	const [input, setInput] = useState("");
 	const platform = useSyncExternalStore(subscribePlatformPreference, readPlatformPreference, () => DEFAULT_PLATFORM);
@@ -65,8 +65,8 @@ export default function SummonerSearch({
 
 	return (
 		<form onSubmit={handleSubmit} className="flex w-full gap-2">
-			<PlatformPicker value={platform} onChange={writePlatformPreference} compact={compact} className={zoomOnFocus ? HERO_SURFACE : undefined} />
-			<div className={cn("relative flex-1", zoomOnFocus && "transition-transform duration-200 focus-within:scale-110")}>
+			<PlatformPicker value={platform} onChange={writePlatformPreference} compact={compact} className={heroSurface ? HERO_SURFACE : undefined} />
+			<div className="relative flex-1">
 				<Search
 					className={`pointer-events-none absolute left-3.5 top-1/2 z-10 -translate-y-1/2 size-4 text-muted-foreground ${compact ? "left-2.5 size-3.5" : ""}`}
 				/>
@@ -83,7 +83,7 @@ export default function SummonerSearch({
 					className={cn(
 						"text-base border-border hover:border-muted-foreground/50 focus:border-primary/50 transition-colors",
 						compact ? "h-9 pl-8" : "h-12 pl-10",
-						zoomOnFocus ? HERO_SURFACE + " focus:bg-background/95" : "bg-card",
+						heroSurface ? HERO_SURFACE + " focus:bg-background/95" : "bg-card",
 					)}
 				/>
 				{focused && terms && (
