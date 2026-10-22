@@ -1,6 +1,7 @@
-import { BASE_URL, riotFetch } from "./riot";
+import { DEFAULT_PLATFORM, platformUrl } from "@/lib/game/platforms";
+import { riotFetch } from "./riot";
 
 /** Raw champion-v3 response; the shape changed over time, so callers validate it. */
 export async function getChampionRotation() {
-	return riotFetch<unknown>(`${BASE_URL}/lol/platform/v3/champion-rotations`);
+	return riotFetch<unknown>(`${platformUrl(DEFAULT_PLATFORM)}/lol/platform/v3/champion-rotations`);
 }

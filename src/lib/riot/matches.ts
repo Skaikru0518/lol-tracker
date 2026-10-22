@@ -1,4 +1,4 @@
-import { EURPOE_URL, riotFetch } from "./riot";
+import { EUROPE_URL, riotFetch } from "./riot";
 import { type Match } from "@/lib/validators/match";
 import { type Timeline } from "@/lib/validators/timeline";
 
@@ -7,7 +7,7 @@ export async function getMatchIdsByPuuid(puuid: string, count: number = 20, star
 	const params = new URLSearchParams({ count: count.toString() });
 	if (start > 0) params.set("start", start.toString());
 	return riotFetch<string[]>(
-		`${EURPOE_URL}/lol/match/v5/matches/by-puuid/${encodeURIComponent(puuid)}/ids?${params}`,
+		`${EUROPE_URL}/lol/match/v5/matches/by-puuid/${encodeURIComponent(puuid)}/ids?${params}`,
 	);
 }
 
@@ -39,7 +39,7 @@ function stripUnusedFields(match: Match): Match {
 
 export async function getMatchById(matchId: string) {
 	const match = await riotFetch<Match>(
-		`${EURPOE_URL}/lol/match/v5/matches/${encodeURIComponent(matchId)}`,
+		`${EUROPE_URL}/lol/match/v5/matches/${encodeURIComponent(matchId)}`,
 	);
 
 	return stripUnusedFields(match);
@@ -47,6 +47,6 @@ export async function getMatchById(matchId: string) {
 
 export async function getMatchTimeline(matchId: string) {
 	return riotFetch<Timeline>(
-		`${EURPOE_URL}/lol/match/v5/matches/${encodeURIComponent(matchId)}/timeline`,
+		`${EUROPE_URL}/lol/match/v5/matches/${encodeURIComponent(matchId)}/timeline`,
 	);
 }

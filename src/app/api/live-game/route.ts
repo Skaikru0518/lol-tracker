@@ -1,3 +1,4 @@
+import { DEFAULT_PLATFORM } from "@/lib/game/platforms";
 import { getLiveGame } from "@/lib/riot/spectator";
 import { RiotApiError } from "@/lib/riot/riot";
 import { NextRequest, NextResponse } from "next/server";
@@ -13,7 +14,7 @@ async function getHandler(req: NextRequest) {
 		);
 
 	try {
-		const data = await getLiveGame(puuid);
+		const data = await getLiveGame(DEFAULT_PLATFORM, puuid);
 		return NextResponse.json({ inGame: true, ...data });
 	} catch (error) {
 		if (error instanceof RiotApiError) {

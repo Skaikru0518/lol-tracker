@@ -1,3 +1,4 @@
+import { DEFAULT_PLATFORM } from "@/lib/game/platforms";
 import { prisma } from "@/lib/server/db";
 import { getSummonerByPuuid } from "@/lib/riot/summoner";
 import { isRecent, revalidateInBackground } from "@/lib/server/cache-utils";
@@ -6,7 +7,7 @@ import { type Summoner } from "@/lib/validators/summoner";
 const SUMMONER_MAX_AGE_SECONDS = 300;
 
 async function fetchAndStoreSummoner(puuid: string): Promise<Summoner> {
-	const summoner = await getSummonerByPuuid(puuid);
+	const summoner = await getSummonerByPuuid(DEFAULT_PLATFORM, puuid);
 	const data = {
 		profileIconId: summoner.profileIconId,
 		summonerLevel: summoner.summonerLevel,

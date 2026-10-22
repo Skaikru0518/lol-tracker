@@ -1,3 +1,4 @@
+import { DEFAULT_PLATFORM } from "@/lib/game/platforms";
 import { lowestLp, refreshCutoffs, toCutoffs, type CutoffAttempts } from "@/lib/game/apex-cutoffs";
 import { getApexLeague } from "@/lib/riot/apex";
 import { getAppSetting, setAppSetting } from "@/lib/server/app-settings";
@@ -17,7 +18,7 @@ async function readCache(): Promise<ApexCache> {
 }
 
 async function refresh(force: boolean): Promise<ApexCutoffs> {
-	const result = await refreshCutoffs(await readCache(), attempts, async (tier, queue) => lowestLp((await getApexLeague(tier, queue)).entries), Date.now(), { force });
+	const result = await refreshCutoffs(await readCache(), attempts, async (tier, queue) => lowestLp((await getApexLeague(DEFAULT_PLATFORM, tier, queue)).entries), Date.now(), { force });
 	attempts = result.attempts;
 	if (result.changed) await setAppSetting(KEY, JSON.stringify(result.cache));
 	return toCutoffs(result.cache);

@@ -2,8 +2,7 @@ import { logPath } from "@/lib/server/log";
 import { RateLimiter, type RateWindow } from "./rate-limiter";
 
 const RIOT_API_KEY = process.env.RIOT_API_KEY!;
-export const BASE_URL = "https://eun1.api.riotgames.com";
-export const EURPOE_URL = "https://europe.api.riotgames.com";
+export const EUROPE_URL = "https://europe.api.riotgames.com";
 
 // Key limit is 20 / 1 s and 100 / 2 min; slightly lower for clock drift
 const RIOT_WINDOWS: RateWindow[] = [
@@ -23,7 +22,7 @@ export class RiotApiError extends Error {
 	}
 }
 
-// Riot counts limits per routing host, so eun1 and europe each get a limiter
+// Riot counts limits per routing host, so every platform and europe get their own limiter
 const limiters = new Map<string, RateLimiter>();
 let lastHoldLog = 0;
 

@@ -1,3 +1,4 @@
+import { DEFAULT_PLATFORM } from "@/lib/game/platforms";
 import { prisma } from "@/lib/server/db";
 import { getRankedByPuuid } from "@/lib/riot/ranked";
 import { RiotApiError } from "@/lib/riot/riot";
@@ -39,7 +40,7 @@ async function getHandler(req: Request) {
 
 		for (const puuid of [...active, ...rotation]) {
 			try {
-				const entries = await getRankedByPuuid(puuid);
+				const entries = await getRankedByPuuid(DEFAULT_PLATFORM, puuid);
 				snapshotsCreated += await saveRankedEntries(puuid, entries);
 			} catch (error) {
 				if (isRateLimited(error)) {

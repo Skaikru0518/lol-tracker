@@ -1,3 +1,4 @@
+import { DEFAULT_PLATFORM } from "@/lib/game/platforms";
 import { getRankedByPuuid } from "@/lib/riot/ranked";
 import { prisma } from "@/lib/server/db";
 import { isRecent } from "@/lib/server/cache-utils";
@@ -58,7 +59,7 @@ async function getHandler(req: NextRequest) {
 		const results = await Promise.allSettled(
 			batch.map(async (puuid) => {
 				try {
-					const entries = await getRankedByPuuid(puuid);
+					const entries = await getRankedByPuuid(DEFAULT_PLATFORM, puuid);
 
 					// Ensure Account exists
 					await prisma.account.upsert({

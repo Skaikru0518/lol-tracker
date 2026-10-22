@@ -37,7 +37,7 @@ describe("resolveAllMasteries", () => {
 		vi.mocked(prisma.championMastery.findMany).mockResolvedValue(legacy as never);
 		vi.mocked(getAllMasteries).mockResolvedValue([riotRow]);
 		await resolveAllMasteries("p1");
-		expect(getAllMasteries).toHaveBeenCalledWith("p1");
+		expect(getAllMasteries).toHaveBeenCalledWith("eune", "p1");
 	});
 
 	it("asks Riot when nothing is stored and returns every champion with a numeric lastPlayTime", async () => {
@@ -45,7 +45,7 @@ describe("resolveAllMasteries", () => {
 		const result = await resolveAllMasteries("p1");
 		expect(result.map((m) => m.championId)).toEqual([267, 99]);
 		expect(typeof result[0].lastPlayTime).toBe("number");
-		expect(getAllMasteries).toHaveBeenCalledWith("p1");
+		expect(getAllMasteries).toHaveBeenCalledWith("eune", "p1");
 	});
 
 	it("serves the stored list without calling Riot once a full sync is recent", async () => {

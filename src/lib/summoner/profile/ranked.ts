@@ -1,3 +1,4 @@
+import { DEFAULT_PLATFORM } from "@/lib/game/platforms";
 import { prisma } from "@/lib/server/db";
 import { getRankedByPuuid } from "@/lib/riot/ranked";
 import { isRecent, revalidateInBackground } from "@/lib/server/cache-utils";
@@ -76,14 +77,14 @@ export async function resolveRankedEntries(
 	const cached = await prisma.rankedEntry.findMany({ where: { puuid } });
 
 	if (force || cached.length === 0) {
-		const entries = await getRankedByPuuid(puuid);
+		const entries = await getRankedByPuuid(DEFAULT_PLATFORM, puuid);
 		await saveRankedEntries(puuid, entries);
 		return entries;
 	}
 
 	if (!cached.every((entry) => isRecent(entry.updatedAt, RANKED_MAX_AGE_SECONDS))) {
 		revalidateInBackground(async () => {
-			await saveRankedEntries(puuid, await getRankedByPuuid(puuid));
+			await saveRankedEntries(puuid, await getRankedByPuuid(DEFAULT_PLATFORM, puuid));
 		});
 	}
 
