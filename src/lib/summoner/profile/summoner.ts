@@ -36,7 +36,13 @@ export async function resolveSummoner(platform: Platform, puuid: string, stored:
 
 	if (!isRecent(cached.updatedAt, SUMMONER_MAX_AGE_SECONDS)) {
 		revalidateInBackground(async () => {
-			await fetchAndStoreSummoner(platform, puuid);
+			try {
+				await fetchAndStoreSummoner(platform, puuid);
+			} catch (error) {
+				if (!(error instanceof RiotApiError && error.status === 404)) throw error;
+				// The account left this platform; without the row the next load re-locates it
+				await prisma.summoner.deleteMany({ where: { puuid } });
+			}
 		});
 	}
 

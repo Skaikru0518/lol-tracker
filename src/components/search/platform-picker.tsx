@@ -17,7 +17,7 @@ export function PlatformPicker({
 }) {
 	return (
 		<Select value={value} onValueChange={(v) => onChange(v as Platform)}>
-			<SelectTrigger aria-label="Server" className={cn("shrink-0 bg-card font-semibold", compact ? "h-9 w-20 text-xs" : "h-12! w-24 text-sm", className)}>
+			<SelectTrigger aria-label="Server" className={cn("shrink-0 bg-card font-semibold", compact ? "h-9 w-18 text-xs" : "h-12! w-20 text-sm sm:w-24", className)}>
 				<SelectValue />
 			</SelectTrigger>
 			<SelectContent position="popper">

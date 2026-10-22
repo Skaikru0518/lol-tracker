@@ -105,11 +105,18 @@ export default function SummonerSearch({
 				disabled={locating}
 				className={
 					compact
-						? "h-9 px-4 text-base font-semibold"
-						: "h-12 px-8 text-base font-semibold bg-primary/30 text-white/80 backdrop-blur-sm border border-primary/60 hover:bg-primary/40 hover:border-primary/80"
+						? "h-9 px-3 text-base font-semibold sm:px-4"
+						: "h-12 px-3 text-base font-semibold sm:px-8 bg-primary/30 text-white/80 backdrop-blur-sm border border-primary/60 hover:bg-primary/40 hover:border-primary/80"
 				}
 			>
-				{locating ? <Loader2 className="size-4 animate-spin" /> : "Search"}
+				{locating ? (
+					<Loader2 className="size-4 animate-spin" />
+				) : (
+					<>
+						<Search className="size-4 sm:hidden" aria-hidden />
+						<span className="sr-only sm:not-sr-only">Search</span>
+					</>
+				)}
 			</Button>
 		</form>
 	);
