@@ -2,14 +2,14 @@ import SummonerSearch from "@/components/search/summoner-search";
 import { Panel } from "@/components/ui/panel";
 import { EmptyState } from "@/components/ui/empty-state";
 
-/** Shown when a Riot ID does not exist or has no EUNE summoner. */
+/** Shown when a Riot ID does not exist or has no summoner on a supported server. */
 export default function SummonerNotFound() {
 	return (
 		<div className="mx-auto max-w-lg px-4 py-20">
 			<Panel className="p-4">
 				<EmptyState
 					title="Summoner not found"
-					description="Check the Riot ID (GameName#TAG). Summon.gg only tracks EUNE accounts."
+					description="Check the Riot ID (GameName#TAG) and the server. Summon.gg tracks EUNE and EUW accounts."
 				/>
 				<SummonerSearch />
 			</Panel>

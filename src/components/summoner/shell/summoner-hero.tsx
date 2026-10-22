@@ -1,3 +1,4 @@
+import { PLATFORMS } from "@/lib/game/platforms";
 import { HeroBanner } from "@/components/ui/hero-banner";
 import { Chip } from "@/components/ui/chip";
 import { getChampionSplash, getSummonerIcon } from "@/lib/game/icon-helpers";
@@ -45,7 +46,7 @@ export function SummonerHero({
 						<span className="text-base font-medium text-muted-foreground sm:text-lg">#{account.tagLine}</span>
 						<CopyRiotId riotId={riotId} />
 					</h1>
-					<p className="text-sm text-muted-foreground">EUNE</p>
+					<p className="text-sm text-muted-foreground">{PLATFORMS[profile.platform].label}</p>
 					<div className="mt-2 flex flex-wrap gap-1.5">
 						{rankPills(ranked).map((pill) => (
 							<Chip key={pill.queueType} color={pill.color}>

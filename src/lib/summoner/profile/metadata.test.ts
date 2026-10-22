@@ -43,4 +43,9 @@ describe("buildProfileMetadata", () => {
 		expect(meta.title).toBe("Skaikru#HEAVN — Unranked");
 		expect(meta.description).not.toContain("Ranked Solo:");
 	});
+
+	it("names the profile's platform", () => {
+		expect(buildProfileMetadata({ ...base, platform: "euw", ranked: [] }).description).toContain("(EUW)");
+		expect(buildProfileMetadata({ ...base, ranked: [] }).description).toContain("(EUNE)");
+	});
 });

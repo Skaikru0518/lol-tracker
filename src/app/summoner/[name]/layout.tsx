@@ -37,7 +37,7 @@ export default async function SummonerLayout({ children, params }: Params & { ch
 	const basePath = `/summoner/${toSummonerSlug(gameName, tagLine)}`;
 
 	return (
-		<SummonerProvider value={{ puuid, gameName, tagLine, basePath, version }}>
+		<SummonerProvider value={{ puuid, gameName, tagLine, platform: profile.platform, basePath, version }}>
 			<SummonerHero profile={profile} version={version} splashChampion={splashChampion} />
 			<div className="mx-auto max-w-7xl px-4 sm:px-6">
 				<LiveBanner puuid={puuid} basePath={basePath} />

@@ -1,3 +1,4 @@
+import { PLATFORMS } from "@/lib/game/platforms";
 import { formatRankLabel } from "@/lib/game/rank-calculator";
 import { type SummonerProfile } from "@/lib/summoner/profile/get-profile";
 
@@ -12,6 +13,6 @@ export function buildProfileMetadata(profile: SummonerProfile): { title: string;
 
 	return {
 		title: `${riotId} — ${rankLabel}`,
-		description: `${riotId} (EUNE) — Level ${profile.summoner.summonerLevel}.${soloLine} Match history, LP history and champion stats on Summon.gg.`,
+		description: `${riotId} (${PLATFORMS[profile.platform].label}) — Level ${profile.summoner.summonerLevel}.${soloLine} Match history, LP history and champion stats on Summon.gg.`,
 	};
 }

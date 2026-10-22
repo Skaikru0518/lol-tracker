@@ -1,12 +1,14 @@
 "use client";
 
 import { createContext, useContext } from "react";
+import { type Platform } from "@/lib/game/platforms";
 
 /** Identity of the profile being viewed, shared by every tab. */
 export interface SummonerContextValue {
 	puuid: string;
 	gameName: string;
 	tagLine: string;
+	platform: Platform;
 	basePath: string;
 	version: string;
 }
