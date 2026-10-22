@@ -1,4 +1,4 @@
-import { DEFAULT_PLATFORM } from "@/lib/game/platforms";
+import { platformOf } from "@/lib/summoner/profile/platform";
 import { prisma } from "@/lib/server/db";
 import { getAllMasteries, getTopMasteries } from "@/lib/riot/mastery";
 import { isRecent, revalidateInBackground } from "@/lib/server/cache-utils";
@@ -14,7 +14,7 @@ export type MasteryEntry = Pick<
 >;
 
 async function fetchAndStoreMasteries(puuid: string, count: number): Promise<MasteryEntry[]> {
-	const masteries = await getTopMasteries(DEFAULT_PLATFORM, puuid, count);
+	const masteries = await getTopMasteries(await platformOf(puuid), puuid, count);
 
 	for (const mastery of masteries) {
 		const data = {
@@ -70,7 +70,7 @@ async function storeMasteries(puuid: string, masteries: { championId: number; ch
 }
 
 async function fetchAllAndStore(puuid: string): Promise<MasteryEntry[]> {
-	const masteries = await getAllMasteries(DEFAULT_PLATFORM, puuid);
+	const masteries = await getAllMasteries(await platformOf(puuid), puuid);
 	storeMasteries(puuid, masteries).catch((error) => console.error("[mastery] storing the full list failed:", error));
 	return masteries.map((m) => ({ ...m, lastPlayTime: Number(m.lastPlayTime) }));
 }

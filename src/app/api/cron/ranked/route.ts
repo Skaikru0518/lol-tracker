@@ -1,4 +1,4 @@
-import { DEFAULT_PLATFORM } from "@/lib/game/platforms";
+import { DEFAULT_PLATFORM, storedPlatform } from "@/lib/game/platforms";
 import { prisma } from "@/lib/server/db";
 import { getRankedByPuuid } from "@/lib/riot/ranked";
 import { RiotApiError } from "@/lib/riot/riot";
@@ -17,7 +17,7 @@ async function getHandler(req: Request) {
 	try {
 		const accounts = await prisma.account.findMany({
 			where: { gameName: { not: "" } },
-			select: { puuid: true },
+			select: { puuid: true, platform: true },
 			orderBy: { puuid: "asc" },
 		});
 		const recentlyChanged = await prisma.lPHistory.findMany({
@@ -32,6 +32,7 @@ async function getHandler(req: Request) {
 			RANKED_CRON_BATCH,
 		);
 		const inRotation = new Set(rotation);
+		const platformByPuuid = new Map(accounts.map((a) => [a.puuid, storedPlatform(a.platform) ?? DEFAULT_PLATFORM]));
 
 		let snapshotsCreated = 0;
 		let processed = 0;
@@ -40,7 +41,7 @@ async function getHandler(req: Request) {
 
 		for (const puuid of [...active, ...rotation]) {
 			try {
-				const entries = await getRankedByPuuid(DEFAULT_PLATFORM, puuid);
+				const entries = await getRankedByPuuid(platformByPuuid.get(puuid) ?? DEFAULT_PLATFORM, puuid);
 				snapshotsCreated += await saveRankedEntries(puuid, entries);
 			} catch (error) {
 				if (isRateLimited(error)) {

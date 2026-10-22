@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isPlatform, platformFromRiotRegion, platformUrl, storedPlatform } from "./platforms";
+import { isPlatform, platformFromMatchId, platformFromRiotRegion, platformUrl, storedPlatform } from "./platforms";
 
 describe("platforms", () => {
 	it("recognises supported platforms only", () => {
@@ -22,5 +22,11 @@ describe("platforms", () => {
 		expect(storedPlatform("euw")).toBe("euw");
 		expect(storedPlatform("na")).toBeNull();
 		expect(storedPlatform(null)).toBeNull();
+	});
+
+	it("reads the platform from a match id prefix", () => {
+		expect(platformFromMatchId("EUW1_7012345678")).toBe("euw");
+		expect(platformFromMatchId("EUN1_4015015446")).toBe("eune");
+		expect(platformFromMatchId("NA1_123")).toBe("eune");
 	});
 });

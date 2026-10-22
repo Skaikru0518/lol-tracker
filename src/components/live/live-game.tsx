@@ -10,6 +10,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useChampions } from "@/hooks/useChampions";
 import { useLiveGame } from "@/hooks/useLiveGame";
 import { usePlayerRanks } from "@/hooks/usePlayerRanks";
+import { DEFAULT_PLATFORM } from "@/lib/game/platforms";
 import { useRunes } from "@/hooks/useRunes";
 import { liveViewState } from "@/lib/live/live-game";
 import { queryFailed } from "@/lib/shared/query-state";
@@ -23,7 +24,7 @@ export function LiveGame() {
 	const { data: champions } = useChampions();
 	const { data: runeData } = useRunes();
 	const puuids = useMemo(() => live?.participants?.map((p) => p.puuid), [live?.participants]);
-	const { data: ranks, isLoading: ranksLoading, isError: ranksError } = usePlayerRanks(puuids);
+	const { data: ranks, isLoading: ranksLoading, isError: ranksError } = usePlayerRanks(puuids, DEFAULT_PLATFORM);
 	const ranksFailed = queryFailed({ isError: ranksError, data: ranks });
 
 	const view = liveViewState({ data: live, isLoading, isError });

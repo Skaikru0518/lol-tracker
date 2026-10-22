@@ -24,3 +24,8 @@ export function platformFromRiotRegion(region: string | null | undefined): Platf
 export function storedPlatform(value: string | null | undefined): Platform | null {
 	return isPlatform(value) ? value : null;
 }
+
+// Match ids carry the platform host as a prefix (EUW1_…); unknown prefixes fall back to the default
+export function platformFromMatchId(matchId: string): Platform {
+	return platformFromRiotRegion(matchId.split("_")[0]) ?? DEFAULT_PLATFORM;
+}

@@ -14,6 +14,7 @@ import { useItems } from "@/hooks/useItems";
 import { useMatch } from "@/hooks/useMatch";
 import { useMatchBadgesBatch } from "@/hooks/useMatchBadges";
 import { usePlayerRanks } from "@/hooks/usePlayerRanks";
+import { platformFromMatchId } from "@/lib/game/platforms";
 import { useRunes } from "@/hooks/useRunes";
 import { useTimeline } from "@/hooks/useTimeline";
 import { isArenaMatch } from "@/lib/game/arena-helpers";
@@ -35,7 +36,7 @@ export function MatchDetail({ matchId, puuid }: { matchId: string; puuid?: strin
 	const { data: itemNames } = useItems();
 	const { data: champions } = useChampions();
 	const puuids = useMemo(() => match?.info.participants.map((p) => p.puuid), [match]);
-	const { data: ranks, isLoading: ranksLoading } = usePlayerRanks(puuids);
+	const { data: ranks, isLoading: ranksLoading } = usePlayerRanks(puuids, platformFromMatchId(matchId));
 	const { data: badges } = useMatchBadgesBatch([matchId]);
 	const [picked, setPicked] = useState<string | null>(null);
 

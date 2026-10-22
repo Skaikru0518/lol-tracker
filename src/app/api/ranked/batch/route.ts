@@ -1,4 +1,4 @@
-import { DEFAULT_PLATFORM } from "@/lib/game/platforms";
+import { DEFAULT_PLATFORM, isPlatform } from "@/lib/game/platforms";
 import { getRankedByPuuid } from "@/lib/riot/ranked";
 import { prisma } from "@/lib/server/db";
 import { isRecent } from "@/lib/server/cache-utils";
@@ -7,6 +7,8 @@ import { withApiLog } from "@/lib/server/log";
 
 async function getHandler(req: NextRequest) {
 	const puuidsParam = req.nextUrl.searchParams.get("puuids");
+	const platformParam = req.nextUrl.searchParams.get("platform");
+	const platform = isPlatform(platformParam) ? platformParam : DEFAULT_PLATFORM;
 
 	if (!puuidsParam)
 		return NextResponse.json(
@@ -59,13 +61,13 @@ async function getHandler(req: NextRequest) {
 		const results = await Promise.allSettled(
 			batch.map(async (puuid) => {
 				try {
-					const entries = await getRankedByPuuid(DEFAULT_PLATFORM, puuid);
+					const entries = await getRankedByPuuid(platform, puuid);
 
 					// Ensure Account exists
 					await prisma.account.upsert({
 						where: { puuid },
 						update: {},
-						create: { puuid, gameName: "", tagLine: "" },
+						create: { puuid, gameName: "", tagLine: "", platform },
 					});
 
 					// Bulk upsert ranked entries
