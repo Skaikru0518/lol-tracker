@@ -7,6 +7,7 @@ import { getSummonerIcon, RANK_COLORS } from "@/lib/game/icon-helpers";
 import { lookupCandidate } from "@/lib/summoner/search/search-query";
 import { suggestionStatus } from "@/lib/summoner/search/search-results";
 import { cn } from "@/lib/utils";
+import { PLATFORMS, type Platform } from "@/lib/game/platforms";
 import { type RecentSearch } from "@/lib/validators/recent-searches";
 
 /** Dropdown of stored summoners matching the typed text, a "Searching…" row while waiting, and a Riot lookup row for an unknown full Riot ID. */
@@ -23,7 +24,7 @@ export function SearchSuggestions({
 	pending: boolean;
 	stale: boolean;
 	isError: boolean;
-	onPick: (gameName: string, tagLine: string) => void;
+	onPick: (gameName: string, tagLine: string, platform?: Platform) => void;
 }) {
 	const { data: version } = useDDragonVersion();
 	const lookup = pending ? null : lookupCandidate(input, results);
@@ -41,7 +42,7 @@ export function SearchSuggestions({
 				<li key={r.puuid} className={cn(stale && "pointer-events-none opacity-60")}>
 					<button
 						type="button"
-						onClick={() => onPick(r.gameName, r.tagLine)}
+						onClick={() => onPick(r.gameName, r.tagLine, r.platform)}
 						className="flex w-full items-center gap-2.5 px-3 py-1.5 text-left transition-colors hover:bg-accent/50"
 					>
 						{version && r.profileIconId !== null ? (
@@ -53,6 +54,7 @@ export function SearchSuggestions({
 							{r.gameName}
 							<span className="text-muted-foreground">#{r.tagLine}</span>
 						</span>
+						<span className="text-3xs font-semibold text-muted-foreground">{PLATFORMS[r.platform].label}</span>
 						<span className="text-xs" style={{ color: r.soloTier ? RANK_COLORS[r.soloTier] : undefined }}>
 							{recentSearchRank(r)}
 						</span>

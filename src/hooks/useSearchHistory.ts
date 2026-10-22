@@ -3,10 +3,11 @@ import {
 	parseSearchHistory,
 	readSearchHistoryRaw,
 	subscribeSearchHistory,
+	type SearchHistoryEntry,
 } from "@/lib/home/search-history";
 
 /** Search history synced with localStorage, including other tabs. */
-export function useSearchHistory(): string[] {
+export function useSearchHistory(): SearchHistoryEntry[] {
 	const raw = useSyncExternalStore(
 		subscribeSearchHistory,
 		readSearchHistoryRaw,

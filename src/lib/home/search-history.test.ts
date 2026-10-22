@@ -6,11 +6,16 @@ describe("parseSearchHistory", () => {
 		expect(parseSearchHistory(null)).toEqual([]);
 	});
 
-	it("parses a stored list", () => {
+	it("reads legacy plain Riot IDs as EUNE entries", () => {
 		expect(parseSearchHistory('["Skaikru#HEAVN","Nyzor#420"]')).toEqual([
-			"Skaikru#HEAVN",
-			"Nyzor#420",
+			{ riotId: "Skaikru#HEAVN", platform: "eune" },
+			{ riotId: "Nyzor#420", platform: "eune" },
 		]);
+	});
+
+	it("keeps stored entries and drops invalid ones", () => {
+		const raw = JSON.stringify([{ riotId: "A#EUW", platform: "euw" }, { riotId: "B#1", platform: "na" }, 42, null, { platform: "euw" }]);
+		expect(parseSearchHistory(raw)).toEqual([{ riotId: "A#EUW", platform: "euw" }]);
 	});
 
 	it("returns an empty list for corrupt JSON", () => {
@@ -20,11 +25,5 @@ describe("parseSearchHistory", () => {
 	it("returns an empty list for non-array JSON", () => {
 		expect(parseSearchHistory('{"a":1}')).toEqual([]);
 		expect(parseSearchHistory('"Skaikru#HEAVN"')).toEqual([]);
-	});
-
-	it("drops non-string entries", () => {
-		expect(parseSearchHistory('["Skaikru#HEAVN",42,null,{"x":1}]')).toEqual([
-			"Skaikru#HEAVN",
-		]);
 	});
 });

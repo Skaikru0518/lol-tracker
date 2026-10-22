@@ -1,5 +1,6 @@
 "use client";
 
+import { PLATFORMS } from "@/lib/game/platforms";
 import Link from "next/link";
 import { Panel, PanelHeader } from "@/components/ui/panel";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -41,6 +42,7 @@ export function RecentlySearched() {
 								<span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground">
 									{r.gameName}
 									<span className="text-muted-foreground">#{r.tagLine}</span>
+									<span className="ml-1.5 text-3xs font-semibold text-muted-foreground">{PLATFORMS[r.platform].label}</span>
 								</span>
 								<span className="text-xs font-medium" style={{ color: r.soloTier ? RANK_COLORS[r.soloTier] : undefined }}>
 									{recentSearchRank(r)}

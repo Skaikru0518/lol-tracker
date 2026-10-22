@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { toRecentSearch } from "./recent-searches";
 
 const base = { puuid: "p1", gameName: "Skaikru", tagLine: "HEAVN" };
+const out = { ...base, platform: "eune" };
 
 describe("toRecentSearch", () => {
 	it("takes the solo queue rank and the profile icon", () => {
@@ -14,17 +15,22 @@ describe("toRecentSearch", () => {
 					{ queueType: "RANKED_SOLO_5x5", tier: "EMERALD", rank: "I", leaguePoints: 8 },
 				],
 			}),
-		).toEqual({ ...base, profileIconId: 6643, soloTier: "EMERALD", soloRank: "I", soloLp: 8 });
+		).toEqual({ ...out, profileIconId: 6643, soloTier: "EMERALD", soloRank: "I", soloLp: 8 });
 	});
 
 	it("returns null rank fields for an unranked player", () => {
 		expect(toRecentSearch({ ...base, summoner: { profileIconId: 1 }, rankedEntries: [] })).toEqual({
-			...base,
+			...out,
 			profileIconId: 1,
 			soloTier: null,
 			soloRank: null,
 			soloLp: null,
 		});
+	});
+
+	it("carries the account's platform", () => {
+		expect(toRecentSearch({ ...base, platform: "euw", summoner: { profileIconId: 1 }, rankedEntries: [] })?.platform).toBe("euw");
+		expect(toRecentSearch({ ...base, platform: null, summoner: { profileIconId: 1 }, rankedEntries: [] })?.platform).toBe("eune");
 	});
 
 	it("drops accounts without a summoner on this platform", () => {

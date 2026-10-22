@@ -10,6 +10,7 @@ const SELECT = {
 	puuid: true,
 	gameName: true,
 	tagLine: true,
+	platform: true,
 	summoner: { select: { profileIconId: true } },
 	rankedEntries: { select: { queueType: true, tier: true, rank: true, leaguePoints: true } },
 } as const;

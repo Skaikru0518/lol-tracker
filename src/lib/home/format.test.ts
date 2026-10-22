@@ -5,6 +5,7 @@ const search = (soloTier: string | null, soloRank: string | null, soloLp: number
 	puuid: "p",
 	gameName: "Skaikru",
 	tagLine: "HEAVN",
+	platform: "eune" as const,
 	profileIconId: 1,
 	soloTier,
 	soloRank,
