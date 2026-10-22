@@ -16,6 +16,9 @@ import { useSummonerSuggestions } from "@/hooks/useSummonerSuggestions";
 import { PlatformPicker } from "./platform-picker";
 import { SearchSuggestions } from "./search-suggestions";
 
+// Over the hero splash the fields need their own blurred backdrop to stay readable
+const HERO_SURFACE = "bg-background/75 backdrop-blur-md border-primary/30 shadow-xl";
+
 /** Riot ID search box with a server picker and as-you-type suggestions; the picked server is tried first. */
 export default function SummonerSearch({
 	compact,
@@ -62,10 +65,10 @@ export default function SummonerSearch({
 
 	return (
 		<form onSubmit={handleSubmit} className="flex w-full gap-2">
-			<PlatformPicker value={platform} onChange={writePlatformPreference} compact={compact} />
+			<PlatformPicker value={platform} onChange={writePlatformPreference} compact={compact} className={zoomOnFocus ? HERO_SURFACE : undefined} />
 			<div className={cn("relative flex-1", zoomOnFocus && "transition-transform duration-200 focus-within:scale-110")}>
 				<Search
-					className={`absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground ${compact ? "left-2.5 size-3.5" : ""}`}
+					className={`pointer-events-none absolute left-3.5 top-1/2 z-10 -translate-y-1/2 size-4 text-muted-foreground ${compact ? "left-2.5 size-3.5" : ""}`}
 				/>
 				<Input
 					value={input}
@@ -78,9 +81,9 @@ export default function SummonerSearch({
 					onFocus={() => setFocused(true)}
 					onBlur={() => setFocused(false)}
 					className={cn(
-						"text-base bg-card border-border hover:border-muted-foreground/50 focus:border-primary/50 transition-[opacity,border-color]",
+						"text-base border-border hover:border-muted-foreground/50 focus:border-primary/50 transition-colors",
 						compact ? "h-9 pl-8" : "h-12 pl-10",
-						zoomOnFocus && "opacity-80 focus:opacity-100",
+						zoomOnFocus ? HERO_SURFACE + " focus:bg-background/95" : "bg-card",
 					)}
 				/>
 				{focused && terms && (
