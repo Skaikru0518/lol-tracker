@@ -5,6 +5,7 @@ import { RANKED_QUEUE_TYPES, rankedQueueForQueueId, type RankedQueueType } from 
 import { type LPSnapshot } from "@/lib/validators/lp-history";
 import { type MmrEstimates } from "@/lib/validators/mmr";
 import { cachedApexCutoffs } from "./apex-cutoffs-store";
+import { platformOf } from "./platform";
 import { exactLpChanges } from "./lp-estimate";
 import { estimateMmr, lobbyRankAt, pickLpChanges } from "./mmr-estimate";
 
@@ -53,7 +54,7 @@ export async function mmrEstimates(puuid: string): Promise<MmrEstimates> {
 			where: { puuid: { in: others }, queueType: { in: queueTypes }, createdAt: { gte: seasonStart } },
 			select: { id: true, puuid: true, queueType: true, tier: true, rank: true, lp: true, wins: true, losses: true, createdAt: true },
 		}),
-		cachedApexCutoffs(),
+		platformOf(puuid).then(cachedApexCutoffs),
 	]);
 	const entryOf = new Map(known.map((k) => [`${k.puuid}:${k.queueType}`, k]));
 	const historyOf = new Map<string, LPSnapshot[]>();

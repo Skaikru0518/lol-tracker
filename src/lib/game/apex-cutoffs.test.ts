@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CUTOFF_TTL_MS, lowestLp, refreshCutoffs, RETRY_AFTER_MS, toCutoffs } from "./apex-cutoffs";
+import { apexCacheKey, CUTOFF_TTL_MS, lowestLp, refreshCutoffs, RETRY_AFTER_MS, toCutoffs } from "./apex-cutoffs";
 
 const NOW = 1_800_000_000_000;
 const lows = { grandmaster: 250, challenger: 600 };
@@ -77,5 +77,12 @@ describe("refreshCutoffs force", () => {
 describe("toCutoffs", () => {
 	it("drops the fetch time", () => {
 		expect(toCutoffs({ RANKED_FLEX_SR: { ...lows, fetchedAt: NOW } })).toEqual({ RANKED_FLEX_SR: lows });
+	});
+});
+
+describe("apexCacheKey", () => {
+	it("keys the cache per platform", () => {
+		expect(apexCacheKey("eune")).toBe("apex-cutoffs:eune");
+		expect(apexCacheKey("euw")).toBe("apex-cutoffs:euw");
 	});
 });

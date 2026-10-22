@@ -1,7 +1,12 @@
+import { type Platform } from "@/lib/game/platforms";
 import { APEX_QUEUES, type ApexCache, type ApexCutoffs, type ApexQueue } from "@/lib/validators/apex";
 
 export const CUTOFF_TTL_MS = 24 * 60 * 60 * 1000;
 export const RETRY_AFTER_MS = 15 * 60 * 1000;
+
+export function apexCacheKey(platform: Platform): string {
+	return `apex-cutoffs:${platform}`;
+}
 
 export type CutoffAttempts = Partial<Record<ApexQueue, number>>;
 type FetchLowest = (tier: "grandmaster" | "challenger", queue: ApexQueue) => Promise<number | null>;

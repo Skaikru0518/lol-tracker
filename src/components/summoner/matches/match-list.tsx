@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useMatchBadgesBatch } from "@/hooks/useMatchBadges";
 import { useApexCutoffs } from "@/hooks/useApexCutoffs";
+import { DEFAULT_PLATFORM } from "@/lib/game/platforms";
 import { usePerformanceSummaries } from "@/hooks/usePerformance";
 import { isAchievementEligible } from "@/lib/achievements/eligibility";
 import { type QueueFilter } from "@/lib/game/queue-filters";
@@ -63,7 +64,7 @@ export function MatchList({
 		}
 		return changes;
 	}, [matches, puuid, lpHistories]);
-	const { data: cutoffs } = useApexCutoffs();
+	const { data: cutoffs } = useApexCutoffs(DEFAULT_PLATFORM);
 	const performanceRanks = useMemo(() => {
 		const ranks = new Map<string, { tier: string; rank: string }>();
 		for (const m of matches ?? []) {

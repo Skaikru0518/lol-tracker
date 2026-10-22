@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { isAuthorizedCronRequest } from "@/lib/server/cron-auth";
 import { withApiLog } from "@/lib/server/log";
+import { PLATFORM_LIST } from "@/lib/game/platforms";
 import { forceRefreshApexCutoffs } from "@/lib/summoner/profile/apex-cutoffs-store";
 
 async function getHandler(req: Request) {
@@ -8,7 +9,8 @@ async function getHandler(req: Request) {
 		return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 	}
 	try {
-		return NextResponse.json({ ok: true, cutoffs: await forceRefreshApexCutoffs() });
+		const cutoffs = Object.fromEntries(await Promise.all(PLATFORM_LIST.map(async (p) => [p, await forceRefreshApexCutoffs(p)] as const)));
+		return NextResponse.json({ ok: true, cutoffs });
 	} catch (error) {
 		console.error("[cron/apex-cutoffs] run failed:", error);
 		return NextResponse.json({ error: "Internal server error" }, { status: 500 });
