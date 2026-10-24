@@ -58,9 +58,9 @@ nextjsfullstack/            plain folder, no longer a repo
 ## Data flow (decided)
 
 1. The app listens to GEP for League of Legends (game id 5426) and the League launcher (10902). Both are in Overwolf's production environment for ow-electron.
-2. When the launcher's `game_flow.phase` reaches `GameStart`/`InProgress`, the app reads the local player's puuid from launcher `lobby_info.player_info` (fallback: `summoner_info`) and the platform from launcher `summoner_info.platform_id` (EUN1/EUW1). *(Builder's call.)* Platforms other than EUNE/EUW: the app shows "server not supported".
-3. The app's **main process** calls the Summon.gg backend with that puuid and platform (main-process fetch, so no CORS changes on the site).
-4. The backend uses the existing Spectator-v5 live-game code with the **platform sent by the app**, not `platformOf(puuid)`, because that falls back to EUNE for unknown puuids. It to get the ten participants, then builds all ten cards and returns them in **one response**.
+2. When the launcher's `game_flow.phase` reaches `GameStart`/`InProgress`, the app reads the local player's Riot ID (`gameName`, `tagLine`) from launcher `summoner_info.player_info` and the platform from `summoner_info.platform_id` (EUN1/EUW1). The launcher's `puuid` is the client-internal one, not Riot API's (spike finding), so it is not used. *(Builder's call.)* Platforms other than EUNE/EUW: the app shows "server not supported".
+3. The app's **main process** calls the Summon.gg backend with that Riot ID and platform (main-process fetch, so no CORS changes on the site).
+4. The backend resolves the Riot ID to a puuid with the existing DB-first `resolveAccount`, then calls Spectator-v5 (`getLiveGame`) with the **platform sent by the app**, not `platformOf(puuid)`, because that falls back to EUNE for unknown accounts. It gets the ten participants, then builds all ten cards and returns them in **one response**.
 5. Spectator can 404 for a short while after the game starts. The app retries with backoff while the loading screen lasts.
 6. GEP `match_info.players_tagline` is the documented fallback source of the ten Riot IDs. Whether it is needed is decided by the spike below.
 
@@ -70,7 +70,7 @@ A minimal ow-electron app that logs: launcher phases, `player_info`, `players_ta
 
 ## Backend: overlay endpoint (in `summon/`)
 
-New route, e.g. `GET /api/overlay/game?puuid=…&platform=…&since=…` (exact name is the builder's call). `since` is the epoch ms of the user's local midnight, sent by the app, so "today" means the user's day.
+New route, e.g. `GET /api/overlay/game?gameName=…&tagLine=…&platform=…&since=…` (exact name is the builder's call). `since` is the epoch ms of the user's local midnight, sent by the app, so "today" means the user's day.
 
 Response: Zod-validated, the same schema copied into `summon-electron`. Shape:
 

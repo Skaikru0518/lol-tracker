@@ -127,7 +127,7 @@ export const overlayGameSchema = z.object({
 	players: z.array(overlayPlayerSchema),
 });
 export const overlayResponseSchema = z.union([overlayGameSchema, z.object({ inGame: z.literal(false) })]);
-export const overlayQuerySchema = z.object({ puuid: z.string().min(1), platform: platformSchema, since: z.coerce.number().int().nonnegative() });
+export const overlayQuerySchema = z.object({ gameName: z.string().min(1), tagLine: z.string().min(1), platform: platformSchema, since: z.coerce.number().int().nonnegative() });
 ```
 
 plus the inferred types `OverlayPlayer`, `OverlayGame`, `OverlayResponse`, `OverlayQuery`.
@@ -170,13 +170,13 @@ plus the inferred types `OverlayPlayer`, `OverlayGame`, `OverlayResponse`, `Over
 - Modify: `src/lib/summoner/profile/locate-summoner.ts` (export `recordPlatform`)
 
 **Interfaces:**
-- Consumes: `getLiveGame` (`@/lib/riot/spectator`), `resolveRankedEntries` (`@/lib/summoner/profile/ranked`), `resolveTopMasteries` (`@/lib/summoner/champions/mastery`), `getMatchIdsByPuuid` (with filter) and `fetchAndStoreMatch` (Task 3), `recordPlatform`, `storedPlatform`, `prisma` (account, playerAchievement, match), Task 4 types, Task 5 helpers, `RiotApiError`.
+- Consumes: `resolveAccount` (`@/lib/summoner/profile/account`, DB-first Riot ID → Account), `getLiveGame` (`@/lib/riot/spectator`), `resolveRankedEntries` (`@/lib/summoner/profile/ranked`), `resolveTopMasteries` (`@/lib/summoner/champions/mastery`), `getMatchIdsByPuuid` (with filter) and `fetchAndStoreMatch` (Task 3), `recordPlatform`, `storedPlatform`, `prisma` (account, playerAchievement, match), Task 4 types, Task 5 helpers, `RiotApiError`.
 - Produces: `buildOverlayGame(query: OverlayQuery, now?: number): Promise<OverlayResponse>`, plus `clearOverlayCache(): void` for tests.
 
 Behavior:
 
-1. Cache: a module `Map<puuid, { value: OverlayGame; expires: number }>`. A hit within 60 s returns it with no Riot or DB calls. A built game is stored under **every** participant's puuid.
-2. `getLiveGame(query.platform, query.puuid)`; 404 → `{ inGame: false }` (not cached). Other errors are rethrown.
+1. Cache: a module `Map<puuid, { value: OverlayGame; expires: number }>`, looked up with the self puuid from step 2's `resolveAccount` (DB-first, so a known Riot ID costs no Riot call). A hit within 60 s returns it with no further Riot calls. A built game is stored under **every** participant's puuid.
+2. `resolveAccount(query.gameName, query.tagLine)` gives the self puuid (a Riot 404 is rethrown, and the route answers 404). Then `getLiveGame(query.platform, self.puuid)`: 404 → `{ inGame: false }` (not cached). Other errors are rethrown.
 3. For each participant with a non-empty `riotId` and `puuid`: upsert `Account` (`gameName`/`tagLine` from `splitRiotId`; `create.platform = query.platform`). Then, if the stored platform differs, call `recordPlatform(puuid, stored, query.platform)` so `platformOf` resolves correctly in the next steps. Participants with a blank `riotId` get only `championId`/`teamId`, `rank: null`, `mains: []`, `today: null`, `tags: []`, and all sections in `unavailable`.
 4. Per real player, in parallel:
    - `resolveRankedEntries(puuid)` → `overlayRank`.
@@ -185,7 +185,7 @@ Behavior:
    - If `queueId > 0`: `getMatchIdsByPuuid(puuid, 20, 0, { startTime: Math.floor(since / 1000), queue: queueId })`.
 5. Missing ids are the ones not already in `prisma.match` (one `findMany` for all ids). `allocateMatchFetches(missing, 30)`, then `fetchAndStoreMatch` for each id in `fetch` (sequential, so a 429 stops the rest). `todayRecord` runs over the stored and fetched matches, with `partial` from the allocation.
 6. Errors: a `RiotApiError` in a section adds that section to the player's `unavailable`. After the first 429 in the request, no further Riot call is started: remaining sections that would need Riot are marked unavailable, while DB-only data (cached ranks and masteries, tags) is still returned. A non-Riot error is rethrown.
-7. `isSelf` = `puuid === query.puuid`.
+7. `isSelf` = `puuid === self.puuid`.
 
 - [ ] **Step 1: Failing tests** (mock the modules above, in the style of `src/lib/summoner/profile/locate-summoner.test.ts`):
   - `"returns not-in-game when spectator has no game"` (RiotApiError 404).
@@ -281,7 +281,7 @@ Decisions:
     - `WaitingForStats`/`PreEndOfGame`/`EndOfGame`/`Lobby`/`None` → idle;
     - platform null → unsupported-platform.
   - `retryDelayMs(attempt: number): number`: 3000 for attempts 0–3, 5000 for 4–9, then 10000; `shouldRetry(attempt)` is false from attempt 40.
-  - `fetchOverlayGame(query: { puuid: string; platform: "eune" | "euw"; since: number }, fetchImpl = fetch): Promise<OverlayResponse>`. It GETs `https://summon.vandslab.com/api/overlay/game` and parses the result with `overlayResponseSchema`. A non-2xx status throws an `ApiError` with that status.
+  - `fetchOverlayGame(query: { gameName: string; tagLine: string; platform: "eune" | "euw"; since: number }, fetchImpl = fetch): Promise<OverlayResponse>`. It GETs `https://summon.vandslab.com/api/overlay/game` and parses the result with `overlayResponseSchema`. A non-2xx status throws an `ApiError` with that status.
 
 - [ ] **Step 1: Failing tests:**
   - phase sequence ChampSelect → GameStart → match-started → EndOfGame gives champ-select → loading → in-game → idle;
@@ -309,7 +309,7 @@ Decisions:
 
 Behavior:
 - `gep.ts`:
-  - `setRequiredFeatures` for launcher 10902 (`game_flow`, `lobby_info`, `summoner_info`) and game 5426 (`matchState`, `match_info`).
+  - `setRequiredFeatures` for launcher 10902 (`game_flow`, `lobby_info`, `summoner_info`; Riot ID from `summoner_info.player_info` JSON, platform from `summoner_info.platform_id`) and game 5426 (`matchState`, `match_info`).
   - It feeds `sessionReducer`.
   - On startup it reads `getInfo` for both, so the app recovers when it is started mid-game (Review Focus 4).
 - On entering `loading`: fetch with `since = localMidnight(new Date())`, and retry using `retryDelayMs`/`shouldRetry` while the result is `inGame: false` and the state is still loading or in-game. Stop on any other state. Send the result to the overlay.
@@ -359,7 +359,7 @@ Behavior: follow the approved designs exactly.
 
 Behavior:
 - The iframe fills the window under the approved app bar. The app bar shows the session status, the hotkey (editable via `settings:set`) and the overlay toggle.
-- The self Riot ID comes from launcher `lobby_info.player_info`; add an IPC `self:info` from Task 11's GEP module.
+- The self Riot ID comes from launcher `summoner_info.player_info`; add an IPC `self:info` from Task 11's GEP module.
 - The iframe changes URL only when the self Riot ID first becomes known, never while the user is browsing inside it.
 
 - [ ] **Step 1: Failing test** `start-url.test.ts`: null gives the home URL; `{ gameName: "Skaikru", tagLine: "HEAVN" }` gives `https://summon.vandslab.com/summoner/Skaikru-HEAVN`.
