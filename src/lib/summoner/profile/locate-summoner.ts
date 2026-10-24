@@ -17,7 +17,7 @@ async function activeRegion(puuid: string): Promise<string | null> {
 }
 
 // One tracked platform per account: moving it drops the old platform's ranked and mastery rows
-async function recordPlatform(puuid: string, stored: Platform | null, platform: Platform): Promise<void> {
+export async function recordPlatform(puuid: string, stored: Platform | null, platform: Platform): Promise<void> {
 	if (stored === platform) return;
 	if (stored) {
 		await prisma.$transaction([
