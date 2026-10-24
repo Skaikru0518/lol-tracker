@@ -8,6 +8,7 @@ vi.mock("@/lib/summoner/champions/mastery", () => ({ resolveTopMasteries: vi.fn(
 vi.mock("@/lib/riot/matches", () => ({ getMatchIdsByPuuid: vi.fn() }));
 vi.mock("@/lib/match/store", () => ({ fetchAndStoreMatch: vi.fn() }));
 vi.mock("@/lib/summoner/profile/locate-summoner", () => ({ recordPlatform: vi.fn() }));
+vi.mock("./role-query", () => ({ storedPositionCounts: vi.fn() }));
 vi.mock("@/lib/server/db", () => ({
 	prisma: {
 		account: { findUnique: vi.fn(), upsert: vi.fn() },
@@ -24,6 +25,7 @@ const { getMatchIdsByPuuid } = await import("@/lib/riot/matches");
 const { fetchAndStoreMatch } = await import("@/lib/match/store");
 const { recordPlatform } = await import("@/lib/summoner/profile/locate-summoner");
 const { prisma } = await import("@/lib/server/db");
+const { storedPositionCounts } = await import("./role-query");
 const { buildOverlayGame, clearOverlayCache } = await import("./overlay-game");
 
 const query = { gameName: "Name0", tagLine: "EUW", platform: "euw" as const, since: 1_000 };
@@ -55,6 +57,7 @@ describe("buildOverlayGame", () => {
 		vi.mocked(prisma.playerAchievement.findMany).mockResolvedValue([{ achievementId: "win-streak" }] as never);
 		vi.mocked(getMatchIdsByPuuid).mockResolvedValue([]);
 		vi.mocked(prisma.match.findMany).mockResolvedValue([]);
+		vi.mocked(storedPositionCounts).mockResolvedValue([{ position: "MIDDLE", games: 10 }]);
 	});
 
 	it("returns not-in-game when spectator has no game", async () => {
@@ -138,6 +141,17 @@ describe("buildOverlayGame", () => {
 		if (!game.inGame) throw new Error("expected a game");
 		expect(getMatchIdsByPuuid).not.toHaveBeenCalled();
 		expect(game.players.every((p) => p.today === null && !p.unavailable.includes("today"))).toBe(true);
+	});
+
+	it("adds the main role from stored matches, skipping bots", async () => {
+		const players = [participant(0), participant(1, "", ""), ...Array.from({ length: 8 }, (_, i) => participant(i + 2))];
+		vi.mocked(getLiveGame).mockResolvedValue(liveGame(420, players) as never);
+		const game = await buildOverlayGame(query);
+		if (!game.inGame) throw new Error("expected a game");
+		expect(game.players[0].role).toBe("MIDDLE");
+		expect(game.players[1].role).toBeNull();
+		expect(storedPositionCounts).not.toHaveBeenCalledWith("");
+		expect(storedPositionCounts).toHaveBeenCalledTimes(9);
 	});
 
 	it("serves a teammate's request from the cache with their own card as self", async () => {

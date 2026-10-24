@@ -11,7 +11,8 @@ import { resolveRankedEntries } from "@/lib/summoner/profile/ranked";
 import { type LiveGameParticipant } from "@/lib/validators/live-game";
 import { type Match } from "@/lib/validators/match";
 import { type OverlayGame, type OverlayPlayer, type OverlayQuery, type OverlayResponse, type OverlaySection } from "@/lib/validators/overlay";
-import { allocateMatchFetches, overlayRank, overlayTags, splitRiotId, todayRecord } from "./cards";
+import { allocateMatchFetches, mainRole, overlayRank, overlayTags, splitRiotId, todayRecord } from "./cards";
+import { storedPositionCounts } from "./role-query";
 
 const CACHE_TTL_MS = 60_000;
 const MATCH_FETCH_CAP = 30;
@@ -58,6 +59,7 @@ function emptyCard(participant: LiveGameParticipant, selfPuuid: string): Overlay
 		teamId: participant.teamId,
 		championId: participant.championId,
 		isSelf: participant.puuid === selfPuuid,
+		role: null,
 		rank: null,
 		mains: [],
 		today: null,
@@ -97,10 +99,11 @@ export async function buildOverlayGame(query: OverlayQuery, now: number = Date.n
 			if (!isReal(participant)) return;
 			await trackAccount(participant, query.platform);
 
-			const [entries, masteries, achievements, ids] = await Promise.all([
+			const [entries, masteries, achievements, positions, ids] = await Promise.all([
 				section(draft, "rank", onLimit, () => resolveRankedEntries(participant.puuid)),
 				section(draft, "mains", onLimit, () => resolveTopMasteries(participant.puuid, 3)),
 				prisma.playerAchievement.findMany({ where: { puuid: participant.puuid } }),
+				storedPositionCounts(participant.puuid),
 				queueId > 0
 					? section(draft, "today", onLimit, () =>
 							getMatchIdsByPuuid(participant.puuid, TODAY_ID_COUNT, 0, { startTime: Math.floor(query.since / 1000), queue: queueId }),
@@ -111,6 +114,7 @@ export async function buildOverlayGame(query: OverlayQuery, now: number = Date.n
 			if (entries) draft.rank = overlayRank(entries, queueId);
 			if (masteries) draft.mains = masteries.slice(0, 3).map((m) => m.championId);
 			draft.tags = overlayTags(achievements.map((a) => a.achievementId));
+			draft.role = mainRole(positions);
 			todayIds[i] = ids;
 		}),
 	);

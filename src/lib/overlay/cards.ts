@@ -1,11 +1,13 @@
 import { isRemake } from "@/lib/match/remake";
 import { type Match } from "@/lib/validators/match";
-import { type OverlayPlayer, type OverlayTag } from "@/lib/validators/overlay";
+import { overlayRoleSchema, type OverlayPlayer, type OverlayRole, type OverlayTag } from "@/lib/validators/overlay";
 import { type RankedEntry } from "@/lib/validators/ranked";
 
 const FLEX_QUEUE_ID = 440;
 
 const TAGS: Record<string, OverlayTag> = { "win-streak": "on-fire", "one-trick": "one-trick" };
+const ROLE_MIN_GAMES = 3;
+const ROLE_MIN_SHARE = 0.4;
 
 export function splitRiotId(riotId: string): { gameName: string; tagLine: string } {
 	const separator = riotId.lastIndexOf("#");
@@ -49,4 +51,15 @@ export function allocateMatchFetches(missing: string[][], cap: number): { fetch:
 
 export function overlayTags(achievementIds: string[]): OverlayTag[] {
 	return achievementIds.flatMap((id) => (TAGS[id] ? [TAGS[id]] : []));
+}
+
+export function mainRole(counts: { position: string; games: number }[]): OverlayRole | null {
+	const known = counts.flatMap(({ position, games }) => {
+		const role = overlayRoleSchema.safeParse(position);
+		return role.success ? [{ role: role.data, games }] : [];
+	});
+	const total = known.reduce((sum, c) => sum + c.games, 0);
+	const top = known.reduce<{ role: OverlayRole; games: number } | null>((best, c) => (!best || c.games > best.games ? c : best), null);
+	if (!top || top.games < ROLE_MIN_GAMES || top.games / total < ROLE_MIN_SHARE) return null;
+	return top.role;
 }

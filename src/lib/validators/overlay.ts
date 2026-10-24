@@ -3,6 +3,7 @@ import { platformSchema } from "./platform";
 
 export const overlaySectionSchema = z.enum(["rank", "mains", "today"]);
 export const overlayTagSchema = z.enum(["on-fire", "one-trick"]);
+export const overlayRoleSchema = z.enum(["TOP", "JUNGLE", "MIDDLE", "BOTTOM", "UTILITY"]);
 
 export const overlayPlayerSchema = z.object({
 	puuid: z.string(),
@@ -11,6 +12,7 @@ export const overlayPlayerSchema = z.object({
 	teamId: z.number(),
 	championId: z.number(),
 	isSelf: z.boolean(),
+	role: overlayRoleSchema.nullable(),
 	rank: z
 		.object({
 			queueType: z.string(),
@@ -47,6 +49,7 @@ export const overlayQuerySchema = z.object({
 
 export type OverlaySection = z.infer<typeof overlaySectionSchema>;
 export type OverlayTag = z.infer<typeof overlayTagSchema>;
+export type OverlayRole = z.infer<typeof overlayRoleSchema>;
 export type OverlayPlayer = z.infer<typeof overlayPlayerSchema>;
 export type OverlayGame = z.infer<typeof overlayGameSchema>;
 export type OverlayResponse = z.infer<typeof overlayResponseSchema>;

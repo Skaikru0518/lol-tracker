@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { type Match } from "@/lib/validators/match";
 import { type RankedEntry } from "@/lib/validators/ranked";
-import { allocateMatchFetches, overlayRank, overlayTags, splitRiotId, todayRecord } from "./cards";
+import { allocateMatchFetches, mainRole, overlayRank, overlayTags, splitRiotId, todayRecord } from "./cards";
 
 function entry(queueType: string, tier = "EMERALD"): RankedEntry {
 	return { queueType, tier, rank: "II", leaguePoints: 54, wins: 30, losses: 20, hotStreak: false, veteran: false, freshBlood: false, inactive: false };
@@ -69,5 +69,23 @@ describe("allocateMatchFetches", () => {
 describe("overlayTags", () => {
 	it("maps the streak and one-trick achievements", () => {
 		expect(overlayTags(["win-streak", "feeder", "one-trick"])).toEqual(["on-fire", "one-trick"]);
+	});
+});
+
+describe("mainRole", () => {
+	it("picks the clearly most played position", () => {
+		expect(mainRole([{ position: "MIDDLE", games: 12 }, { position: "TOP", games: 3 }])).toBe("MIDDLE");
+	});
+
+	it("needs at least 3 games", () => {
+		expect(mainRole([{ position: "MIDDLE", games: 2 }])).toBeNull();
+	});
+
+	it("needs 40% of the games", () => {
+		expect(mainRole([{ position: "TOP", games: 3 }, { position: "MIDDLE", games: 3 }, { position: "BOTTOM", games: 3 }, { position: "UTILITY", games: 2 }])).toBeNull();
+	});
+
+	it("ignores blank and unknown positions", () => {
+		expect(mainRole([{ position: "", games: 20 }, { position: "Invalid", games: 5 }, { position: "UTILITY", games: 3 }])).toBe("UTILITY");
 	});
 });
