@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getMatchIdsByPuuid, getMatchById } from "@/lib/riot/matches";
+import { getMatchIdsByPuuid } from "@/lib/riot/matches";
+import { fetchAndStoreMatch } from "@/lib/match/store";
 import { RiotApiError } from "@/lib/riot/riot";
 import { prisma } from "@/lib/server/db";
 import { projectMatch } from "@/lib/match/projection";
@@ -108,19 +109,7 @@ async function getHandler(req: NextRequest) {
 			const batch = missingIds.slice(i, i + BATCH_SIZE);
 			await Promise.allSettled(
 				batch.map(async (id) => {
-					const matchData = await getMatchById(id);
-					await prisma.match.upsert({
-						where: { matchId: id },
-						update: {},
-						create: {
-							matchId: id,
-							queueId: matchData.info.queueId,
-							gameMode: matchData.info.gameMode,
-							gameDuration: matchData.info.gameDuration,
-							gameCreation: BigInt(matchData.info.gameCreation),
-							data: matchData as any,
-						},
-					});
+					const matchData = await fetchAndStoreMatch(id);
 					cachedMap.set(id, matchData as any);
 				}),
 			);

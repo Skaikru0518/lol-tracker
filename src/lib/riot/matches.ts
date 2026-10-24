@@ -3,9 +3,16 @@ import { type Match } from "@/lib/validators/match";
 import { type Timeline } from "@/lib/validators/timeline";
 
 /** Riot match ids for a player, newest first; Riot's ids endpoint has no champion filter, see the stored-match queries instead. */
-export async function getMatchIdsByPuuid(puuid: string, count: number = 20, start: number = 0) {
+export async function getMatchIdsByPuuid(
+	puuid: string,
+	count: number = 20,
+	start: number = 0,
+	filter: { startTime?: number; queue?: number } = {},
+) {
 	const params = new URLSearchParams({ count: count.toString() });
 	if (start > 0) params.set("start", start.toString());
+	if (filter.startTime !== undefined) params.set("startTime", filter.startTime.toString());
+	if (filter.queue !== undefined) params.set("queue", filter.queue.toString());
 	return riotFetch<string[]>(
 		`${EUROPE_URL}/lol/match/v5/matches/by-puuid/${encodeURIComponent(puuid)}/ids?${params}`,
 	);
