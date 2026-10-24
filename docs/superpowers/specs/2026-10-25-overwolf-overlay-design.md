@@ -9,7 +9,7 @@ The owner plays with friends and wants Summon.gg data in front of them during th
 ## Goals
 
 - Loading screen: hotkey opens a full-screen panel with ten player cards (own team on top, enemy below).
-- In-game: the same hotkey opens a compact version of the panel.
+- In-game: the same hotkey opens a scoreboard-style panel with both teams and live item gold (team totals and laner vs laner).
 - Each player name links to `https://summon.vandslab.com/summoner/{Name-TAG}` and opens inside an overlay window over the game, with an "open in browser" button.
 - Desktop: the app's main window embeds the Summon.gg site in an iframe, opened on the local player's own profile.
 - Looks like Summon.gg: same dark palette and font.
@@ -23,6 +23,8 @@ The owner plays with friends and wants Summon.gg data in front of them during th
 - Peak rank: dropped for now by the owner.
 - Previous-season rank: our LP history only starts in March 2026 (Season 2026 began 2026-01-08) and Riot's API has none, so it would be empty everywhere. Dropped for now; revisit after the 2027 reset.
 - TFT, other games.
+- Builds, buy order and skill order for the player's own champion ("Your <champion>" block, designed in `designs/ingame-a3.html`): no data source yet (needs aggregated match data, tied to the production key). Added in a later round.
+- Champion select screen (runes and builds before the game): a later round, designed separately.
 - Pixel styling in this document: it fixes layout and content only. The detailed overlay visuals are designed with the `frontend-design` skill (current Summon.gg UI as the reference) **before the overlay UI is implemented, and the owner approves those designs first**.
 
 ## Anti-goals
@@ -101,7 +103,7 @@ Rules:
   - A thin app bar above the iframe shows status (waiting for game / in game / error), the hotkey setting and an on/off toggle for the overlay. Overwolf expects hotkey settings inside the app.
 - **Overlay window** (`OverlayBrowserWindow`, standard mode):
   - Loading screen: full panel, two team rows of five cards.
-  - In-game: compact panel (rank, today W/L, mains).
+  - In-game: scoreboard panel (two columns: champion, Riot ID, main role icon, mains, tags, short rank, today W/L) and below it live item gold (team totals bar and five laner-vs-laner difference bars).
   - Toggled by one hotkey with a modifier; default **Alt+X**, changeable in settings (plain keys clash with League; Overwolf forums report stuck keys with non-modifier hotkeys).
   - Closes automatically when the game ends.
 - **Profile window:** clicking a name opens a second overlay window that loads the Summon.gg profile URL, with a close button and an "open in browser" button (`shell.openExternal`).
@@ -121,6 +123,10 @@ Layout A: like Porofessor. Reference mockups (local, git-ignored): `.superpowers
   - chips (On Fire, OTP)
 - The own card has a purple (primary) ring.
 - **Card border:** a gradient in the team color, strong at the top and fading toward the bottom. No colored top strip.
+- **In-game panel** (approved design `summon-electron/docs/designs/ingame-a3.html`, without the "Your Ahri" block for now): two columns like the Tab scoreboard; under them "Item gold": blue/red team bar with both totals and "Your team ahead/behind by N", then one column per lane with both champions, a centred difference bar and "+850"/"−550".
+- **Item gold** comes from GEP `live_client_data.all_players` items (what the scoreboard shows), priced with Data Dragon `item.json` (`gold.total`). Current gold of enemies is never shown. Lanes are paired by the `position` field; when it is blank, by order.
+- **Main role** = the most played `teamPosition` in the player's last 20 stored Summoner's Rift matches (needs at least 3 games there and 40% of them), else no icon. DB only, no Riot call.
+- Approved designs for all screens: `summon-electron/docs/designs/` (loading-panel, card-states, ingame-a3, profile-window, desktop-window).
 - **Theme:** Summon.gg dark tokens copied from `summon/src/app/globals.css` (`.dark`): background `#0d0f1a`, card `#151827`, border `#252a40`, primary `#b05ad6`, gold `#e9b949`, win `#34c38f`, loss `#ef5350`, team blue `#4f8fe6`, team red `#ef5350`, muted text `#7d829c`. Font: Geist / Geist Mono.
 
 ## Testing

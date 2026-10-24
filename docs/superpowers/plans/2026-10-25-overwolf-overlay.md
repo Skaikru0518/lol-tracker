@@ -232,6 +232,27 @@ Behavior:
 
 ## Phase 3 — Designs (gate)
 
+### Task 7b: Main role in the overlay response (summon)
+
+Added after the design round (owner approved the role icon on the in-game panel).
+
+**Files:**
+- Modify: `src/lib/validators/overlay.ts` (add `role`), `src/lib/overlay/cards.ts` (+ test), `src/lib/overlay/overlay-game.ts` (+ test)
+- Create: `src/lib/overlay/role-query.ts`
+
+**Interfaces:**
+- Produces: `overlayPlayerSchema.role: z.enum(["TOP","JUNGLE","MIDDLE","BOTTOM","UTILITY"]).nullable()`.
+- Produces: `mainRole(counts: { position: string; games: number }[]): OverlayRole | null`. It returns the position with the most games when that position has at least 3 games and at least 40% of the total; blank or unknown positions are ignored.
+- Produces: `storedPositionCounts(puuid: string): Promise<{ position: string; games: number }[]>`. It runs one `$queryRaw` over the player's last 20 stored matches in queues 400, 420, 430, 440, 490, grouping `teamPosition` (same JSON style as `getStoredQueueMatches` in `src/app/api/matches/route.ts`).
+
+- [ ] **Step 1: Failing tests:**
+  - `cards.test.ts`: `mainRole([{position:"MIDDLE",games:12},{position:"TOP",games:3}])` is `"MIDDLE"`; `[{position:"MIDDLE",games:2}]` gives null (too few); `[{position:"TOP",games:4},{position:"MIDDLE",games:3},{position:"BOTTOM",games:3}]` gives null (under 40%).
+  - `overlay-game.test.ts`: real players get `role` from the mocked `storedPositionCounts`; bots get `role: null` and no query.
+- [ ] **Step 2: Run.** Expected: FAIL.
+- [ ] **Step 3: Implement**, then copy the schema change into summon-electron's `src/shared/overlay-schema.ts` when Task 10 creates it.
+- [ ] **Step 4: Verify** `pnpm test`, `pnpm build`.
+- [ ] **Step 5: Commit** `feat(overlay): main role from stored matches`. Tell the owner to deploy again.
+
 ### Task 8: App skeleton (summon-electron)
 
 **Files:**
@@ -305,11 +326,11 @@ Decisions:
 - Consumes: Task 10.
 - Produces:
   - `loadSettings(raw: unknown): Settings`, with `Settings = { hotkey: string; overlayEnabled: boolean }` and defaults `{ hotkey: "Alt+X", overlayEnabled: true }`. It is Zod-parsed, so invalid input falls back to the defaults. Settings are persisted as JSON in `app.getPath("userData")`.
-  - IPC to the overlay renderer: `overlay:state` (`SessionState`), `overlay:game` (`OverlayGame` or `null`), `overlay:error` (`string`). From the renderer: `profile:open` (`{ gameName, tagLine }`), `profile:external` (`url`), `settings:get`, `settings:set`.
+  - IPC to the overlay renderer: `overlay:state` (`SessionState`), `overlay:game` (`OverlayGame` or `null`), `overlay:live` (live players, see below), `overlay:error` (`string`). From the renderer: `profile:open` (`{ gameName, tagLine }`), `profile:external` (`url`), `settings:get`, `settings:set`.
 
 Behavior:
 - `gep.ts`:
-  - `setRequiredFeatures` for launcher 10902 (`game_flow`, `lobby_info`, `summoner_info`; Riot ID from `summoner_info.player_info` JSON, platform from `summoner_info.platform_id`) and game 5426 (`matchState`, `match_info`).
+  - `setRequiredFeatures` for launcher 10902 (`game_flow`, `lobby_info`, `summoner_info`; Riot ID from `summoner_info.player_info` JSON, platform from `summoner_info.platform_id`) and game 5426 (`matchState`, `match_info`, `live_client_data`). `live_client_data.all_players` (JSON string) is parsed and sent to the overlay as `overlay:live` (`{ championName, team, position, items: { itemID: number; count: number }[] }[]`).
   - It feeds `sessionReducer`.
   - On startup it reads `getInfo` for both, so the app recovers when it is started mid-game (Review Focus 4).
 - On entering `loading`: fetch with `since = localMidnight(new Date())`, and retry using `retryDelayMs`/`shouldRetry` while the result is `inGame: false` and the state is still loading or in-game. Stop on any other state. Send the result to the overlay.
@@ -335,7 +356,10 @@ Behavior:
 - Produces (pure, tested):
   - `teamsForView(players: OverlayPlayer[]): { ally: OverlayPlayer[]; enemy: OverlayPlayer[] }`: the self player's team is ally; if no self, team 100 is ally; teams other than 100/200 are split in halves by order.
   - `todayLabel(today: OverlayPlayer["today"]): string`: `"3W 1L"`, `"3W 1L+"` when partial, `"—"` when null or 0–0.
-  - `rankLabel(rank, compact: boolean)`: `"Emerald II · 54 LP"` / `"E2"`; unranked → `"Unranked"`; apex tiers have no division (`"Master · 120 LP"` / `"M"`).
+  - `rankLabel(rank, compact: boolean)`: `"Emerald II"` / `"E2"`; unranked → `"Unranked"` / `"—"`; apex tiers have no division (`"Master"` / `"M"`). LP is rendered separately.
+  - `itemGold(items: { itemID: number; count: number }[], prices: Record<number, number>): number`, the sum of `price × count`; unknown ids count 0.
+  - `goldSummary(live: LivePlayer[], prices, allyTeam: "ORDER" | "CHAOS"): { ally: number; enemy: number; lanes: { position: string; ally: LivePlayer; enemy: LivePlayer; diff: number }[] }`. Lanes are paired by `position` (TOP, JUNGLE, MIDDLE, BOTTOM, UTILITY), falling back to list order when positions are blank.
+- Content: in-game panel = approved `docs/designs/ingame-a3.html` **without** the "Your Ahri" block (spec non-goal for now): two scoreboard columns (role icon from `role`), then the Item gold section. The ally team for gold is the self player's team (`ORDER` = 100, `CHAOS` = 200).
 
 Behavior: follow the approved designs exactly.
 - Champion icons use Data Dragon (`versions.json` → `champion.json` id map → `cdn/{version}/img/champion/{id}.png`), cached in memory; these are static files, not Riot API calls.
@@ -343,7 +367,7 @@ Behavior: follow the approved designs exactly.
 - `loading` renders `LoadingPanel`, `in-game` renders `CompactPanel`.
 - While loading with no data yet, show a "Waiting for game data…" state. On `overlay:error`, show a one-line error and keep the last data.
 
-- [ ] **Step 1: Failing tests** `view.test.ts` for the three functions, including no-self and 16-player (Arena) inputs.
+- [ ] **Step 1: Failing tests** `view.test.ts` for all five functions, including no-self and 16-player (Arena) inputs, unknown item ids, and blank positions (paired by order).
 - [ ] **Step 2: Run.** Expected: FAIL.
 - [ ] **Step 3: Implement** the helpers, then the components.
 - [ ] **Step 4: Verify.** `pnpm test` and `pnpm build` pass. The owner checks one real game against the designs: cards, hotkey, name → profile window, "open in browser".
