@@ -1,6 +1,6 @@
 # Summon.gg Overwolf overlay — design
 
-An Overwolf (ow-electron) companion app for Summon.gg. On a hotkey it opens an overlay over League of Legends that shows who is in the current game: rank, mains, today's results and peak rank for all ten players, like Porofessor does. Clicking a name opens that player's Summon.gg profile without leaving the game.
+An Overwolf (ow-electron) companion app for Summon.gg. On a hotkey it opens an overlay over League of Legends that shows who is in the current game: rank, mains and today's results for all ten players, like Porofessor does. Clicking a name opens that player's Summon.gg profile without leaving the game.
 
 ## Why
 
@@ -19,6 +19,7 @@ The owner plays with friends and wants Summon.gg data in front of them during th
 - Overwolf store submission, ads, subscriptions.
 - Champion select data (Riot hides enemy names there).
 - 30-day win rate (too many Match-v5 calls per loading screen; dropped by the owner).
+- Peak rank: dropped for now by the owner.
 - Previous-season rank: our LP history only starts in March 2026 (Season 2026 began 2026-01-08) and Riot's API has none, so it would be empty everywhere. Dropped for now; revisit after the 2027 reset.
 - TFT, other games.
 - Detailed visual design: done separately afterwards with the `frontend-design` skill, using the current Summon.gg UI as the reference. This document fixes layout and content, not pixel styling.
@@ -77,7 +78,6 @@ Response: Zod-validated, the same schema copied into `summon-electron`. Shape:
   - `rank`: tier, division, LP, season wins/losses (from the league-v4 call, so free)
   - `mains`: top 3 champions by mastery
   - `today`: wins and losses since `since`
-  - `peak`: highest rank recorded in our `LPHistory` (see below), or null
   - `tags`: e.g. on-fire streak, one-trick, using the existing badge/achievement logic where it already exists
   - per-section availability so the UI can show "—" for a part that failed (rate limited) instead of failing the card
 
@@ -85,9 +85,7 @@ Rules:
 
 - **Which rank queue:** Ranked Flex games show Flex; every other queue shows Solo/Duo. *(Builder's call recorded here.)*
 - **Today W/L** counts games in the current game's queue since `since`: one Match-v5 ids call per player (with `startTime` and `queue`), then details only for matches not already stored. Stored matches are never fetched again.
-- **Peak** = highest tier/division/LP in `LPHistory` for that queue in the current season. *(Builder's call; the source is only what we have tracked, which the Riot API cannot fill in.)*
-- **All ten players become tracked accounts** (owner's decision): the endpoint creates/updates their `Account` with the real Riot ID and the game's platform, and saves ranked entries through the path that also writes `LPHistory` (`saveRankedEntries`), not the `ranked/batch` path that creates `gameName: ""` accounts. They then join the ranked cron, so peak fills in over time. The cron is already budgeted (fixed batch per run, cursor, active-first), which keeps per-run cost bounded as the account count grows.
-- Players with no LP history yet: peak is null and shown as "—".
+- **All ten players become tracked accounts** (owner's decision): the endpoint creates/updates their `Account` with the real Riot ID and the game's platform, and saves ranked entries through the path that also writes `LPHistory` (`saveRankedEntries`), not the `ranked/batch` path that creates `gameName: ""` accounts. They then join the ranked cron, so their LP history builds up for later features. The cron is already budgeted (fixed batch per run, cursor, active-first), which keeps per-run cost bounded as the account count grows.
 - Caching: reuse the existing per-player caches (RankedEntry, ChampionMastery, Match). The whole response is also cached briefly (a few minutes) per game, so reopening the overlay costs nothing.
 - **Match-detail cap:** at most ~30 new Match-v5 detail fetches per request across all ten players *(builder's call)*. If today's games need more, `today` is marked partial (shown e.g. as "3W 1L+") and later opens fill it in from what got stored.
 - **Abuse protection** *(builder's call)*: the response is cached per Spectator `gameId`, so requests for any of the ten puuids hit the same entry; plus a simple per-IP rate limit on the route. An app token is deferred to the store phase.
@@ -117,7 +115,6 @@ Layout A: like Porofessor. Reference mockups (local, git-ignored): `.superpowers
   - 2–3 main champion icons
   - today's W/L
   - season W/L
-  - peak rank, "—" when unknown
   - chips (On Fire, OTP)
 - The own card has a purple (primary) ring.
 - **Card border:** a gradient in the team color, strong at the top and fading toward the bottom. No colored top strip.
@@ -125,7 +122,7 @@ Layout A: like Porofessor. Reference mockups (local, git-ignored): `.superpowers
 
 ## Testing
 
-- Backend: Vitest unit tests for the card builder (today W/L and the match-detail cap, peak, queue choice, account tracking, partial data on 429), in the style of the existing tests.
+- Backend: Vitest unit tests for the card builder (today W/L and the match-detail cap, queue choice, account tracking, partial data on 429), in the style of the existing tests.
 - Electron: unit tests for pure logic (phase → overlay state, retry/backoff, response parsing). In-game behavior is checked by the owner in a real game; the builder gives them a short checklist.
 - The web app's existing test suite stays green after the move.
 
