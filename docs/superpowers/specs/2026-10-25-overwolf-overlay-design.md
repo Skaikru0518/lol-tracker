@@ -10,7 +10,8 @@ The owner plays with friends and wants Summon.gg data in front of them during th
 
 - Loading screen: hotkey opens a full-screen panel with ten player cards (own team on top, enemy below).
 - In-game: the same hotkey opens a compact version of the panel.
-- Each player name links to `https://summon.vandslab.hu/summoner/{Name-TAG}` and opens inside an overlay window over the game, with an "open in browser" button.
+- Each player name links to `https://summon.vandslab.com/summoner/{Name-TAG}` and opens inside an overlay window over the game, with an "open in browser" button.
+- Desktop: the app's main window embeds the Summon.gg site in an iframe, opened on the local player's own profile.
 - Looks like Summon.gg: same dark palette and font.
 - The Riot API key lives only on the Summon.gg backend.
 
@@ -22,7 +23,7 @@ The owner plays with friends and wants Summon.gg data in front of them during th
 - Peak rank: dropped for now by the owner.
 - Previous-season rank: our LP history only starts in March 2026 (Season 2026 began 2026-01-08) and Riot's API has none, so it would be empty everywhere. Dropped for now; revisit after the 2027 reset.
 - TFT, other games.
-- Detailed visual design: done separately afterwards with the `frontend-design` skill, using the current Summon.gg UI as the reference. This document fixes layout and content, not pixel styling.
+- Pixel styling in this document: it fixes layout and content only. The detailed overlay visuals are designed with the `frontend-design` skill (current Summon.gg UI as the reference) **before the overlay UI is implemented, and the owner approves those designs first**.
 
 ## Anti-goals
 
@@ -95,7 +96,9 @@ Rules:
 ## Electron app (`summon-electron/`)
 
 - ow-electron, TypeScript. Renderer UI in React (same stack as the site) unless the Overwolf sample makes that unreasonable; the builder starts from Overwolf's official ow-electron sample/boilerplate.
-- **Desktop window:** status (waiting for game / in game / error), hotkey setting, on/off toggle. Overwolf expects hotkey settings inside the app.
+- **Desktop window** (main app window, works without a game running):
+  - Fills with an iframe of the Summon.gg site. It opens `https://summon.vandslab.com/summoner/{Name-TAG}` for the local player once the launcher reports who is logged in, and the site's home page before that. *(Which page shows before login is the builder's call.)* The site sends no `X-Frame-Options`/`frame-ancestors`, so framing works today. The spike confirms production doesn't add such headers at the ingress.
+  - A thin app bar above the iframe shows status (waiting for game / in game / error), the hotkey setting and an on/off toggle for the overlay. Overwolf expects hotkey settings inside the app.
 - **Overlay window** (`OverlayBrowserWindow`, standard mode):
   - Loading screen: full panel, two team rows of five cards.
   - In-game: compact panel (rank, today W/L, mains).
