@@ -102,7 +102,7 @@ Rules:
 - **Overlay window** (`OverlayBrowserWindow`, standard mode):
   - Loading screen: full panel, two team rows of five cards.
   - In-game: compact panel (rank, today W/L, mains).
-  - Toggled by one hotkey with a modifier; default **Alt+Z**, changeable in settings (plain keys clash with League; Overwolf forums report stuck keys with non-modifier hotkeys).
+  - Toggled by one hotkey with a modifier; default **Alt+X**, changeable in settings (plain keys clash with League; Overwolf forums report stuck keys with non-modifier hotkeys).
   - Closes automatically when the game ends.
 - **Profile window:** clicking a name opens a second overlay window that loads the Summon.gg profile URL, with a close button and an "open in browser" button (`shell.openExternal`).
 

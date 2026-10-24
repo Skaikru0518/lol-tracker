@@ -19,7 +19,7 @@
 - summon: logic in `src/lib/…`, Vitest TDD, read `node_modules/next/dist/docs/` before touching route code (Next 16).
 - Site base URL: `https://summon.vandslab.com`. Profile URL: `https://summon.vandslab.com/summoner/{encodeURIComponent(`${gameName}-${tagLine}`)}` (same as `toSummonerSlug`).
 - Overlay must not show Est. MMR, performance rank, or anything during champion select.
-- Hotkey default `Alt+Z`, configurable. Overlay runs in Overwolf "standard" mode.
+- Hotkey default `Alt+X`, configurable. Overlay runs in Overwolf "standard" mode.
 - Match-detail cap: at most 30 new Match-v5 detail fetches per overlay request. Response cache TTL: 60 s.
 - Theme tokens (copy into the app): background `#0d0f1a`, nav `#0a0c15`, card `#151827`, border `#252a40`, secondary `#1d2136`, foreground `#d4d7e6`, muted `#7d829c`, primary `#b05ad6`, gold `#e9b949`, win `#34c38f`, loss `#ef5350`, team blue `#4f8fe6`, team red `#ef5350`. Font Geist / Geist Mono.
 - **Gate:** Task 9 (designs) must be approved by the owner before Tasks 12–13 start.
@@ -66,7 +66,7 @@ Throwaway code in `nextjsfullstack/spike-ow/` (not a repo, never committed). Its
   - game (5426): `match_info.players_tagline`, `live_client_data.all_players`, `game_info.teams`, `matchState`, with time since `GameStart`
   - every 5 s after `GameStart` (max 24 tries, stop at first success): `GET https://summon.vandslab.com/api/live-game?puuid=<own puuid>`, logging only status and `inGame`
   - response headers of `GET https://summon.vandslab.com/` (look for `x-frame-options`, `content-security-policy`)
-- [ ] **Step 3: Overlay check.** Register `Alt+Z` that toggles one `OverlayBrowserWindow` (standard mode) loading `https://summon.vandslab.com`. Also open a desktop `BrowserWindow` with an `<iframe src="https://summon.vandslab.com">`.
+- [ ] **Step 3: Overlay check.** Register `Alt+X` that toggles one `OverlayBrowserWindow` (standard mode) loading `https://summon.vandslab.com`. Also open a desktop `BrowserWindow` with an `<iframe src="https://summon.vandslab.com">`.
 - [ ] **Step 4: Owner runs one real game** (ranked or normal) with the spike running, and reports whether the hotkey, the overlay window and the iframe worked.
 - [ ] **Step 5: Write `summon-electron/docs/spike-findings.md`**: which source gives the ten players at loading screen and how many seconds after `GameStart` Spectator answered; whether `players_tagline` arrives during the loading screen; `platform_id` values seen; framing headers; overlay/hotkey/iframe results; anything that contradicts this plan.
 - [ ] **Step 6: Decide.** If Spectator answered during the loading screen in the test game, the plan proceeds unchanged. If not, record the ruling in the findings file: add a `riotIds` query variant to Task 7's route that builds the cards from `players_tagline` (resolving puuids via the existing `locateAccount`). Delete `spike-ow/` afterwards.
@@ -304,7 +304,7 @@ Decisions:
 **Interfaces:**
 - Consumes: Task 10.
 - Produces:
-  - `loadSettings(raw: unknown): Settings`, with `Settings = { hotkey: string; overlayEnabled: boolean }` and defaults `{ hotkey: "Alt+Z", overlayEnabled: true }`. It is Zod-parsed, so invalid input falls back to the defaults. Settings are persisted as JSON in `app.getPath("userData")`.
+  - `loadSettings(raw: unknown): Settings`, with `Settings = { hotkey: string; overlayEnabled: boolean }` and defaults `{ hotkey: "Alt+X", overlayEnabled: true }`. It is Zod-parsed, so invalid input falls back to the defaults. Settings are persisted as JSON in `app.getPath("userData")`.
   - IPC to the overlay renderer: `overlay:state` (`SessionState`), `overlay:game` (`OverlayGame` or `null`), `overlay:error` (`string`). From the renderer: `profile:open` (`{ gameName, tagLine }`), `profile:external` (`url`), `settings:get`, `settings:set`.
 
 Behavior:
