@@ -44,15 +44,31 @@ Streamers show their rank and session on stream; today they use other sites' wid
   - `theme`: `card` | `clear` (default `card`)
   - `queue`: `solo` | `flex` (default `solo`)
   - `session`: `auto` | `today` | `load` | `season` (default `auto`; `season` is labelled "Overall" in the generator)
+  - `anim`: `on` | `off` (default `on`): event animations below.
+  - `fx`: optional extras, comma list of `rotate`, `smoke` (default none).
   - `show`: which optional parts appear: Riot ID, server, LP change, win rate %. Defaults: all on (win rate on by the owner's request). *(Exact encoding is the builder's call.)*
 - Transparent page background, no site chrome, no scrollbars. The widget sits at the top left of the page at its natural size, so the OBS source size equals the widget size.
 - Not indexed (`noindex`), no analytics events beyond a page view.
 - Refreshes its data every 60 seconds without reloading the page. On a failed refresh it keeps showing the last data.
 
+### Motion and watermark (owner-approved with the animation mockup `.superpowers/brainstorm/stream-widget/anim.html`)
+
+- Every effect stays inside the widget's box (the box clips), because OBS crops the source to it.
+- **Watermark:** a faint `summon.gg` in the bottom-right corner (bottom-left on the bar, inline at the end of the pill). Always on.
+- **Events** (`anim=on`), found by comparing two refreshes: a finished game flashes the border green/red from inside, the LP change floats up inside the box, numbers roll to their new values, the new champion icon slides in on the left of the strip and the new dot pops in on the square. A promotion covers the whole widget for 3 s with "PROMOTED · <rank>" in the tier color and a light sweep, the emblem flashes and two rings burst; a demotion shows a plain grey "DEMOTED · <rank>" cover.
+- **Win streak:** from 3 wins in a row (newest games) a "🔥 N" chip appears (next to "Session" on the bar) and card widgets get a gold border.
+- **Live:** the strip's live icon gets a running dashed gold border and a game clock (Spectator `gameStartTime`); the other styles show a pulsing red dot next to the record caption. With animations on, every style asks for the live game (same 2-minute budget).
+- **Entrance:** the widget wipes in and numbers count up from zero when OBS shows it.
+- **Long names** scroll back and forth when they don't fit.
+- **`fx=rotate`:** the bar alternates Session and Season every 8 s, the pill alternates rank and record.
+- **`fx=smoke`:** the emblem gives off a faint vapor (a blurred, wavering copy of its own shape drifting up).
+- `anim=off` freezes all motion; numbers and chips still show.
+- Numbers settle on their final value even when the page is hidden and frames don't run.
+
 ### Styles (from the mockup)
 
 1. **Bar (460 × 88):** rank emblem; Riot ID with tag and a server chip; tier, division and LP; then a "Session" block: W/L and LP change.
-2. **Square (240 wide):** Riot ID and server; big emblem; tier, division and LP on one line (no LP progress bar, owner's decision); "Session" W/L and "LP today" side by side; one green/red dot per session game.
+2. **Square (240 × 310):** Riot ID and server; big emblem; tier, division and LP on one line (no LP progress bar, owner's decision); "Session" W/L and "LP today" side by side; one green/red dot per session game.
 3. **Session strip (520 wide):** header with emblem, Riot ID, server, tier and LP, and session W/L, win rate and LP change on the right; below it one champion icon per session game (newest on the left, at most 8, the oldest drop off) with green/red border and KDA; when the summoner is in a game, a dashed gold icon of the current champion labelled "Live" comes first (owner's request).
 4. **Pill:** one line: small emblem, short rank (`E2`), LP, W/L, LP change.
 
@@ -91,7 +107,8 @@ Riot call budget per summoner, shared by every browser showing that summoner (ca
 - A "Stream widget" button in the summoner page opens a dialog (as in the mockup): options on the left (style, theme, queue, session start, show), a live preview on a checkerboard on the right, the URL with "Copy URL" and "Open", and a one-line OBS hint with the width and height for the chosen style.
 - The preview renders the real widget component, not an iframe. *(Builder's call recorded here:)* when the dialog opens it fetches the widget endpoint once for that summoner and queue (cached, so it costs at most the normal budget). When the real session is empty (always for `load`), the preview fills the session part with sample games, labelled "Sample session", so the streamer can judge the strip icons and square dots; rank and Riot ID stay real.
 - The button sits next to Update in the hero, tinted in the primary color so streamers notice it (owner's request).
-- The home page has a "Stream widget" panel with two sample widgets and a line on where to make one (owner's request).
+- The home page has a "Stream widget" panel right under the search hero, with two sample widgets of a made-up Grandmaster player and a line on where to make one (owner's request).
+- The generator also offers Animations on/off, the effects that apply to the chosen style, and "Play win" / "Play promotion" buttons on the preview.
 
 ## Testing
 

@@ -22,15 +22,17 @@ const SAMPLE_GAMES: WidgetGame[] = [
 }));
 
 export const SAMPLE_WIDGET: WidgetData = {
-	gameName: "Skaikru",
-	tagLine: "HEAVN",
-	platform: "eune",
-	rank: { tier: "EMERALD", division: "II", leaguePoints: 54 },
+	gameName: "Velmora",
+	tagLine: "MOON",
+	platform: "euw",
+	rank: { tier: "GRANDMASTER", division: "I", leaguePoints: 412 },
 	scope: "session",
 	record: { wins: 5, losses: 2 },
+	season: { wins: 214, losses: 171 },
 	games: SAMPLE_GAMES,
 	lpChange: 38,
 	liveChampion: "Ahri",
+	liveStartedAt: null,
 };
 
 /** The generator preview needs games to judge the strip and dots; an empty real session gets sample ones. */

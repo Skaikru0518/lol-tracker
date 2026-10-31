@@ -1,11 +1,26 @@
 import { rankLabel } from "@/lib/widget/format";
-import { Emblem, LpChange, recordLabel, RiotIdLine, tierColor, WinLoss, type WidgetViewProps } from "./widget-parts";
+import { Rotator } from "./widget-motion";
+import { Emblem, LpChange, RecordCaption, RiotIdLine, StreakChip, tierColor, WinLoss, type WidgetViewProps } from "./widget-parts";
 import styles from "./widget.module.css";
 
-export function WidgetBar({ data, options }: WidgetViewProps) {
+export function WidgetBar({ data, options, events }: WidgetViewProps) {
+	const record = (
+		<>
+			<span className={styles.khead}>
+				<StreakChip data={data} />
+				<RecordCaption data={data} />
+			</span>
+			<span className={styles.wl}>
+				<WinLoss {...data.record} options={options} />
+			</span>
+			<LpChange data={data} options={options} suffix=" LP" />
+		</>
+	);
+	const rotate = options.fx.includes("rotate") && data.scope === "session" && data.season;
+
 	return (
 		<>
-			<Emblem data={data} />
+			<Emblem data={data} options={options} events={events} />
 			<div className={styles.id}>
 				<RiotIdLine data={data} options={options} />
 				<div className={styles.rank} style={{ color: tierColor(data) }}>
@@ -13,11 +28,21 @@ export function WidgetBar({ data, options }: WidgetViewProps) {
 				</div>
 			</div>
 			<div className={styles.sess}>
-				<span className={styles.k}>{recordLabel(data)}</span>
-				<span className={styles.wl}>
-					<WinLoss {...data.record} options={options} />
-				</span>
-				<LpChange data={data} options={options} suffix=" LP" />
+				{rotate && data.season ? (
+					<Rotator>
+						{[
+							<div key="session">{record}</div>,
+							<div key="season">
+								<RecordCaption data={data} label="Season" />
+								<span className={styles.wl}>
+									<WinLoss {...data.season} options={options} />
+								</span>
+							</div>,
+						]}
+					</Rotator>
+				) : (
+					record
+				)}
 			</div>
 		</>
 	);

@@ -13,7 +13,7 @@ const STYLE_PARTS: Record<WidgetStyle, WidgetShow[]> = {
 
 export const STYLE_SIZES: Record<WidgetStyle, { width: number; height: number }> = {
 	bar: { width: 460, height: 88 },
-	square: { width: 240, height: 290 },
+	square: { width: 240, height: 310 },
 	strip: { width: 520, height: 130 },
 	pill: { width: 300, height: 36 },
 };

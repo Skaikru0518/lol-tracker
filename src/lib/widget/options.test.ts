@@ -3,16 +3,18 @@ import { parseWidgetOptions, widgetOptionsQuery } from "./options";
 
 describe("parseWidgetOptions", () => {
 	it("uses the defaults when nothing is set", () => {
-		expect(parseWidgetOptions({})).toEqual({ style: "bar", theme: "card", queue: "solo", session: "auto", show: ["id", "server", "lp", "wr"] });
+		expect(parseWidgetOptions({})).toEqual({ style: "bar", theme: "card", queue: "solo", session: "auto", show: ["id", "server", "lp", "wr"], anim: "on", fx: [] });
 	});
 
 	it("reads every option", () => {
-		expect(parseWidgetOptions({ style: "strip", theme: "clear", queue: "flex", session: "today", show: "lp,wr" })).toEqual({
+		expect(parseWidgetOptions({ style: "strip", theme: "clear", queue: "flex", session: "today", show: "lp,wr", anim: "off", fx: "smoke,rotate,sparkles" })).toEqual({
 			style: "strip",
 			theme: "clear",
 			queue: "flex",
 			session: "today",
 			show: ["lp", "wr"],
+			anim: "off",
+			fx: ["smoke", "rotate"],
 		});
 	});
 
@@ -33,8 +35,8 @@ describe("parseWidgetOptions", () => {
 
 describe("widgetOptionsQuery", () => {
 	it("round-trips through parseWidgetOptions", () => {
-		const options = { style: "square", theme: "clear", queue: "flex", session: "load", show: ["id", "wr"] } as const;
-		const params = Object.fromEntries(new URLSearchParams(widgetOptionsQuery({ ...options, show: [...options.show] })));
+		const options = { style: "square", theme: "clear", queue: "flex", session: "load", show: ["id", "wr"], anim: "off", fx: ["smoke"] } as const;
+		const params = Object.fromEntries(new URLSearchParams(widgetOptionsQuery({ ...options, show: [...options.show], fx: [...options.fx] })));
 		expect(parseWidgetOptions(params)).toEqual(options);
 	});
 });

@@ -2,7 +2,7 @@ import { Panel, PanelBody, PanelHeader } from "@/components/ui/panel";
 import { StreamWidget } from "@/components/widget/stream-widget";
 import { CHECKERBOARD } from "@/components/widget/checkerboard";
 import { getDDragonVersion } from "@/lib/game/icon-helpers";
-import { DEFAULT_SHOW } from "@/lib/widget/options";
+import { DEFAULT_WIDGET_OPTIONS } from "@/lib/widget/options";
 import { SAMPLE_WIDGET } from "@/lib/widget/sample";
 
 /** Shows streamers that the widget exists and where to make one. */
@@ -22,8 +22,8 @@ export async function StreamWidgetPromo() {
 					</p>
 				</div>
 				<div className="grid justify-items-center gap-3 overflow-hidden rounded-lg p-4" style={CHECKERBOARD}>
-					<StreamWidget data={SAMPLE_WIDGET} options={{ style: "bar", theme: "card", queue: "solo", session: "auto", show: DEFAULT_SHOW }} version={version} />
-					<StreamWidget data={SAMPLE_WIDGET} options={{ style: "pill", theme: "clear", queue: "solo", session: "auto", show: [...DEFAULT_SHOW, "wr"] }} version={version} />
+					<StreamWidget data={SAMPLE_WIDGET} options={{ ...DEFAULT_WIDGET_OPTIONS, fx: ["smoke"] }} version={version} />
+					<StreamWidget data={SAMPLE_WIDGET} options={{ ...DEFAULT_WIDGET_OPTIONS, style: "pill", theme: "clear" }} version={version} />
 				</div>
 			</PanelBody>
 		</Panel>

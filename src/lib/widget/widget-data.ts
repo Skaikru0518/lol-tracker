@@ -34,6 +34,7 @@ interface CallState {
 	idsTotal: number | null;
 	liveAt: number;
 	liveChampion: string | null;
+	liveStartedAt: number | null;
 }
 
 // Per pod, keyed by summoner and queue: every browser showing the same widget shares one call budget
@@ -46,7 +47,7 @@ export function clearWidgetState(): void {
 function stateFor(key: string): CallState {
 	let state = states.get(key);
 	if (!state) {
-		state = { rankedAt: -Infinity, idsAt: -Infinity, ids: null, idsTotal: null, liveAt: -Infinity, liveChampion: null };
+		state = { rankedAt: -Infinity, idsAt: -Infinity, ids: null, idsTotal: null, liveAt: -Infinity, liveChampion: null, liveStartedAt: null };
 		states.set(key, state);
 	}
 	return state;
@@ -138,9 +139,13 @@ export async function buildWidgetData(slug: string, query: WidgetQuery, now: num
 			const championId = live.participants.find((p) => p.puuid === puuid)?.championId;
 			const champions = championId ? await getChampionMap(await getDDragonVersion()) : null;
 			state.liveChampion = (championId && champions?.[championId]?.id) || null;
+			state.liveStartedAt = live.gameStartTime || null;
 		} catch (error) {
 			if (!(error instanceof RiotApiError)) throw error;
-			if (error.status === 404) state.liveChampion = null;
+			if (error.status === 404) {
+				state.liveChampion = null;
+				state.liveStartedAt = null;
+			}
 		}
 	}
 
@@ -151,8 +156,10 @@ export async function buildWidgetData(slug: string, query: WidgetQuery, now: num
 		rank: entry ? { tier: entry.tier, division: entry.rank, leaguePoints: entry.leaguePoints } : null,
 		scope: season ? "season" : "session",
 		record,
+		season: entry ? { wins: entry.wins, losses: entry.losses } : null,
 		games,
 		lpChange,
 		liveChampion: query.live ? state.liveChampion : null,
+		liveStartedAt: query.live ? state.liveStartedAt : null,
 	};
 }

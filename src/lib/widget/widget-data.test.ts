@@ -71,6 +71,7 @@ describe("buildWidgetData", () => {
 		vi.mocked(getMatchIdsByPuuid).mockResolvedValue(["m2", "m1"]);
 		const data = await buildWidgetData(SLUG, { queue: "solo", live: false, scope: "season" }, NOW + 10 * 60 * MIN);
 		expect(data).toMatchObject({ scope: "season", record: { wins: 22, losses: 19 }, lpChange: null });
+		expect(data?.season).toEqual({ wins: 22, losses: 19 });
 		expect(data?.games.map((g) => g.matchId)).toEqual(["m1", "m2"]);
 		expect(getMatchIdsByPuuid).toHaveBeenCalledWith("me", 10, 0, { queue: 420 });
 		expect(prisma.lPHistory.findFirst).not.toHaveBeenCalled();
@@ -118,9 +119,10 @@ describe("buildWidgetData", () => {
 		await buildWidgetData(SLUG, { queue: "solo", live: false }, NOW);
 		expect(getLiveGame).not.toHaveBeenCalled();
 
-		vi.mocked(getLiveGame).mockResolvedValue({ participants: [{ puuid: "me", championId: 103 }] } as never);
+		vi.mocked(getLiveGame).mockResolvedValue({ gameStartTime: 12345, participants: [{ puuid: "me", championId: 103 }] } as never);
 		const live = await buildWidgetData(SLUG, { queue: "solo", live: true }, NOW);
 		expect(live?.liveChampion).toBe("Ahri");
+		expect(live?.liveStartedAt).toBe(12345);
 		await buildWidgetData(SLUG, { queue: "solo", live: true }, NOW + MIN);
 		expect(getLiveGame).toHaveBeenCalledTimes(1);
 		await buildWidgetData(SLUG, { queue: "solo", live: true }, NOW + 2 * MIN);
@@ -147,6 +149,7 @@ describe("buildWidgetData", () => {
 		const data = await buildWidgetData(SLUG, { queue: "solo", live: false }, NOW);
 		expect(data?.rank).toBeNull();
 		expect(data?.lpChange).toBeNull();
+		expect(data?.season).toBeNull();
 		expect(data?.games).toHaveLength(2);
 	});
 });

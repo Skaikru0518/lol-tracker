@@ -1,9 +1,12 @@
 import {
+	widgetAnimSchema,
+	widgetFxSchema,
 	widgetQueueSchema,
 	widgetSessionSchema,
 	widgetShowSchema,
 	widgetStyleSchema,
 	widgetThemeSchema,
+	type WidgetFx,
 	type WidgetOptions,
 	type WidgetShow,
 } from "@/lib/validators/widget";
@@ -16,11 +19,11 @@ function first(value: string | string[] | undefined): string | undefined {
 	return Array.isArray(value) ? value[0] : value;
 }
 
-function parseShow(raw: string | undefined): WidgetShow[] {
-	if (raw === undefined) return DEFAULT_SHOW;
+function parseList<T>(raw: string | undefined, fallback: T[], schema: { safeParse: (v: unknown) => { success: boolean; data?: T } }): T[] {
+	if (raw === undefined) return fallback;
 	return raw.split(",").flatMap((part) => {
-		const parsed = widgetShowSchema.safeParse(part.trim());
-		return parsed.success ? [parsed.data] : [];
+		const parsed = schema.safeParse(part.trim());
+		return parsed.success ? [parsed.data as T] : [];
 	});
 }
 
@@ -30,10 +33,14 @@ export function parseWidgetOptions(params: Params): WidgetOptions {
 		theme: widgetThemeSchema.catch("card").parse(first(params.theme)),
 		queue: widgetQueueSchema.catch("solo").parse(first(params.queue)),
 		session: widgetSessionSchema.catch("auto").parse(first(params.session)),
-		show: parseShow(first(params.show)),
+		show: parseList<WidgetShow>(first(params.show), DEFAULT_SHOW, widgetShowSchema),
+		anim: widgetAnimSchema.catch("on").parse(first(params.anim)),
+		fx: parseList<WidgetFx>(first(params.fx), [], widgetFxSchema),
 	};
 }
 
 export function widgetOptionsQuery(options: WidgetOptions): string {
-	return new URLSearchParams({ ...options, show: options.show.join(",") }).toString();
+	return new URLSearchParams({ ...options, show: options.show.join(","), fx: options.fx.join(",") }).toString();
 }
+
+export const DEFAULT_WIDGET_OPTIONS: WidgetOptions = parseWidgetOptions({});

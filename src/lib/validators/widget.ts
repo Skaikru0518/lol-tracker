@@ -5,12 +5,16 @@ export const WIDGET_THEMES = ["card", "clear"] as const;
 export const WIDGET_QUEUES = ["solo", "flex"] as const;
 export const WIDGET_SESSIONS = ["auto", "today", "load", "season"] as const;
 export const WIDGET_SHOW = ["id", "server", "lp", "wr"] as const;
+export const WIDGET_ANIMS = ["on", "off"] as const;
+export const WIDGET_FX = ["rotate", "smoke"] as const;
 
 export const widgetStyleSchema = z.enum(WIDGET_STYLES);
 export const widgetThemeSchema = z.enum(WIDGET_THEMES);
 export const widgetQueueSchema = z.enum(WIDGET_QUEUES);
 export const widgetSessionSchema = z.enum(WIDGET_SESSIONS);
 export const widgetShowSchema = z.enum(WIDGET_SHOW);
+export const widgetAnimSchema = z.enum(WIDGET_ANIMS);
+export const widgetFxSchema = z.enum(WIDGET_FX);
 
 export const widgetOptionsSchema = z.object({
 	style: widgetStyleSchema,
@@ -18,6 +22,8 @@ export const widgetOptionsSchema = z.object({
 	queue: widgetQueueSchema,
 	session: widgetSessionSchema,
 	show: z.array(widgetShowSchema),
+	anim: widgetAnimSchema,
+	fx: z.array(widgetFxSchema),
 });
 
 export const widgetGameSchema = z.object({
@@ -44,9 +50,11 @@ export const widgetDataSchema = z.object({
 	rank: widgetRankSchema.nullable(),
 	scope: z.enum(["session", "season"]),
 	record: z.object({ wins: z.number(), losses: z.number() }),
+	season: z.object({ wins: z.number(), losses: z.number() }).nullable(),
 	games: z.array(widgetGameSchema),
 	lpChange: z.number().nullable(),
 	liveChampion: z.string().nullable(),
+	liveStartedAt: z.number().nullable(),
 });
 
 export const widgetQuerySchema = z.object({
@@ -65,6 +73,7 @@ export type WidgetTheme = z.infer<typeof widgetThemeSchema>;
 export type WidgetQueue = z.infer<typeof widgetQueueSchema>;
 export type WidgetSession = z.infer<typeof widgetSessionSchema>;
 export type WidgetShow = z.infer<typeof widgetShowSchema>;
+export type WidgetFx = z.infer<typeof widgetFxSchema>;
 export type WidgetOptions = z.infer<typeof widgetOptionsSchema>;
 export type WidgetGame = z.infer<typeof widgetGameSchema>;
 export type WidgetRank = z.infer<typeof widgetRankSchema>;
