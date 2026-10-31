@@ -12,24 +12,25 @@ The owner plays with friends and wants Summon.gg data in front of them during th
 - In-game: the same hotkey opens a scoreboard-style panel with both teams and live item gold (team totals and laner vs laner).
 - Each player name links to `https://summon.vandslab.com/summoner/{Name-TAG}` and opens inside an overlay window over the game, with an "open in browser" button.
 - Desktop: the app's main window embeds the Summon.gg site in an iframe, opened on the local player's own profile.
+- Champion select: the desktop window switches to a champion select view (your champion pool for your role, and both teams' composition), then back to the site when champion select ends.
 - Looks like Summon.gg: same dark palette and font.
 - The Riot API key lives only on the Summon.gg backend.
 
 ## Non-goals (this phase)
 
 - Overwolf store submission, ads, subscriptions.
-- Champion select data (Riot hides enemy names there).
 - 30-day win rate (too many Match-v5 calls per loading screen; dropped by the owner).
 - Peak rank: dropped for now by the owner.
 - Previous-season rank: our LP history only starts in March 2026 (Season 2026 began 2026-01-08) and Riot's API has none, so it would be empty everywhere. Dropped for now; revisit after the 2027 reset.
 - TFT, other games.
 - Builds, buy order and skill order for the player's own champion ("Your <champion>" block, designed in `designs/ingame-a3.html`): no data source yet (needs aggregated match data, tied to the production key). Added in a later round.
-- Champion select screen (runes and builds before the game): a later round, designed separately.
+- Runes, builds and matchup knowledge ("good/bad into Zed") in champion select: no data source yet, same as the builds above.
+- Champion select in the overlay: Overwolf overlays only attach to the game, not the League client, so champion select lives in the desktop window.
 - Pixel styling in this document: it fixes layout and content only. The detailed overlay visuals are designed with the `frontend-design` skill (current Summon.gg UI as the reference) **before the overlay UI is implemented, and the owner approves those designs first**.
 
 ## Anti-goals
 
-- Anything Riot policy forbids. Concretely: **no Est. MMR and no performance rank in the overlay** (no "alternatives for official skill ranking systems"); no data about players the game deliberately hides; no advice that tells the player what to do.
+- Anything Riot policy forbids. Concretely: **no Est. MMR and no performance rank in the overlay** (no "alternatives for official skill ranking systems"); no data about players the game deliberately hides (champion select: enemy names, and allies whose `nameVisibilityType` is not visible); no advice that tells the player what to do in game. Champion select text states facts ("Only one frontline champion so far", "Enemy damage so far is all physical"), never orders; champion options are shown as "from X's pool", not as "pick this".
 - An overlay that hammers the shared Riot key. The dev key is shared with production; one loading screen must not cost hundreds of calls.
 - Steal game focus or block input: League uses Overwolf "standard" overlay mode (cursor visible, game keeps focus).
 
@@ -126,13 +127,48 @@ Layout A: like Porofessor. Reference mockups (local, git-ignored): `.superpowers
 - **In-game panel** (approved design `summon-electron/docs/designs/ingame-a3.html`, without the "Your Ahri" block for now): two columns like the Tab scoreboard; under them "Item gold": blue/red team bar with both totals and "Your team ahead/behind by N", then one column per lane with both champions, a centred difference bar and "+850"/"−550".
 - **Item gold** comes from GEP `live_client_data.all_players` items (what the scoreboard shows), priced with Data Dragon `item.json` (`gold.total`). Current gold of enemies is never shown. Lanes are paired by the `position` field; when it is blank, by order.
 - **Main role** = the most played `teamPosition` in the player's last 20 stored Summoner's Rift matches (needs at least 3 games there and 40% of them), else no icon. DB only, no Riot call.
-- Approved designs for all screens: `summon-electron/docs/designs/` (loading-panel, card-states, ingame-a3, profile-window, desktop-window).
+- Approved designs for all screens: `summon-electron/docs/designs/` (loading-panel, card-states, ingame-a3, profile-window, desktop-window, cs-combined).
 - **Theme:** Summon.gg dark tokens copied from `summon/src/app/globals.css` (`.dark`): background `#0d0f1a`, card `#151827`, border `#252a40`, primary `#b05ad6`, gold `#e9b949`, win `#34c38f`, loss `#ef5350`, team blue `#4f8fe6`, team red `#ef5350`, muted text `#7d829c`. Font: Geist / Geist Mono.
+
+## Champion select (desktop window)
+
+Approved design: `summon-electron/docs/designs/cs-combined.html` (concepts 1 + 3 from `cs-concepts.html`).
+
+**When it shows.** The launcher's `game_flow.phase` is `ChampSelect`: the desktop window hides the iframe and shows the champion select view; any other phase brings the iframe back. The overlay hotkey does nothing in champion select.
+
+**Draft state** comes from the launcher GEP feature `champ_select` (info `raw`: the LCU champion select session as JSON) *(the spike did not reach champion select; its first real run confirms the fields)*:
+
+- `localPlayerCellId`, `myTeam[]` and `theirTeam[]` (cell, `championId`, `championPickIntent`, `assignedPosition`, `gameName`, `tagLine`, `nameVisibilityType`), `actions` (whose turn it is), `timer`.
+- The hovered champion is the local player's `championPickIntent`, or the champion in their in-progress pick action.
+- Allies are shown by name only when `nameVisibilityType` is visible; otherwise "Name hidden", no rank, no pool. Enemy slots show the champion only.
+
+**Layout:**
+
+- **Draft bar:** five ally slots (champion, name, short rank, "Hovering"/"Picks next"), phase and timer in the middle, five enemy slots.
+- **Your pool** (left): your champions for your assigned role, from your stored matches this season in queues 400/420/440, sorted by games, top 5. Each row: champion, games and when last played, win rate bar, KDA, your record against the likely lane opponent ("3W 1L" or "Never played"), and fit chips for this draft. The hovered champion is highlighted, and added as a row with "No games this season" if it is not in your top 5.
+  - Role: `assignedPosition`; when blank (blind pick), your main role (same rule as the overlay); when that is empty too, all roles.
+  - Likely lane opponent: the locked enemy champion that is most often played in your role in all stored matches. Empty until one exists.
+  - Fit chips (green adds what your team lacks, yellow repeats a surplus): "Magic damage", "Physical damage", "Crowd control", "Frontline", "No frontline". Computed from the composition data below, never from win rates.
+- **Composition** (right): for each team, a damage split bar (physical / magic / true), frontline dots, crowd control dots and a one-word label. The hovered champion is drawn striped in your team's meters. Below it "What your team needs": up to three fact lines, plus up to three frontline/CC champions from the pool of the next ally who still picks and whose name is visible (games per champion).
+
+**Composition data** lives in the app, not the backend:
+
+- Data Dragon `champion.json`: `tags` (Tank, Fighter, …) and `info.attack` / `info.magic` give each champion's physical/magic share.
+- A hand-maintained JSON in `summon-electron` for what Data Dragon lacks: per champion `cc` (0–3), `frontline` (bool), `trueDamage` (share 0–1). Missing champions count as zero/false; a test lists any Data Dragon champion missing from the file.
+- Fact lines (rules are the builder's call): no or one frontline champion with picks left; one damage type at least 70% (own team: "mostly physical"; enemy: "Enemy damage so far is all physical"); low crowd control; a type covered by a locked champion ("Magic damage covered by Ahri").
+
+**Backend:** a second endpoint in `summon/` (name is the builder's call), called by the main process when champion select starts and when the set of visible allies or the local player's role changes, never per hover:
+
+- Input: own Riot ID and platform, queue id, assigned role, and the visible allies' Riot IDs with their `assignedPosition`.
+- Output (Zod, copied into `summon-electron`): own pool rows (champion, games, wins, kills/deaths/assists, last played, record against each enemy champion seen in those matches as lane opponent), and for each visible ally: short rank and their top champions for their position (games).
+- Own pool and lane records: **DB only** (stored matches, like `storedPositionCounts`), no Riot calls. The likely-lane-opponent lookup (champion → most common `teamPosition`) is DB only too.
+- Allies: `resolveAccount`, ranked entries via `saveRankedEntries` (they become tracked accounts, like the overlay's ten players), pool from their stored matches for that position, falling back to top mastery champions when they have fewer than 3 stored games there. At most 4 allies; same per-IP limit and 429 handling as the overlay endpoint; response cached a few minutes per own Riot ID plus allies.
 
 ## Testing
 
 - Backend: Vitest unit tests for the card builder (today W/L and the match-detail cap, queue choice, account tracking, partial data on 429), in the style of the existing tests.
-- Electron: unit tests for pure logic (phase → overlay state, retry/backoff, response parsing). In-game behavior is checked by the owner in a real game; the builder gives them a short checklist.
+- Backend: champion select pool builder (role fallback, season and queue filter, lane records, hidden allies never sent, ally mastery fallback).
+- Electron: unit tests for pure logic (phase → overlay state, retry/backoff, response parsing, champion select session parsing, composition meters, fit chips and fact lines). In-game behavior is checked by the owner in a real game; the builder gives them a short checklist.
 - The web app's existing test suite stays green after the move.
 
 ## Left to the builder
