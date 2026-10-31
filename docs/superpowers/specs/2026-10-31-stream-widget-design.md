@@ -53,7 +53,7 @@ Streamers show their rank and session on stream; today they use other sites' wid
 
 1. **Bar (460 × 88):** rank emblem; Riot ID with tag and a server chip; tier, division and LP; then a "Session" block: W/L and LP change.
 2. **Square (240 wide):** Riot ID and server; big emblem; tier, division and LP on one line (no LP progress bar, owner's decision); "Session" W/L and "LP today" side by side; one green/red dot per session game.
-3. **Session strip (520 wide):** header with emblem, Riot ID, server, tier and LP, and session W/L, win rate and LP change on the right; below it one champion icon per session game (oldest first, at most 8, the oldest drop off) with green/red border and KDA; when the summoner is in a game, a last dashed gold icon of the current champion labelled "Live".
+3. **Session strip (520 wide):** header with emblem, Riot ID, server, tier and LP, and session W/L, win rate and LP change on the right; below it one champion icon per session game (newest on the left, at most 8, the oldest drop off) with green/red border and KDA; when the summoner is in a game, a dashed gold icon of the current champion labelled "Live" comes first (owner's request).
 4. **Pill:** one line: small emblem, short rank (`E2`), LP, W/L, LP change.
 
 ### Content rules

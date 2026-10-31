@@ -7,7 +7,8 @@ import styles from "./widget.module.css";
 const MAX_GAMES = 8;
 
 export function WidgetStrip({ data, options, version }: WidgetViewProps) {
-	const games = data.games.slice(-(data.liveChampion ? MAX_GAMES - 1 : MAX_GAMES));
+	// Newest first, the live game leading
+	const games = data.games.slice(-(data.liveChampion ? MAX_GAMES - 1 : MAX_GAMES)).reverse();
 	return (
 		<>
 			<div className={styles.head}>
@@ -28,6 +29,12 @@ export function WidgetStrip({ data, options, version }: WidgetViewProps) {
 				<div className={styles.empty}>{data.scope === "season" ? "No ranked games yet" : "No games this session yet"}</div>
 			) : (
 				<div className={styles.games}>
+					{data.liveChampion && (
+						<div className={cn(styles.game, styles.live)}>
+							<img src={getChampionIcon(version, data.liveChampion)} alt={data.liveChampion} />
+							<span>Live</span>
+						</div>
+					)}
 					{games.map((g) => (
 						<div key={g.matchId} className={cn(styles.game, g.win && styles.gameWin)}>
 							<img src={getChampionIcon(version, g.championName)} alt={g.championName} />
@@ -36,12 +43,6 @@ export function WidgetStrip({ data, options, version }: WidgetViewProps) {
 							</span>
 						</div>
 					))}
-					{data.liveChampion && (
-						<div className={cn(styles.game, styles.live)}>
-							<img src={getChampionIcon(version, data.liveChampion)} alt={data.liveChampion} />
-							<span>Live</span>
-						</div>
-					)}
 				</div>
 			)}
 		</>

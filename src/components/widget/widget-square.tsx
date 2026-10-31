@@ -31,7 +31,7 @@ export function WidgetSquare({ data, options }: WidgetViewProps) {
 				)}
 			</div>
 			<div className={styles.dots}>
-				{data.games.slice(-MAX_DOTS).map((g) => (
+				{data.games.slice(-MAX_DOTS).reverse().map((g) => (
 					<i key={g.matchId} className={g.win ? styles.dotWin : undefined} />
 				))}
 			</div>
