@@ -15,7 +15,7 @@ export function widgetApiUrl(slug: string, options: WidgetOptions, loadedAt: num
 	const since = sessionSince(options.session, loadedAt);
 	if (since !== undefined) params.set("since", String(since));
 	if (options.session === "season") params.set("scope", "season");
-	if (options.style === "strip" || options.anim === "on") params.set("live", "1");
+	if (options.style === "strip") params.set("live", "1");
 	return `/api/widget/${slug}?${params}`;
 }
 

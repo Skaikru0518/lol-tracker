@@ -57,7 +57,7 @@ Streamers show their rank and session on stream; today they use other sites' wid
 - **Watermark:** a faint `summon.gg` in the bottom-right corner (bottom-left on the bar, inline at the end of the pill). Always on.
 - **Events** (`anim=on`), found by comparing two refreshes: a finished game flashes the border green/red from inside, the LP change floats up inside the box, numbers roll to their new values, the new champion icon slides in on the left of the strip and the new dot pops in on the square. A promotion covers the whole widget for 3 s with "PROMOTED · <rank>" in the tier color and a light sweep, the emblem flashes and two rings burst; a demotion shows a plain grey "DEMOTED · <rank>" cover.
 - **Win streak:** from 3 wins in a row (newest games) a "🔥 N" chip appears (next to "Session" on the bar) and card widgets get a gold border.
-- **Live:** the strip's live icon gets a running dashed gold border and a game clock (Spectator `gameStartTime`); the other styles show a pulsing red dot next to the record caption. With animations on, every style asks for the live game (same 2-minute budget).
+- **Live:** the strip's live icon gets a running dashed gold border and a game clock (Spectator `gameStartTime`). The other styles show no live marker (owner's decision), so only the strip asks for the live game.
 - **Entrance:** the widget wipes in and numbers count up from zero when OBS shows it.
 - **Long names** scroll back and forth when they don't fit.
 - **`fx=rotate`:** the bar alternates Session and Season every 8 s, the pill alternates rank and record.

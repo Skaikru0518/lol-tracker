@@ -105,12 +105,7 @@ export function StreakChip({ data }: { data: WidgetData }) {
 }
 
 export function RecordCaption({ data, label = recordLabel(data) }: { data: WidgetData; label?: string }) {
-	return (
-		<span className={styles.k}>
-			{data.liveChampion && <span className={styles.liveDot} />}
-			{label}
-		</span>
-	);
+	return <span className={styles.k}>{label}</span>;
 }
 
 /** Flash, floating LP and the promotion/demotion cover for the latest refresh; keyed so each event replays. */
