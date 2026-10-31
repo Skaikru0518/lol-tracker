@@ -154,7 +154,7 @@ export function WidgetGenerator({
 	}
 
 	return (
-		<div className="grid gap-5 md:grid-cols-[16rem_minmax(0,1fr)]">
+		<div className="grid gap-5 md:grid-cols-[18rem_minmax(0,1fr)]">
 			<div className="grid content-start gap-4">
 				<Segmented
 					label="Style"
@@ -191,15 +191,15 @@ export function WidgetGenerator({
 							"This season's ranked record in the queue, with your latest games. No LP change."}
 					</span>
 				</div>
-				<div className="grid grid-cols-2 gap-4">
-					<div className="grid content-start gap-1.5">
+				<div className="grid grid-cols-[auto_minmax(0,1fr)] rounded-lg border bg-secondary/40 py-3">
+					<div className="grid content-start gap-2 px-3">
 						<span className="text-xs font-medium text-muted-foreground">
 							Show
 						</span>
 						{styleParts(options.style)
 							.filter((part) => part !== "lp" || options.session !== "season")
 							.map((part) => (
-								<label key={part} className="flex items-center gap-2 text-sm">
+								<label key={part} className="flex items-center gap-2 text-[0.8125rem] leading-tight whitespace-nowrap">
 									<input
 										type="checkbox"
 										className="accent-primary"
@@ -210,11 +210,11 @@ export function WidgetGenerator({
 								</label>
 							))}
 					</div>
-					<div className="grid content-start gap-1.5">
+					<div className="grid content-start gap-2 border-l px-3">
 						<span className="text-xs font-medium text-muted-foreground">
 							Motion
 						</span>
-						<label className="flex items-center gap-2 text-sm">
+						<label className="flex items-center gap-2 text-[0.8125rem] leading-tight whitespace-nowrap">
 							<input
 								type="checkbox"
 								className="accent-primary"
@@ -226,7 +226,7 @@ export function WidgetGenerator({
 							Animations
 						</label>
 						{effects.map((fx) => (
-							<label key={fx} className="flex items-center gap-2 text-sm">
+							<label key={fx} className="flex items-center gap-2 text-[0.8125rem] leading-tight whitespace-nowrap">
 								<input
 									type="checkbox"
 									className="accent-primary"
