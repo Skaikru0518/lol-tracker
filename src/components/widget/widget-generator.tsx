@@ -33,6 +33,7 @@ const LABELS: Record<string, string> = {
 	auto: "Auto",
 	today: "Today",
 	load: "On load",
+	season: "Overall",
 	id: "Riot ID",
 	server: "Server",
 	lp: "LP change",
@@ -95,16 +96,19 @@ export function WidgetGenerator({ slug, version }: { slug: string; version: stri
 				<Segmented label="Theme" values={WIDGET_THEMES} value={options.theme} onChange={(v) => set("theme", v)} />
 				<Segmented label="Queue" values={WIDGET_QUEUES} value={options.queue} onChange={(v) => set("queue", v)} />
 				<div className="grid gap-1.5">
-					<Segmented label="Session starts" values={WIDGET_SESSIONS} value={options.session} onChange={(v) => set("session", v)} />
+					<Segmented label="Record" values={WIDGET_SESSIONS} value={options.session} onChange={(v) => set("session", v)} />
 					<span className="text-xs text-muted-foreground">
 						{options.session === "auto" && "A new session starts after 3 hours without a game."}
 						{options.session === "today" && "Counts from your local midnight."}
 						{options.session === "load" && "Counts from when OBS loads the widget."}
+						{options.session === "season" && "This season's ranked record in the queue, with your latest games. No LP change."}
 					</span>
 				</div>
 				<div className="grid gap-1.5">
 					<span className="text-xs font-medium text-muted-foreground">Show</span>
-					{styleParts(options.style).map((part) => (
+					{styleParts(options.style)
+						.filter((part) => part !== "lp" || options.session !== "season")
+						.map((part) => (
 						<label key={part} className="flex items-center gap-2 text-sm">
 							<input type="checkbox" className="accent-primary" checked={options.show.includes(part)} onChange={() => toggle(part)} />
 							{LABELS[part]}

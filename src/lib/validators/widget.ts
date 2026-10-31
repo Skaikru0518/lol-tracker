@@ -3,7 +3,7 @@ import { z } from "zod";
 export const WIDGET_STYLES = ["bar", "square", "strip", "pill"] as const;
 export const WIDGET_THEMES = ["card", "clear"] as const;
 export const WIDGET_QUEUES = ["solo", "flex"] as const;
-export const WIDGET_SESSIONS = ["auto", "today", "load"] as const;
+export const WIDGET_SESSIONS = ["auto", "today", "load", "season"] as const;
 export const WIDGET_SHOW = ["id", "server", "lp", "wr"] as const;
 
 export const widgetStyleSchema = z.enum(WIDGET_STYLES);
@@ -42,6 +42,8 @@ export const widgetDataSchema = z.object({
 	tagLine: z.string(),
 	platform: z.enum(["eune", "euw"]),
 	rank: widgetRankSchema.nullable(),
+	scope: z.enum(["session", "season"]),
+	record: z.object({ wins: z.number(), losses: z.number() }),
 	games: z.array(widgetGameSchema),
 	lpChange: z.number().nullable(),
 	liveChampion: z.string().nullable(),
@@ -50,6 +52,7 @@ export const widgetDataSchema = z.object({
 export const widgetQuerySchema = z.object({
 	queue: widgetQueueSchema.catch("solo"),
 	since: z.coerce.number().int().nonnegative().optional().catch(undefined),
+	scope: z.enum(["session", "season"]).optional().catch(undefined),
 	live: z
 		.enum(["1", "0"])
 		.optional()

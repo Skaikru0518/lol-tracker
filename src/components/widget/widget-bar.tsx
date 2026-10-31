@@ -1,5 +1,5 @@
 import { rankLabel } from "@/lib/widget/format";
-import { Emblem, LpChange, RiotIdLine, sessionRecord, tierColor, WinLoss, type WidgetViewProps } from "./widget-parts";
+import { Emblem, LpChange, recordLabel, RiotIdLine, tierColor, WinLoss, type WidgetViewProps } from "./widget-parts";
 import styles from "./widget.module.css";
 
 export function WidgetBar({ data, options }: WidgetViewProps) {
@@ -13,9 +13,9 @@ export function WidgetBar({ data, options }: WidgetViewProps) {
 				</div>
 			</div>
 			<div className={styles.sess}>
-				<span className={styles.k}>Session</span>
+				<span className={styles.k}>{recordLabel(data)}</span>
 				<span className={styles.wl}>
-					<WinLoss {...sessionRecord(data)} options={options} />
+					<WinLoss {...data.record} options={options} />
 				</span>
 				<LpChange data={data} options={options} suffix=" LP" />
 			</div>

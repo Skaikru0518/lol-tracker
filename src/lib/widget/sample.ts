@@ -26,6 +26,8 @@ export const SAMPLE_WIDGET: WidgetData = {
 	tagLine: "HEAVN",
 	platform: "eune",
 	rank: { tier: "EMERALD", division: "II", leaguePoints: 54 },
+	scope: "session",
+	record: { wins: 5, losses: 2 },
 	games: SAMPLE_GAMES,
 	lpChange: 38,
 	liveChampion: "Ahri",
@@ -34,5 +36,8 @@ export const SAMPLE_WIDGET: WidgetData = {
 /** The generator preview needs games to judge the strip and dots; an empty real session gets sample ones. */
 export function withSampleSession(data: WidgetData): { data: WidgetData; sample: boolean } {
 	if (data.games.length) return { data, sample: false };
-	return { data: { ...data, games: SAMPLE_GAMES, lpChange: SAMPLE_WIDGET.lpChange, liveChampion: SAMPLE_WIDGET.liveChampion }, sample: true };
+	const games = { games: SAMPLE_GAMES, liveChampion: SAMPLE_WIDGET.liveChampion };
+	// A season view keeps its real record; only the game icons are samples
+	if (data.scope === "season") return { data: { ...data, ...games }, sample: true };
+	return { data: { ...data, ...games, record: SAMPLE_WIDGET.record, lpChange: SAMPLE_WIDGET.lpChange }, sample: true };
 }

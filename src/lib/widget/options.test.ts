@@ -18,6 +18,7 @@ describe("parseWidgetOptions", () => {
 
 	it("falls back per option on bad values", () => {
 		expect(parseWidgetOptions({ style: "huge", theme: "pink", queue: "aram", session: "week" })).toEqual(parseWidgetOptions({}));
+		expect(parseWidgetOptions({ session: "season" }).session).toBe("season");
 	});
 
 	it("drops unknown show parts and keeps an explicit empty list", () => {

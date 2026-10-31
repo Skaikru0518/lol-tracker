@@ -61,10 +61,19 @@ beforeEach(() => {
 describe("buildWidgetData", () => {
 	it("returns rank, the auto session and its LP change", async () => {
 		const data = await buildWidgetData(SLUG, { queue: "solo", live: false }, NOW);
-		expect(data).toMatchObject({ gameName: "Skaikru", tagLine: "HEAVN", platform: "eune", rank: { tier: "EMERALD", division: "II", leaguePoints: 54 }, lpChange: -6, liveChampion: null });
+		expect(data).toMatchObject({ gameName: "Skaikru", tagLine: "HEAVN", platform: "eune", rank: { tier: "EMERALD", division: "II", leaguePoints: 54 }, lpChange: -6, liveChampion: null, scope: "session", record: { wins: 1, losses: 1 } });
 		expect(data?.games.map((g) => [g.matchId, g.win])).toEqual([["m1", true], ["m2", false]]);
 		expect(fetchAndStoreMatch).toHaveBeenCalledWith("m2");
 		expect(saveRankedEntries).toHaveBeenCalledWith("me", []);
+	});
+
+	it("shows the season record and the latest games for the season scope", async () => {
+		vi.mocked(getMatchIdsByPuuid).mockResolvedValue(["m2", "m1"]);
+		const data = await buildWidgetData(SLUG, { queue: "solo", live: false, scope: "season" }, NOW + 10 * 60 * MIN);
+		expect(data).toMatchObject({ scope: "season", record: { wins: 22, losses: 19 }, lpChange: null });
+		expect(data?.games.map((g) => g.matchId)).toEqual(["m1", "m2"]);
+		expect(getMatchIdsByPuuid).toHaveBeenCalledWith("me", 10, 0, { queue: 420 });
+		expect(prisma.lPHistory.findFirst).not.toHaveBeenCalled();
 	});
 
 	it("filters by since instead of the auto window", async () => {

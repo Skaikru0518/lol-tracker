@@ -37,6 +37,7 @@ describe("sessionSince", () => {
 		expect(sessionSince("auto", loadedAt)).toBeUndefined();
 		expect(sessionSince("today", loadedAt)).toBe(new Date(2026, 9, 31).getTime());
 		expect(sessionSince("load", loadedAt)).toBe(loadedAt);
+		expect(sessionSince("season", loadedAt)).toBeUndefined();
 	});
 });
 

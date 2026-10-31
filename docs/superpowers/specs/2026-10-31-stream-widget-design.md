@@ -43,7 +43,7 @@ Streamers show their rank and session on stream; today they use other sites' wid
   - `style`: `bar` | `square` | `strip` | `pill` (default `bar`)
   - `theme`: `card` | `clear` (default `card`)
   - `queue`: `solo` | `flex` (default `solo`)
-  - `session`: `auto` | `today` | `load` (default `auto`)
+  - `session`: `auto` | `today` | `load` | `season` (default `auto`; `season` is labelled "Overall" in the generator)
   - `show`: which optional parts appear: Riot ID, server, LP change, win rate %. Defaults: all on (win rate on by the owner's request). *(Exact encoding is the builder's call.)*
 - Transparent page background, no site chrome, no scrollbars. The widget sits at the top left of the page at its natural size, so the OBS source size equals the widget size.
 - Not indexed (`noindex`), no analytics events beyond a page view.
@@ -64,6 +64,7 @@ Streamers show their rank and session on stream; today they use other sites' wid
   - `auto`: walk back from the newest game; the session is the run of games with less than 3 hours between one game's end and the next game's start. If the newest game ended more than 3 hours ago, the session is empty (0W 0L) until the next game starts. *(Gap length is the builder's call; 3 hours is the default.)*
   - `today`: since the viewer's local midnight (the widget runs in the streamer's OBS, so the browser's timezone is the streamer's).
   - `load`: since the widget page was loaded. Reloading the OBS source resets it.
+  - `season` ("Overall", owner's request): W/L is the queue's season record from the ranked entry (all ranked games this season, no extra Riot call); the strip shows the latest 8 games and the square the latest 10 dots (one Match-v5 ids call for the last 10, same budget rules); the caption reads "Season"; no LP change (we have no season-start LP).
 - **LP change** = absolute LP now − absolute LP at session start (`toAbsoluteLp`, so promotions and demotions count across tiers). LP at session start = the newest `LPHistory` row of that queue created before the session's first game started. No such row (new account, or the session has no games yet): show no LP change rather than a guess.
   - **Stale baseline** *(builder's call recorded here)*: snapshots are only written when someone loads the profile, a widget polls, or the cron reaches the account, so the newest row before the session can predate games outside the session. Check it: the row's wins + losses plus the session's games must equal the current wins + losses. If they don't match, or the row has no wins/losses, show no LP change. Same choice `calculateLPChange` already makes per match. In practice the number appears once the widget has been running since before the session's first game.
 - **Win rate %** (when enabled) = session wins / session games, shown after the W/L as `5W 2L (71%)` in every style, hidden at 0 games.

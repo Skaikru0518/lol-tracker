@@ -19,6 +19,7 @@ const IDS_EVERY_MS = 5 * MIN;
 const LIVE_EVERY_MS = 2 * MIN;
 const IDS_LOOKBACK_MS = 24 * 60 * MIN;
 const ID_COUNT = 20;
+const SEASON_GAME_COUNT = 10;
 const MATCH_FETCH_CAP = 10;
 
 const QUEUES = {
@@ -70,7 +71,8 @@ export async function buildWidgetData(slug: string, query: WidgetQuery, now: num
 	const { account, platform } = found;
 	const { puuid } = account;
 	const { queueId, queueType } = QUEUES[query.queue];
-	const state = stateFor(`${puuid}:${query.queue}`);
+	const season = query.scope === "season";
+	const state = stateFor(`${puuid}:${query.queue}:${season ? "season" : "session"}`);
 
 	let limited = false;
 	async function riot<T>(fn: () => Promise<T>): Promise<T | null> {
@@ -93,7 +95,11 @@ export async function buildWidgetData(slug: string, query: WidgetQuery, now: num
 
 	const total = entry ? entry.wins + entry.losses : null;
 	if (!limited && (state.ids === null || total !== state.idsTotal || now - state.idsAt >= IDS_EVERY_MS)) {
-		const ids = await riot(() => getMatchIdsByPuuid(puuid, ID_COUNT, 0, { startTime: Math.floor((now - IDS_LOOKBACK_MS) / 1000), queue: queueId }));
+		const ids = await riot(() =>
+			season
+				? getMatchIdsByPuuid(puuid, SEASON_GAME_COUNT, 0, { queue: queueId })
+				: getMatchIdsByPuuid(puuid, ID_COUNT, 0, { startTime: Math.floor((now - IDS_LOOKBACK_MS) / 1000), queue: queueId }),
+		);
 		if (ids) {
 			state.ids = ids;
 			state.idsAt = now;
@@ -110,10 +116,14 @@ export async function buildWidgetData(slug: string, query: WidgetQuery, now: num
 	}
 
 	const all = sessionGames([...matches.values()], puuid, queueId, query.since ?? 0);
-	const games = query.since === undefined ? autoSession(all, now, AUTO_SESSION_GAP_MS) : all;
+	const games = season ? all : query.since === undefined ? autoSession(all, now, AUTO_SESSION_GAP_MS) : all;
+	const sessionWins = games.filter((g) => g.win).length;
+	const record = season
+		? { wins: entry?.wins ?? 0, losses: entry?.losses ?? 0 }
+		: { wins: sessionWins, losses: games.length - sessionWins };
 
 	let lpChange: number | null = null;
-	if (entry && games.length) {
+	if (!season && entry && games.length) {
 		const baseline = await prisma.lPHistory.findFirst({
 			where: { puuid, queueType, createdAt: { lt: new Date(games[0].start) } },
 			orderBy: { createdAt: "desc" },
@@ -139,6 +149,8 @@ export async function buildWidgetData(slug: string, query: WidgetQuery, now: num
 		tagLine: account.tagLine,
 		platform,
 		rank: entry ? { tier: entry.tier, division: entry.rank, leaguePoints: entry.leaguePoints } : null,
+		scope: season ? "season" : "session",
+		record,
 		games,
 		lpChange,
 		liveChampion: query.live ? state.liveChampion : null,

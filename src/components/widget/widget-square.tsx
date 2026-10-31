@@ -1,12 +1,12 @@
 import { cn } from "@/lib/utils";
 import { lpChangeLabel, rankLabel, showsPart } from "@/lib/widget/format";
-import { Emblem, RiotIdLine, sessionRecord, tierColor, WinLoss, type WidgetViewProps } from "./widget-parts";
+import { Emblem, recordLabel, RiotIdLine, tierColor, WinLoss, type WidgetViewProps } from "./widget-parts";
 import styles from "./widget.module.css";
 
 const MAX_DOTS = 10;
 
 export function WidgetSquare({ data, options }: WidgetViewProps) {
-	const lp = showsPart(options.style, options.show, "lp");
+	const lp = data.scope === "session" && showsPart(options.style, options.show, "lp");
 	return (
 		<>
 			<RiotIdLine data={data} options={options} />
@@ -16,9 +16,9 @@ export function WidgetSquare({ data, options }: WidgetViewProps) {
 			</div>
 			<div className={styles.split} style={lp ? undefined : { gridTemplateColumns: "1fr" }}>
 				<div>
-					<span className={styles.k}>Session</span>
+					<span className={styles.k}>{recordLabel(data)}</span>
 					<span className={styles.v}>
-						<WinLoss {...sessionRecord(data)} options={options} />
+						<WinLoss {...data.record} options={options} />
 					</span>
 				</div>
 				{lp && (

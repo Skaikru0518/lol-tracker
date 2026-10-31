@@ -10,9 +10,8 @@ export interface WidgetViewProps {
 	version: string;
 }
 
-export function sessionRecord(data: WidgetData) {
-	const wins = data.games.filter((g) => g.win).length;
-	return { wins, losses: data.games.length - wins };
+export function recordLabel(data: WidgetData): string {
+	return data.scope === "season" ? "Season" : "Session";
 }
 
 export function tierColor(data: WidgetData): string | undefined {

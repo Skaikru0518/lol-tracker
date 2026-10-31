@@ -1,13 +1,12 @@
 import { getChampionIcon } from "@/lib/game/icon-helpers";
 import { cn } from "@/lib/utils";
 import { rankLabel } from "@/lib/widget/format";
-import { Emblem, LpChange, RiotIdLine, sessionRecord, tierColor, WinLoss, type WidgetViewProps } from "./widget-parts";
+import { Emblem, LpChange, RiotIdLine, tierColor, WinLoss, type WidgetViewProps } from "./widget-parts";
 import styles from "./widget.module.css";
 
 const MAX_GAMES = 8;
 
 export function WidgetStrip({ data, options, version }: WidgetViewProps) {
-	const { wins, losses } = sessionRecord(data);
 	const games = data.games.slice(-(data.liveChampion ? MAX_GAMES - 1 : MAX_GAMES));
 	return (
 		<>
@@ -21,12 +20,12 @@ export function WidgetStrip({ data, options, version }: WidgetViewProps) {
 					</div>
 				</div>
 				<div className={styles.sum}>
-					<WinLoss wins={wins} losses={losses} options={options} />
+					<WinLoss {...data.record} options={options} />
 					<LpChange data={data} options={options} suffix=" LP" />
 				</div>
 			</div>
 			{games.length === 0 && !data.liveChampion ? (
-				<div className={styles.empty}>No games this session yet</div>
+				<div className={styles.empty}>{data.scope === "season" ? "No ranked games yet" : "No games this session yet"}</div>
 			) : (
 				<div className={styles.games}>
 					{games.map((g) => (
