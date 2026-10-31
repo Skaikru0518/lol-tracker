@@ -6,6 +6,8 @@ import { rankPills } from "@/lib/summoner/profile/rank-pills";
 import { type SummonerProfile } from "@/lib/summoner/profile/get-profile";
 import { CopyRiotId } from "./copy-riot-id";
 import { RefreshButton } from "./refresh-button";
+import { StreamWidgetButton } from "@/components/widget/stream-widget-button";
+import { toSummonerSlug } from "@/lib/game/riot-id";
 
 /** Profile header: splash art, icon with level, Riot ID, rank chips and the update button. */
 export function SummonerHero({
@@ -56,7 +58,10 @@ export function SummonerHero({
 					</div>
 				</div>
 
-				<RefreshButton puuid={account.puuid} />
+				<div className="flex flex-wrap items-center gap-2">
+					<StreamWidgetButton slug={toSummonerSlug(account.gameName, account.tagLine)} riotId={riotId} version={version} />
+					<RefreshButton puuid={account.puuid} />
+				</div>
 			</div>
 		</HeroBanner>
 	);

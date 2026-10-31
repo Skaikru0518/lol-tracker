@@ -2,14 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
-import { QueryProvider } from "@/providers/query-providers";
 import ThemeProvider from "@/providers/theme-provider";
-import { Toaster } from "react-hot-toast";
-import Navbar from "@/components/layout/navbar";
-import Footer from "@/components/layout/footer";
-import MaintenanceScreen from "@/components/layout/maintenance-screen";
-import { Analytics } from "@vercel/analytics/next";
-import { isMaintenanceMode } from "@/lib/server/app-settings";
 import { SITE_URL } from "@/lib/shared/site";
 
 const geistSans = Geist({
@@ -92,13 +85,11 @@ export const metadata: Metadata = {
 	},
 };
 
-export default async function RootLayout({
+export default function RootLayout({
 	children,
 }: Readonly<{
 	children: React.ReactNode;
 }>) {
-	const maintenance = await isMaintenanceMode();
-
 	return (
 		<html
 			lang="en"
@@ -111,28 +102,7 @@ export default async function RootLayout({
 			suppressHydrationWarning
 		>
 			<body className="min-h-full flex flex-col font-sans scroll-smooth">
-				<ThemeProvider>
-					{maintenance ? (
-						<MaintenanceScreen />
-					) : (
-						<QueryProvider>
-							<Toaster
-								toastOptions={{
-									style: {
-										background: "var(--card)",
-										color: "var(--card-foreground)",
-										border: "1px solid var(--border)",
-										fontSize: "14px",
-									},
-								}}
-							/>
-							<Navbar />
-							<main className="flex-1 pt-14">{children}</main>
-							<Analytics />
-							<Footer />
-						</QueryProvider>
-					)}
-				</ThemeProvider>
+				<ThemeProvider>{children}</ThemeProvider>
 			</body>
 		</html>
 	);

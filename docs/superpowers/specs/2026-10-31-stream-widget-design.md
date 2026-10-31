@@ -44,7 +44,7 @@ Streamers show their rank and session on stream; today they use other sites' wid
   - `theme`: `card` | `clear` (default `card`)
   - `queue`: `solo` | `flex` (default `solo`)
   - `session`: `auto` | `today` | `load` (default `auto`)
-  - `show`: which optional parts appear: Riot ID, server, LP change, win rate %. Defaults: Riot ID, server and LP change on, win rate off. *(Exact encoding is the builder's call.)*
+  - `show`: which optional parts appear: Riot ID, server, LP change, win rate %. Defaults: all on (win rate on by the owner's request). *(Exact encoding is the builder's call.)*
 - Transparent page background, no site chrome, no scrollbars. The widget sits at the top left of the page at its natural size, so the OBS source size equals the widget size.
 - Not indexed (`noindex`), no analytics events beyond a page view.
 - Refreshes its data every 60 seconds without reloading the page. On a failed refresh it keeps showing the last data.
@@ -66,11 +66,12 @@ Streamers show their rank and session on stream; today they use other sites' wid
   - `load`: since the widget page was loaded. Reloading the OBS source resets it.
 - **LP change** = absolute LP now − absolute LP at session start (`toAbsoluteLp`, so promotions and demotions count across tiers). LP at session start = the newest `LPHistory` row of that queue created before the session's first game started. No such row (new account, or the session has no games yet): show no LP change rather than a guess.
   - **Stale baseline** *(builder's call recorded here)*: snapshots are only written when someone loads the profile, a widget polls, or the cron reaches the account, so the newest row before the session can predate games outside the session. Check it: the row's wins + losses plus the session's games must equal the current wins + losses. If they don't match, or the row has no wins/losses, show no LP change. Same choice `calculateLPChange` already makes per match. In practice the number appears once the widget has been running since before the session's first game.
-- **Win rate %** (when enabled) = session wins / session games, hidden at 0 games.
-- **Which toggles apply where** *(builder's call recorded here)*: a toggle only affects styles that have a place for it. Riot ID and server: bar, square, strip (the pill never shows them). LP change: all four. Win rate %: strip and pill only (default off everywhere; the mockup's strip showing it is the "on" state). The generator hides toggles that don't apply to the chosen style.
+- **Win rate %** (when enabled) = session wins / session games, shown after the W/L as `5W 2L (71%)` in every style, hidden at 0 games.
+- **Which toggles apply where** *(builder's call recorded here)*: a toggle only affects styles that have a place for it. Riot ID and server: bar, square, strip (the pill never shows them). LP change and win rate %: all four. The generator hides toggles that don't apply to the chosen style.
 - **Sizes:** each style has a fixed height; hiding a part may shrink the width. The square shows at most 10 dots (newest kept). The page background is transparent, so the OBS hint gives each style's maximum width and height and a larger source costs nothing.
 - **Server chip:** `EUNE` / `EUW` from the account's platform.
 - Summoner not found: the widget renders a small "Summoner not found" in its own style instead of failing silently.
+- Maintenance mode: the widget page renders nothing (it disappears from the stream) instead of the site's maintenance screen.
 
 ## Data (decided)
 
@@ -88,7 +89,8 @@ Riot call budget per summoner, shared by every browser showing that summoner (ca
 
 - A "Stream widget" button in the summoner page opens a dialog (as in the mockup): options on the left (style, theme, queue, session start, show), a live preview on a checkerboard on the right, the URL with "Copy URL" and "Open", and a one-line OBS hint with the width and height for the chosen style.
 - The preview renders the real widget component, not an iframe. *(Builder's call recorded here:)* when the dialog opens it fetches the widget endpoint once for that summoner and queue (cached, so it costs at most the normal budget). When the real session is empty (always for `load`), the preview fills the session part with sample games, labelled "Sample session", so the streamer can judge the strip icons and square dots; rank and Riot ID stay real.
-- Where the button sits on the summoner page is the builder's call; it must not crowd the hero.
+- The button sits next to Update in the hero, tinted in the primary color so streamers notice it (owner's request).
+- The home page has a "Stream widget" panel with two sample widgets and a line on where to make one (owner's request).
 
 ## Testing
 
