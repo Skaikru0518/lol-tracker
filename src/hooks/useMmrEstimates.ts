@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { SHOW_SKILL_ESTIMATES } from "@/lib/shared/features";
 import { mmrEstimatesSchema, type MmrEstimates } from "@/lib/validators/mmr";
 
 async function fetchMmr(puuid: string): Promise<MmrEstimates> {
@@ -12,7 +13,7 @@ export function useMmrEstimates(puuid: string | undefined, newestMatchId: string
 	return useQuery<MmrEstimates>({
 		queryKey: ["mmr", puuid, newestMatchId ?? null],
 		queryFn: () => fetchMmr(puuid!),
-		enabled: !!puuid && settled,
+		enabled: SHOW_SKILL_ESTIMATES && !!puuid && settled,
 		staleTime: 5 * 60 * 1000,
 	});
 }

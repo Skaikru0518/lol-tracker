@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { mmrEstimates } from "@/lib/summoner/profile/mmr";
 import { withApiLog } from "@/lib/server/log";
+import { SHOW_SKILL_ESTIMATES } from "@/lib/shared/features";
 import { type MmrEstimates } from "@/lib/validators/mmr";
 
 async function getHandler(_req: NextRequest, { params }: { params: Promise<{ puuid: string }> }): Promise<NextResponse<MmrEstimates | { error: string }>> {
+	if (!SHOW_SKILL_ESTIMATES) return NextResponse.json({ error: "Not found" }, { status: 404 });
 	try {
 		return NextResponse.json(await mmrEstimates((await params).puuid));
 	} catch (error) {

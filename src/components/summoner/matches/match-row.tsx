@@ -16,6 +16,7 @@ import { killParticipation, participantItems, rowResult, runeIcons, shortQueueNa
 import { type Match, type Participant } from "@/lib/validators/match";
 import { MatchBadges } from "./match-badges";
 import { MatchRowExpanded } from "./match-row-expanded";
+import { SHOW_SKILL_ESTIMATES } from "@/lib/shared/features";
 import { PerformanceRankSlot } from "./performance-rank-slot";
 import { rankedQueueForQueueId } from "@/lib/game/ranked-queues";
 
@@ -122,7 +123,7 @@ export function MatchRow({
 							className={lpChange === null ? "text-muted-foreground" : lpChange >= 0 ? "text-win" : "text-loss"}
 						/>
 					)}
-					{ranked && <PerformanceRankSlot rank={performanceRank} />}
+					{ranked && SHOW_SKILL_ESTIMATES && <PerformanceRankSlot rank={performanceRank} />}
 				</div>
 
 				<div className="ml-auto flex basis-full flex-col items-start gap-1 sm:basis-auto sm:items-end">

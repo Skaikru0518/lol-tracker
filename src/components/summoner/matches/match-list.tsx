@@ -14,6 +14,7 @@ import { isAchievementEligible } from "@/lib/achievements/eligibility";
 import { type QueueFilter } from "@/lib/game/queue-filters";
 import { type LpHistories, RANKED_QUEUE_TYPES, rankedQueueForQueueId } from "@/lib/game/ranked-queues";
 import { baseRankAt, performanceRank } from "@/lib/performance/performance-rank";
+import { SHOW_SKILL_ESTIMATES } from "@/lib/shared/features";
 import { lpChangesForGames } from "@/lib/summoner/profile/lp-estimate";
 import { filterMatches } from "@/lib/summoner/matches/match-filter";
 import { type RuneMaps } from "@/lib/summoner/matches/match-row";
@@ -68,6 +69,7 @@ export function MatchList({
 	const { data: cutoffs } = useApexCutoffs(platform);
 	const performanceRanks = useMemo(() => {
 		const ranks = new Map<string, { tier: string; rank: string }>();
+		if (!SHOW_SKILL_ESTIMATES) return ranks;
 		for (const m of matches ?? []) {
 			const queue = rankedQueueForQueueId(m.info.queueId);
 			const score = performance?.[m.metadata.matchId];
