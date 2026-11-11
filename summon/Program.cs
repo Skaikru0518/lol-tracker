@@ -1,10 +1,15 @@
 using summon.Components;
+using Microsoft.EntityFrameworkCore;
+using summon.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+// Db Context
+builder.Services.AddDbContext<SummonDbContext>(options => options.UseNpgsql(builder.Configuration.GetConnectionString("Summon")));
 
 var app = builder.Build();
 
