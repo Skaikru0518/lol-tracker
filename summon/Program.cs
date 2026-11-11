@@ -20,7 +20,6 @@ builder.Services.AddOptions<RiotOptions>().BindConfiguration(RiotOptions.Section
 builder.Services.AddHttpClient<RiotClient>((services, http) =>
 {
     var riot = services.GetRequiredService<IOptions<RiotOptions>>().Value;
-    http.BaseAddress = new Uri("https://europe.api.riotgames.com/");
     http.DefaultRequestHeaders.Add("X-Riot-Token", riot.ApiKey);
 });
 builder.Services.AddScoped<AccountService>();
