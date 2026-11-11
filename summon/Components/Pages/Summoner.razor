@@ -1,0 +1,52 @@
+﻿@page "/summoner/{Slug}"
+@attribute [StreamRendering]
+@using System.Net
+@using summon.Riot
+@inject RiotClient Riot
+
+<PageTitle>@(account is null ? "Summoner" : $"{account.GameName}#{account.TagLine}") | Summon.gg</PageTitle>
+
+<section class="mx-auto max-w-7xl px-4 py-10">
+    @if (notFound)
+    {
+        <h1 class="text-2xl font-bold">Summoner not found</h1>
+        <p class="mt-2 text-sm text-muted-foreground">No Riot ID matches "@Slug".</p>
+    }
+    else if (account is null)
+    {
+        <p class="text-sm text-muted-foreground">Loading…</p>
+    }
+    else
+    {
+        <h1 class="text-3xl font-bold tracking-tight">
+            @account.GameName <span class="text-lg font-medium text-muted-foreground">#@account.TagLine</span>
+        </h1>
+        <p class="mt-1 font-mono text-xs text-muted-foreground">@account.Puuid</p>
+    }
+</section>
+
+@code {
+    [Parameter] public required string Slug { get; set; }
+
+    private RiotAccount? account;
+    private bool notFound;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var separator = Slug.LastIndexOf('-');
+        if (separator <= 0 || separator == Slug.Length - 1)
+        {
+            notFound = true;
+            return;
+        }
+
+        try
+        {
+            account = await Riot.GetAccountByRiotIdAsync(Slug[..separator], Slug[(separator + 1)..]);
+        }
+        catch (HttpRequestException e) when (e.StatusCode == HttpStatusCode.NotFound)
+        {
+            notFound = true;
+        }
+    }
+}
