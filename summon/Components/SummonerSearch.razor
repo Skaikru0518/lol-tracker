@@ -1,0 +1,32 @@
+﻿@inject NavigationManager Navigation
+
+<form class="mx-auto mt-8 flex max-w-md gap-2" @onsubmit="Search">
+    <input @bind="riotId" placeholder="GameName#TAG"
+           class="flex-1 rounded-lg border bg-card px-3 py-2 text-sm outline-none focus:border-primary" />
+    <button type="submit"
+            class="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/80">
+        Search
+    </button>
+</form>
+
+@if (error is not null)
+{
+    <p class="mt-2 text-sm text-loss">@error</p>
+}
+
+@code {
+    private string riotId = "";
+    private string? error;
+
+    private void Search()
+    {
+        var parts = riotId.Split('#', 2, StringSplitOptions.TrimEntries);
+        if (parts.Length != 2 || parts[0] == "" || parts[1] == "")
+        {
+            error = "Use the GameName#TAG format.";
+            return;
+        }
+
+        Navigation.NavigateTo($"/summoner/{Uri.EscapeDataString($"{parts[0]}-{parts[1]}")}");
+    }
+}
