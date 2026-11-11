@@ -3,9 +3,8 @@
 @using System.Net
 @using summon.Accounts
 @using summon.Data
-@using summon.Riot
 @inject AccountService Accounts
-@inject RiotClient Riot
+@inject RankedService Ranked
 
 <PageTitle>@(account is null ? "Summoner" : $"{account.GameName}#{account.TagLine}") | Summon.gg</PageTitle>
 
@@ -40,7 +39,7 @@
 
     private Account? account;
     private bool notFound;
-    private List<RiotLeagueEntry> ranked = [];
+    private List<RankedEntry> ranked = [];
 
     protected override async Task OnInitializedAsync()
     {
@@ -57,7 +56,7 @@
             notFound = account is null;
 
             if (account?.Platform is not null)
-                ranked = await Riot.GetLeagueEntriesAsync(account.Platform, account.Puuid) ?? [];
+                ranked = await Ranked.GetAsync(account) ?? [];
         }
         catch (HttpRequestException e) when (e.StatusCode == HttpStatusCode.NotFound)
         {
