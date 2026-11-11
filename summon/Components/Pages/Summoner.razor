@@ -5,6 +5,7 @@
 @using summon.Data
 @inject AccountService Accounts
 @inject RankedService Ranked
+@inject MatchService Games
 
 <PageTitle>@(account is null ? "Summoner" : $"{account.GameName}#{account.TagLine}") | Summon.gg</PageTitle>
 
@@ -31,6 +32,13 @@
             <RankedCard QueueName="Ranked Solo/Duo" Entry="@ranked.FirstOrDefault(e => e.QueueType == "RANKED_SOLO_5x5")" />
             <RankedCard QueueName="Ranked Flex" Entry="@ranked.FirstOrDefault(e => e.QueueType == "RANKED_FLEX_SR")" />
         </div>
+        <h2 class="mt-8 text-sm font-semibold">Recent games</h2>
+        <div class="mt-3 grid max-w-3xl gap-2">
+            @foreach (var game in games)
+            {
+                <RecentGame Game="game" @key="game.MatchId" />
+            }
+        </div>
     }
 </section>
 
@@ -40,6 +48,7 @@
     private Account? account;
     private bool notFound;
     private List<RankedEntry> ranked = [];
+    private List<MatchRow> games = [];
 
     protected override async Task OnInitializedAsync()
     {
@@ -57,6 +66,9 @@
 
             if (account?.Platform is not null)
                 ranked = await Ranked.GetAsync(account) ?? [];
+
+            if(account is not null)
+                games = await Games.GetRecentAsync(account);
         }
         catch (HttpRequestException e) when (e.StatusCode == HttpStatusCode.NotFound)
         {

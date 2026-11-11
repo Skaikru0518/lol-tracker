@@ -1,0 +1,32 @@
+﻿@using summon.Accounts
+
+<div class="flex items-center gap-3 rounded-lg border-l-4 bg-card px-3 py-2 @(Game.Win ? "border-win" : "border-loss")">
+    <img src="@ChampionIcon" alt="@Game.ChampionName" class="size-10 rounded-md" />
+    <div class="w-28">
+        <p class="text-sm font-semibold @(Game.Win ? "text-win" : "text-loss")">@(Game.Win ? "Victory" : "Defeat")</p>
+        <p class="text-2xs text-muted-foreground">@QueueName · @Duration</p>
+    </div>
+    <p class="text-sm font-semibold">@Game.Kills / <span class="text-loss">@Game.Deaths</span> / @Game.Assists</p>
+    <p class="text-xs text-muted-foreground">@Game.Cs CS</p>
+    <p class="ml-auto text-2xs text-muted-foreground">@Played</p>
+</div>
+
+@code {
+    private const string DataDragonVersion = "16.21.1";
+    [Parameter, EditorRequired] public required MatchRow Game { get; set; }
+
+    private string ChampionIcon => $"https://ddragon.leagueoflegends.com/cdn/{DataDragonVersion}/img/champion/{Game.ChampionName}.png";
+    private string Duration => TimeSpan.FromSeconds(Game.GameDuration).ToString(@"m\:ss");
+    private string Played => DateTimeOffset.FromUnixTimeMilliseconds(Game.GameCreation).LocalDateTime.ToString("MMM d, HH:mm");
+
+    private string QueueName => Game.QueueId switch
+    {
+        420 => "Ranked Solo",
+        440 => "Ranked Flex",
+        400 => "Normal Draft",
+        490 => "Quickplay",
+        450 => "ARAM",
+        1700 => "Arena",
+        _ => "Other"
+    };
+}
