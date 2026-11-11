@@ -47,6 +47,55 @@ namespace summon.Migrations
 
                     b.ToTable("Accounts");
                 });
+
+            modelBuilder.Entity("summon.Data.RankedEntry", b =>
+                {
+                    b.Property<string>("Puuid")
+                        .HasColumnType("text");
+
+                    b.Property<string>("QueueType")
+                        .HasColumnType("text");
+
+                    b.Property<int>("LeaguePoints")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Losses")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Rank")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Tier")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Wins")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Puuid", "QueueType");
+
+                    b.ToTable("RankedEntries");
+                });
+
+            modelBuilder.Entity("summon.Data.RankedEntry", b =>
+                {
+                    b.HasOne("summon.Data.Account", "Account")
+                        .WithMany("RankedEntries")
+                        .HasForeignKey("Puuid")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Account");
+                });
+
+            modelBuilder.Entity("summon.Data.Account", b =>
+                {
+                    b.Navigation("RankedEntries");
+                });
 #pragma warning restore 612, 618
         }
     }

@@ -7,6 +7,7 @@
         public required string TagLine { get; set; }
         public string? Platform { get; set; }
         public DateTime UpdatedAt { get; set; }
+        public List<RankedEntry> RankedEntries { get; set; } = [];
 
     }
 }
