@@ -1,6 +1,9 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using summon.Data;
 using summon.Components;
+using summon.Riot;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +13,15 @@ builder.Services.AddRazorComponents()
 
 // Db Context
 builder.Services.AddDbContext<SummonDbContext>(options => options.UseNpgsql(builder.Configuration.GetConnectionString("Summon")));
+
+// Riot
+builder.Services.AddOptions<RiotOptions>().BindConfiguration(RiotOptions.Section).Validate(o => !string.IsNullOrWhiteSpace(o.ApiKey), "Riot:ApiKey is missing").ValidateOnStart();
+builder.Services.AddHttpClient<RiotClient>((services, http) =>
+{
+    var riot = services.GetRequiredService<IOptions<RiotOptions>>().Value;
+    http.BaseAddress = new Uri("https://europe.api.riotgames.com/");
+    http.DefaultRequestHeaders.Add("X-Riot-Token", riot.ApiKey);
+});
 
 var app = builder.Build();
 
