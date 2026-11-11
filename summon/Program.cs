@@ -22,7 +22,9 @@ builder.Services.AddHttpClient<RiotClient>((services, http) =>
     var riot = services.GetRequiredService<IOptions<RiotOptions>>().Value;
     http.DefaultRequestHeaders.Add("X-Riot-Token", riot.ApiKey);
 });
+
 builder.Services.AddScoped<AccountService>();
+builder.Services.AddScoped<RankedService>();
 
 var app = builder.Build();
 
