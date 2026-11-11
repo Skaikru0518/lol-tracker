@@ -25,6 +25,7 @@ builder.Services.AddHttpClient<RiotClient>((services, http) =>
 
 builder.Services.AddScoped<AccountService>();
 builder.Services.AddScoped<RankedService>();
+builder.Services.AddScoped<MatchService>();
 
 var app = builder.Build();
 
