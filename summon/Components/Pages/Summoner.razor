@@ -3,7 +3,9 @@
 @using System.Net
 @using summon.Accounts
 @using summon.Data
+@using summon.Riot
 @inject AccountService Accounts
+@inject RiotClient Riot
 
 <PageTitle>@(account is null ? "Summoner" : $"{account.GameName}#{account.TagLine}") | Summon.gg</PageTitle>
 
@@ -26,6 +28,10 @@
             @(account.Platform switch {"eun1" => "EUNE", "euw1" => "EUW", null => "Unknown server", var other => other.ToUpperInvariant() })
         </p>
         <p class="mt-1 font-mono text-xs text-muted-foreground">@account.Puuid</p>
+        <div class="mt-6 grid max-w-xl gap-4 sm:grid-cols-2">
+            <RankedCard QueueName="Ranked Solo/Duo" Entry="@ranked.FirstOrDefault(e => e.QueueType == "RANKED_SOLO_5x5")" />
+            <RankedCard QueueName="Ranked Flex" Entry="@ranked.FirstOrDefault(e => e.QueueType == "RANKED_FLEX_SR")" />
+        </div>
     }
 </section>
 
@@ -34,6 +40,7 @@
 
     private Account? account;
     private bool notFound;
+    private List<RiotLeagueEntry> ranked = [];
 
     protected override async Task OnInitializedAsync()
     {
@@ -48,6 +55,9 @@
         {
             account = await Accounts.AccountAsync(Slug[..separator], Slug[(separator + 1)..]);
             notFound = account is null;
+
+            if (account?.Platform is not null)
+                ranked = await Riot.GetLeagueEntriesAsync(account.Platform, account.Puuid) ?? [];
         }
         catch (HttpRequestException e) when (e.StatusCode == HttpStatusCode.NotFound)
         {
