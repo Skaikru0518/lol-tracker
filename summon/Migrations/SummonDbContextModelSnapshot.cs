@@ -48,6 +48,63 @@ namespace summon.Migrations
                     b.ToTable("Accounts");
                 });
 
+            modelBuilder.Entity("summon.Data.Match", b =>
+                {
+                    b.Property<string>("MatchId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Data")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.Property<long>("GameCreation")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("GameDuration")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("QueueId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("MatchId");
+
+                    b.ToTable("Matches");
+                });
+
+            modelBuilder.Entity("summon.Data.MatchParticipant", b =>
+                {
+                    b.Property<string>("MatchId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Puuid")
+                        .HasColumnType("text");
+
+                    b.Property<int>("Assists")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ChampionName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("Cs")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Deaths")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Kills")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("Win")
+                        .HasColumnType("boolean");
+
+                    b.HasKey("MatchId", "Puuid");
+
+                    b.HasIndex("Puuid");
+
+                    b.ToTable("MatchParticipants");
+                });
+
             modelBuilder.Entity("summon.Data.RankedEntry", b =>
                 {
                     b.Property<string>("Puuid")
@@ -81,6 +138,17 @@ namespace summon.Migrations
                     b.ToTable("RankedEntries");
                 });
 
+            modelBuilder.Entity("summon.Data.MatchParticipant", b =>
+                {
+                    b.HasOne("summon.Data.Match", "Match")
+                        .WithMany("Participants")
+                        .HasForeignKey("MatchId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Match");
+                });
+
             modelBuilder.Entity("summon.Data.RankedEntry", b =>
                 {
                     b.HasOne("summon.Data.Account", "Account")
@@ -95,6 +163,11 @@ namespace summon.Migrations
             modelBuilder.Entity("summon.Data.Account", b =>
                 {
                     b.Navigation("RankedEntries");
+                });
+
+            modelBuilder.Entity("summon.Data.Match", b =>
+                {
+                    b.Navigation("Participants");
                 });
 #pragma warning restore 612, 618
         }
