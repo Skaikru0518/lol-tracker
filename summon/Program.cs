@@ -3,6 +3,7 @@ using Microsoft.Extensions.Options;
 using summon.Data;
 using summon.Components;
 using summon.Riot;
+using summon.Accounts;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -22,6 +23,7 @@ builder.Services.AddHttpClient<RiotClient>((services, http) =>
     http.BaseAddress = new Uri("https://europe.api.riotgames.com/");
     http.DefaultRequestHeaders.Add("X-Riot-Token", riot.ApiKey);
 });
+builder.Services.AddScoped<AccountService>();
 
 var app = builder.Build();
 
