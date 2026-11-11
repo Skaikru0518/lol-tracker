@@ -14,4 +14,11 @@ public class RiotClient(HttpClient http)
     public Task<List<RiotLeagueEntry>?> GetLeagueEntriesAsync(string platform, string puuid, CancellationToken ct = default) =>
         http.GetFromJsonAsync<List<RiotLeagueEntry>>(
             $"https://{platform}.api.riotgames.com/lol/league/v4/entries/by-puuid/{Uri.EscapeDataString(puuid)}", ct);
+
+    public Task<List<string>?> GetMatchIdsAsync(string puuid, int count, CancellationToken ct = default) =>
+        http.GetFromJsonAsync<List<string>>(
+            $"{Europe}/lol/match/v5/matches/by-puuid/{Uri.EscapeDataString(puuid)}/ids?count={count}", ct);
+
+    public Task<string> GetMatchJsonAsync(string matchId, CancellationToken ct = default) =>
+        http.GetStringAsync($"{Europe}/lol/match/v5/matches/{Uri.EscapeDataString(matchId)}", ct);
 }
