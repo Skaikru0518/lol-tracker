@@ -23,6 +23,10 @@ builder.Services.AddHttpClient<RiotClient>((services, http) =>
     http.DefaultRequestHeaders.Add("X-Riot-Token", riot.ApiKey);
 });
 
+// Data Dragon is a public CDN, so it gets its own client without the Riot key
+builder.Services.AddMemoryCache();
+builder.Services.AddHttpClient<DataDragon>();
+
 builder.Services.AddScoped<AccountService>();
 builder.Services.AddScoped<RankedService>();
 builder.Services.AddScoped<MatchService>();

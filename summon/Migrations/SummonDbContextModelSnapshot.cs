@@ -92,7 +92,17 @@ namespace summon.Migrations
                     b.Property<int>("Deaths")
                         .HasColumnType("integer");
 
+                    b.PrimitiveCollection<int[]>("Items")
+                        .IsRequired()
+                        .HasColumnType("integer[]");
+
                     b.Property<int>("Kills")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Spell1")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Spell2")
                         .HasColumnType("integer");
 
                     b.Property<bool>("Win")

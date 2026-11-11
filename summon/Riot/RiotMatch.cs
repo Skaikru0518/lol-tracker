@@ -10,5 +10,14 @@ public record RiotParticipant(
     int Deaths,
     int Assists,
     int TotalMinionsKilled,
-    int NeutralMinionsKilled
+    int NeutralMinionsKilled,
+    int Item0,
+    int Item1,
+    int Item2,
+    int Item3,
+    int Item4,
+    int Item5,
+    int Item6,
+    int Summoner1Id,
+    int Summoner2Id
 );

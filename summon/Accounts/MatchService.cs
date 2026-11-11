@@ -6,7 +6,8 @@ using summon.Riot;
 
 namespace summon.Accounts;
 
-public record MatchRow(string MatchId, string ChampionName, bool Win, int Kills, int Deaths, int Assists, int Cs, int QueueId, long GameCreation, int GameDuration);
+public record MatchRow(string MatchId, string ChampionName, bool Win, int Kills, int Deaths, int Assists, int Cs, int QueueId, long GameCreation, int GameDuration,
+    int[] Items, int Spell1, int Spell2);
 
 public class MatchService(SummonDbContext db, RiotClient riot)
 {
@@ -38,7 +39,10 @@ public class MatchService(SummonDbContext db, RiotClient riot)
                     Kills = p.Kills,
                     Deaths = p.Deaths,
                     Assists = p.Assists,
-                    Cs = p.TotalMinionsKilled + p.NeutralMinionsKilled
+                    Cs = p.TotalMinionsKilled + p.NeutralMinionsKilled,
+                    Items = [p.Item0, p.Item1, p.Item2, p.Item3, p.Item4, p.Item5, p.Item6],
+                    Spell1 = p.Summoner1Id,
+                    Spell2 = p.Summoner2Id,
                 }).ToList()
             });
         }
@@ -49,7 +53,8 @@ public class MatchService(SummonDbContext db, RiotClient riot)
             .Where(p => p.Puuid == account.Puuid)
             .OrderByDescending(p => p.Match.GameCreation)
             .Take(Count)
-            .Select(p => new MatchRow(p.MatchId, p.ChampionName, p.Win, p.Kills, p.Deaths, p.Assists, p.Cs, p.Match.QueueId, p.Match.GameCreation, p.Match.GameDuration))
+            .Select(p => new MatchRow(p.MatchId, p.ChampionName, p.Win, p.Kills, p.Deaths, p.Assists, p.Cs, p.Match.QueueId, p.Match.GameCreation, p.Match.GameDuration,
+                p.Items, p.Spell1, p.Spell2))
             .ToListAsync(ct);
     }
 }

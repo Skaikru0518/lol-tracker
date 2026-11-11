@@ -3,9 +3,11 @@
 @using System.Net
 @using summon.Accounts
 @using summon.Data
+@using summon.Riot
 @inject AccountService Accounts
 @inject RankedService Ranked
 @inject MatchService Games
+@inject DataDragon DataDragon
 
 <PageTitle>@(account is null ? "Summoner" : $"{account.GameName}#{account.TagLine}") | Summon.gg</PageTitle>
 
@@ -34,9 +36,12 @@
         </div>
         <h2 class="mt-8 text-sm font-semibold">Recent games</h2>
         <div class="mt-3 grid max-w-3xl gap-2">
-            @foreach (var game in games)
+            @if (dataDragon is not null)
             {
-                <RecentGame Game="game" @key="game.MatchId" />
+                @foreach (var game in games)
+                {
+                    <RecentGame Game="game" DataDragon="dataDragon" @key="game.MatchId" />
+                }
             }
         </div>
     }
@@ -49,6 +54,7 @@
     private bool notFound;
     private List<RankedEntry> ranked = [];
     private List<MatchRow> games = [];
+    private DataDragonData? dataDragon;
 
     protected override async Task OnInitializedAsync()
     {
@@ -67,8 +73,11 @@
             if (account?.Platform is not null)
                 ranked = await Ranked.GetAsync(account) ?? [];
 
-            if(account is not null)
+            if (account is not null)
+            {
+                dataDragon = await DataDragon.GetAsync();
                 games = await Games.GetRecentAsync(account);
+            }
         }
         catch (HttpRequestException e) when (e.StatusCode == HttpStatusCode.NotFound)
         {

@@ -1,21 +1,48 @@
 ﻿@using summon.Accounts
+@using summon.Riot
 
 <div class="flex items-center gap-3 rounded-lg border-l-4 bg-card px-3 py-2 @(Game.Win ? "border-win" : "border-loss")">
-    <img src="@ChampionIcon" alt="@Game.ChampionName" class="size-10 rounded-md" />
+    <img src="@DataDragon.ChampionIcon(Game.ChampionName)" alt="@Game.ChampionName" class="size-10 rounded-md" />
+    <div class="grid gap-0.5">
+        @foreach (var spell in new[] { Game.Spell1, Game.Spell2 })
+        {
+            var icon = DataDragon.SpellIcon(spell);
+            if (icon is null)
+            {
+                <span class="size-[1.125rem] rounded bg-secondary"></span>
+            }
+            else
+            {
+                <img src="@icon" alt="" class="size-[1.125rem] rounded" />
+            }
+        }
+    </div>
     <div class="w-28">
         <p class="text-sm font-semibold @(Game.Win ? "text-win" : "text-loss")">@(Game.Win ? "Victory" : "Defeat")</p>
         <p class="text-2xs text-muted-foreground">@QueueName · @Duration</p>
     </div>
-    <p class="text-sm font-semibold">@Game.Kills / <span class="text-loss">@Game.Deaths</span> / @Game.Assists</p>
-    <p class="text-xs text-muted-foreground">@Game.Cs CS</p>
+    <p class="w-24 text-sm font-semibold">@Game.Kills / <span class="text-loss">@Game.Deaths</span> / @Game.Assists</p>
+    <p class="w-14 text-xs text-muted-foreground">@Game.Cs CS</p>
+    <div class="flex gap-0.5">
+        @foreach (var item in Game.Items)
+        {
+            if (item == 0)
+            {
+                <span class="size-6 rounded bg-secondary"></span>
+            }
+            else
+            {
+                <img src="@DataDragon.ItemIcon(item)" alt="" class="size-6 rounded" />
+            }
+        }
+    </div>
     <p class="ml-auto text-2xs text-muted-foreground">@Played</p>
 </div>
 
 @code {
-    private const string DataDragonVersion = "16.21.1";
     [Parameter, EditorRequired] public required MatchRow Game { get; set; }
+    [Parameter, EditorRequired] public required DataDragonData DataDragon { get; set; }
 
-    private string ChampionIcon => $"https://ddragon.leagueoflegends.com/cdn/{DataDragonVersion}/img/champion/{Game.ChampionName}.png";
     private string Duration => TimeSpan.FromSeconds(Game.GameDuration).ToString(@"m\:ss");
     private string Played => DateTimeOffset.FromUnixTimeMilliseconds(Game.GameCreation).LocalDateTime.ToString("MMM d, HH:mm");
 
