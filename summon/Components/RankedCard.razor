@@ -1,0 +1,58 @@
+﻿@using summon.Riot
+
+<div class="rounded-xl border bg-card p-4">
+    <p class="text-sm font-semibold">@QueueName</p>
+
+    @if (Entry is null)
+    {
+        <div class="mt-3 flex items-center gap-3">
+            <img src="icons/rank/unranked.png" alt="" class="size-14" />
+            <p class="text-sm text-muted-foreground">Unranked</p>
+        </div>
+    }
+    else
+    {
+        var games = Entry.Wins + Entry.Losses;
+        <div class="mt-3 flex items-center gap-3">
+            <img src="icons/rank/@(Entry.Tier.ToLowerInvariant()).png" alt="@Entry.Tier" class="size-14" />
+            <div>
+                <p class="font-bold" style="color: @TierColor(Entry.Tier)">
+                    @TierName(Entry) <span class="text-sm font-medium text-muted-foreground">@Entry.LeaguePoints LP</span>
+                </p>
+                <p class="text-xs">
+                    <span class="text-win">@(Entry.Wins)W</span>
+                    <span class="text-loss">@(Entry.Losses)L</span>
+                    <span class="text-muted-foreground">· @(games == 0 ? 0 : Math.Round(100.0 * Entry.Wins / games))%</span>
+                </p>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public required string QueueName { get; set; }
+    [Parameter] public RiotLeagueEntry? Entry { get; set; }
+
+    private static readonly Dictionary<string, string> Colors = new()
+    {
+        ["IRON"] = "#6b6b6b",
+        ["BRONZE"] = "#a17c5a",
+        ["SILVER"] = "#8fa0b0",
+        ["GOLD"] = "#daa520",
+        ["PLATINUM"] = "#4dc8b4",
+        ["EMERALD"] = "#2ecc71",
+        ["DIAMOND"] = "#5b8bf5",
+        ["MASTER"] = "#9b59b6",
+        ["GRANDMASTER"] = "#e74c3c",
+        ["CHALLENGER"] = "#f1c40f",
+    };
+
+    private static string TierColor(string tier) => Colors.GetValueOrDefault(tier, "#d4d7e6");
+
+    private static string TierName(RiotLeagueEntry entry)
+    {
+        var tier = entry.Tier[0] + entry.Tier[1..].ToLowerInvariant();
+        return entry.Tier is "MASTER" or "GRANDMASTER" or "CHALLENGER" ? tier : $"{tier} {entry.Rank}";
+    }
+
+}
