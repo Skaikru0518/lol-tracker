@@ -1,0 +1,40 @@
+﻿@import "tailwindcss" source("../");
+
+@theme {
+    --font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
+    --font-mono: "Geist Mono", ui-monospace, monospace;
+    --text-2xs: 0.6875rem;
+    --text-2xs--line-height: 1rem;
+    --text-3xs: 0.625rem;
+    --text-3xs--line-height: 0.875rem;
+    --color-background: #0d0f1a;
+    --color-foreground: #d4d7e6;
+    --color-nav: #0a0c15;
+    --color-card: #151827;
+    --color-primary: #b05ad6;
+    --color-primary-foreground: #ffffff;
+    --color-secondary: #1d2136;
+    --color-muted: #1d2136;
+    --color-muted-foreground: #7d829c;
+    --color-border: #252a40;
+    --color-ring: #b05ad6;
+    --color-win: #34c38f;
+    --color-loss: #ef5350;
+    --color-gold: #e9b949;
+    --color-team-blue: #4f8fe6;
+    --color-team-red: #ef5350;
+}
+
+@layer base {
+    html {
+        font-size: clamp(1rem, 0.25rem + 0.625vw, 1.25rem);
+    }
+
+    * {
+        @apply border-border;
+    }
+
+    body {
+        @apply bg-background text-foreground font-sans antialiased;
+    }
+}
