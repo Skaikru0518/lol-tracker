@@ -1,6 +1,6 @@
-using summon.Components;
 using Microsoft.EntityFrameworkCore;
 using summon.Data;
+using summon.Components;
 
 var builder = WebApplication.CreateBuilder(args);
 

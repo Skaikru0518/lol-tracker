@@ -1,23 +1,20 @@
 ﻿@inherits LayoutComponentBase
 
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
-
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
+<div class="flex min-h-screen flex-col">
+    <header class="sticky top-0 z-40 border-b bg-nav/90 backdrop-blur">
+        <div class="mx-auto flex h-14 max-w-7xl items-center px-4">
+            <a href="/" class="text-lg font-bold tracking-tight">
+                <span class="text-primary">Summon</span>.gg
+            </a>
         </div>
+    </header>
 
-        <article class="content px-4">
-            @Body
-        </article>
+    <main class="flex-1">
+        @Body
     </main>
-</div>
 
-<div id="blazor-error-ui" data-nosnippet>
-    An unhandled error has occurred.
-    <a href="." class="reload">Reload</a>
-    <span class="dismiss">🗙</span>
+    <footer class="border-t py-6 text-center text-xs text-muted-foreground">
+        Summon.gg isn't endorsed by Riot Games and doesn't reflect the views or opinions of Riot Games
+        or anyone officially involved in producing or managing Riot Games properties.
+    </footer>
 </div>

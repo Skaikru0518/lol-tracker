@@ -16,4 +16,11 @@
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\" />
+  </ItemGroup>
+
+	<Target Name="Tailwind" BeforeTargets="BeforeBuild">
+		<Exec Command="&quot;$(MSBuildProjectDirectory)\..\tools\tailwindcss.exe&quot; -i Styles/app.css -o wwwroot/app.css --minify" />
+	</Target>
 </Project>
