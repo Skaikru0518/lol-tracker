@@ -10,4 +10,8 @@ public class RiotClient(HttpClient http)
         http.GetFromJsonAsync<RiotAccount>($"{Europe}/riot/account/v1/accounts/by-riot-id/{Uri.EscapeDataString(gameName)}/{Uri.EscapeDataString(tagLine)}", ct);
 
     public Task<RiotActiveRegion?> GetActiveRegionAsync(string puuid, CancellationToken ct = default) => http.GetFromJsonAsync<RiotActiveRegion>($"{Europe}/riot/account/v1/region/by-game/lol/by-puuid/{Uri.EscapeDataString(puuid)}", ct);
+
+    public Task<List<RiotLeagueEntry>?> GetLeagueEntriesAsync(string platform, string puuid, CancellationToken ct = default) =>
+        http.GetFromJsonAsync<List<RiotLeagueEntry>>(
+            $"https://{platform}.api.riotgames.com/lol/league/v4/entries/by-puuid/{Uri.EscapeDataString(puuid)}", ct);
 }
