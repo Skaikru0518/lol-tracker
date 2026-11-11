@@ -22,6 +22,9 @@
         <h1 class="text-3xl font-bold tracking-tight">
             @account.GameName <span class="text-lg font-medium text-muted-foreground">#@account.TagLine</span>
         </h1>
+        <p class="mt-1 text-sm text-muted-foreground">
+            @(account.Platform switch {"eun1" => "EUNE", "euw1" => "EUW", null => "Unknown server", var other => other.ToUpperInvariant() })
+        </p>
         <p class="mt-1 font-mono text-xs text-muted-foreground">@account.Puuid</p>
     }
 </section>
@@ -43,7 +46,7 @@
 
         try
         {
-            account = await Accounts.ResolveAsync(Slug[..separator], Slug[(separator + 1)..]);
+            account = await Accounts.AccountAsync(Slug[..separator], Slug[(separator + 1)..]);
             notFound = account is null;
         }
         catch (HttpRequestException e) when (e.StatusCode == HttpStatusCode.NotFound)
