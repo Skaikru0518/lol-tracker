@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using summon.Data;
 using summon.Riot;
@@ -18,34 +18,8 @@ public class MatchService(SummonDbContext db, RiotClient riot)
         var ids = await riot.GetMatchIdsAsync(account.Puuid, Count, ct) ?? [];
         var known = await db.Matches.Where(m => ids.Contains(m.MatchId)).Select(m => m.MatchId).ToListAsync(ct);
 
-        foreach(var id in ids.Except(known))
-        {
-            var json = await riot.GetMatchJsonAsync(id, ct);
-            var info = JsonSerializer.Deserialize<RiotMatch>(json, JsonSerializerOptions.Web)!.Info;
-            db.Matches.Add(new Match
-            {
-                MatchId = id,
-                QueueId = info.QueueId,
-                GameCreation = info.GameCreation,
-                GameDuration = info.GameDuration,
-                Data = json,
-                // Bot games give every bot the same puuid, which would break the (MatchId, Puuid) key
-                Participants = info.Participants.DistinctBy(p => p.Puuid).Select(p => new MatchParticipant
-                {
-                    MatchId = id,
-                    Puuid = p.Puuid,
-                    ChampionName = p.ChampionName,
-                    Win = p.Win,
-                    Kills = p.Kills,
-                    Deaths = p.Deaths,
-                    Assists = p.Assists,
-                    Cs = p.TotalMinionsKilled + p.NeutralMinionsKilled,
-                    Items = [p.Item0, p.Item1, p.Item2, p.Item3, p.Item4, p.Item5, p.Item6],
-                    Spell1 = p.Summoner1Id,
-                    Spell2 = p.Summoner2Id,
-                }).ToList()
-            });
-        }
+        foreach (var id in ids.Except(known))
+            db.Matches.Add(ToEntity(id, await riot.GetMatchJsonAsync(id, ct)));
 
         await db.SaveChangesAsync(ct);
 
@@ -56,5 +30,46 @@ public class MatchService(SummonDbContext db, RiotClient riot)
             .Select(p => new MatchRow(p.MatchId, p.ChampionName, p.Win, p.Kills, p.Deaths, p.Assists, p.Cs, p.Match.QueueId, p.Match.GameCreation, p.Match.GameDuration,
                 p.Items, p.Spell1, p.Spell2))
             .ToListAsync(ct);
+    }
+
+    public async Task<RiotMatch> GetMatchAsync(string matchId, CancellationToken ct = default)
+    {
+        var json = await db.Matches.Where(m => m.MatchId == matchId).Select(m => m.Data).FirstOrDefaultAsync(ct);
+        if (json is null)
+        {
+            json = await riot.GetMatchJsonAsync(matchId, ct);
+            db.Matches.Add(ToEntity(matchId, json));
+            await db.SaveChangesAsync(ct);
+        }
+
+        return JsonSerializer.Deserialize<RiotMatch>(json, JsonSerializerOptions.Web)!;
+    }
+
+    private static Match ToEntity(string id, string json)
+    {
+        var info = JsonSerializer.Deserialize<RiotMatch>(json, JsonSerializerOptions.Web)!.Info;
+        return new Match
+        {
+            MatchId = id,
+            QueueId = info.QueueId,
+            GameCreation = info.GameCreation,
+            GameDuration = info.GameDuration,
+            Data = json,
+            // Bot games give every bot the same puuid, which would break the (MatchId, Puuid) key
+            Participants = info.Participants.DistinctBy(p => p.Puuid).Select(p => new MatchParticipant
+            {
+                MatchId = id,
+                Puuid = p.Puuid,
+                ChampionName = p.ChampionName,
+                Win = p.Win,
+                Kills = p.Kills,
+                Deaths = p.Deaths,
+                Assists = p.Assists,
+                Cs = p.TotalMinionsKilled + p.NeutralMinionsKilled,
+                Items = [p.Item0, p.Item1, p.Item2, p.Item3, p.Item4, p.Item5, p.Item6],
+                Spell1 = p.Summoner1Id,
+                Spell2 = p.Summoner2Id,
+            }).ToList()
+        };
     }
 }

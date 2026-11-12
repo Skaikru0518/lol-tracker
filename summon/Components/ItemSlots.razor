@@ -1,0 +1,21 @@
+@using summon.Riot
+
+<div class="flex gap-0.5">
+    @foreach (var item in Items)
+    {
+        if (item == 0)
+        {
+            <span class="@Size rounded bg-secondary"></span>
+        }
+        else
+        {
+            <img src="@DataDragon.ItemIcon(item)" alt="" class="@Size rounded" />
+        }
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public required DataDragonData DataDragon { get; set; }
+    [Parameter, EditorRequired] public required int[] Items { get; set; }
+    [Parameter] public string Size { get; set; } = "size-6";
+}

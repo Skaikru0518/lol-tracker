@@ -1,41 +1,16 @@
-﻿@using summon.Accounts
+@using summon.Accounts
 @using summon.Riot
 
 <div class="flex items-center gap-3 rounded-lg border-l-4 bg-card px-3 py-2 @(Game.Win ? "border-win" : "border-loss")">
     <img src="@DataDragon.ChampionIcon(Game.ChampionName)" alt="@Game.ChampionName" class="size-10 rounded-md" />
-    <div class="grid gap-0.5">
-        @foreach (var spell in new[] { Game.Spell1, Game.Spell2 })
-        {
-            var icon = DataDragon.SpellIcon(spell);
-            if (icon is null)
-            {
-                <span class="size-[1.125rem] rounded bg-secondary"></span>
-            }
-            else
-            {
-                <img src="@icon" alt="" class="size-[1.125rem] rounded" />
-            }
-        }
-    </div>
+    <SpellIcons DataDragon="DataDragon" Spell1="Game.Spell1" Spell2="Game.Spell2" />
     <div class="w-28">
         <p class="text-sm font-semibold @(Game.Win ? "text-win" : "text-loss")">@(Game.Win ? "Victory" : "Defeat")</p>
-        <p class="text-2xs text-muted-foreground">@QueueName · @Duration</p>
+        <p class="text-2xs text-muted-foreground">@Queues.Name(Game.QueueId) · @Duration</p>
     </div>
     <p class="w-24 text-sm font-semibold">@Game.Kills / <span class="text-loss">@Game.Deaths</span> / @Game.Assists</p>
     <p class="w-14 text-xs text-muted-foreground">@Game.Cs CS</p>
-    <div class="flex gap-0.5">
-        @foreach (var item in Game.Items)
-        {
-            if (item == 0)
-            {
-                <span class="size-6 rounded bg-secondary"></span>
-            }
-            else
-            {
-                <img src="@DataDragon.ItemIcon(item)" alt="" class="size-6 rounded" />
-            }
-        }
-    </div>
+    <ItemSlots DataDragon="DataDragon" Items="Game.Items" />
     <p class="ml-auto text-2xs text-muted-foreground">@Played</p>
 </div>
 
@@ -45,15 +20,4 @@
 
     private string Duration => TimeSpan.FromSeconds(Game.GameDuration).ToString(@"m\:ss");
     private string Played => DateTimeOffset.FromUnixTimeMilliseconds(Game.GameCreation).LocalDateTime.ToString("MMM d, HH:mm");
-
-    private string QueueName => Game.QueueId switch
-    {
-        420 => "Ranked Solo",
-        440 => "Ranked Flex",
-        400 => "Normal Draft",
-        490 => "Quickplay",
-        450 => "ARAM",
-        1700 => "Arena",
-        _ => "Other"
-    };
 }
