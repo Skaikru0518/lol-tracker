@@ -1,0 +1,29 @@
+@using summon.Riot
+
+<div class="shrink-0 grid-flow-col grid-rows-2 gap-0.5 @Display">
+    @foreach (var spellId in new[] { Spell1, Spell2 })
+    {
+        var src = DataDragon.SpellIcon(spellId);
+        var name = DataDragon.SpellName(spellId) ?? "Summoner spell";
+        if (src is null)
+        {
+            <span title="@name" class="rounded bg-muted" style="@Css.Square(Size)"></span>
+        }
+        else
+        {
+            <img src="@src" alt="@name" title="@name" width="@Size" height="@Size" style="@Css.Square(Size)" class="rounded" />
+        }
+    }
+    @* Runes are not loaded yet, so both rune slots show their empty state *@
+    <span class="rounded-full bg-muted" style="@Css.Square(Size)"></span>
+    <span class="rounded-full bg-muted" style="@Css.Square(Size)"></span>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public required DataDragonData DataDragon { get; set; }
+    [Parameter, EditorRequired] public int Spell1 { get; set; }
+    [Parameter, EditorRequired] public int Spell2 { get; set; }
+    [Parameter] public int Size { get; set; } = 18;
+    // Replaces "grid" instead of being appended, since nothing merges conflicting classes here
+    [Parameter] public string Display { get; set; } = "grid";
+}

@@ -1,0 +1,36 @@
+@using summon.Accounts
+
+<Panel>
+    <div class="flex flex-col gap-2 border-b px-4 py-2.5 sm:flex-row sm:items-center">
+        <div class="flex items-center gap-1.5">
+            <h2 class="text-sm font-semibold text-foreground">Recent games</h2>
+        </div>
+    </div>
+
+    @if (Games is null || DataDragon is null)
+    {
+        <div class="space-y-2 p-3">
+            @for (var i = 0; i < 6; i++)
+            {
+                <Skeleton Class="h-16" />
+            }
+        </div>
+    }
+    else if (Games.Count == 0)
+    {
+        <EmptyState Title="No matches found" />
+    }
+    else
+    {
+        @foreach (var game in Games)
+        {
+            <RecentGame Game="game" Puuid="@Puuid" DataDragon="DataDragon" @key="game.MatchId" />
+        }
+    }
+</Panel>
+
+@code {
+    [Parameter] public List<MatchRow>? Games { get; set; }
+    [Parameter] public DataDragonData? DataDragon { get; set; }
+    [Parameter, EditorRequired] public required string Puuid { get; set; }
+}

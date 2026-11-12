@@ -1,0 +1,30 @@
+@using System.Globalization
+
+<HeroBanner SplashUrl="@DataDragonData.ChampionSplash(Player?.ChampionName ?? Match.Info.Participants[0].ChampionName)" Class="rounded-lg border">
+    <div class="flex min-h-36 flex-col justify-end gap-1 p-5">
+        @if (Player is not null)
+        {
+            <a href="/summoner/@Format.SummonerSlug(Player.RiotIdGameName, Player.RiotIdTagline)" class="mb-auto text-xs font-medium text-primary hover:underline">
+                &larr; @Player.RiotIdGameName#@Player.RiotIdTagline
+            </a>
+        }
+        <h1 class="text-2xl font-bold text-foreground">@Queues.Name(Match.Info.QueueId, Match.Info.GameMode)</h1>
+        <p class="text-sm text-muted-foreground">
+            @if (Player is not null)
+            {
+                <span class="font-semibold @ResultTone">@Result · </span>
+            }
+            @Format.Duration(Match.Info.GameDuration) · @Date
+        </p>
+    </div>
+</HeroBanner>
+
+@code {
+    [Parameter, EditorRequired] public required RiotMatch Match { get; set; }
+    [Parameter] public RiotParticipant? Player { get; set; }
+
+    private bool Remake => Queues.IsRemake(Match.Info.GameDuration);
+    private string Result => Remake ? "Remake" : Player!.Win ? "Victory" : "Defeat";
+    private string ResultTone => Remake ? "text-muted-foreground" : Player!.Win ? "text-win" : "text-loss";
+    private string Date => DateTimeOffset.FromUnixTimeMilliseconds(Match.Info.GameCreation).LocalDateTime.ToString("d MMM yyyy", CultureInfo.InvariantCulture);
+}

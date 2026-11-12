@@ -1,20 +1,46 @@
 ﻿@inherits LayoutComponentBase
+@inject DataDragon DataDragon
 
-<div class="flex min-h-screen flex-col">
-    <header class="sticky top-0 z-40 border-b bg-nav/90 backdrop-blur">
-        <div class="mx-auto flex h-14 max-w-7xl items-center px-4">
-            <a href="/" class="text-lg font-bold tracking-tight">
-                <span class="text-primary">Summon</span>.gg
-            </a>
+<header class="fixed inset-x-0 top-0 z-40 h-14 border-b bg-nav/90 backdrop-blur">
+    <div class="mx-auto flex h-full max-w-7xl items-center gap-4 px-4 sm:px-6">
+        <a href="/" class="shrink-0 text-lg">
+            <Logo />
+        </a>
+        <div class="flex-1"></div>
+    </div>
+</header>
+
+<main class="flex-1 pt-14">
+    @Body
+</main>
+
+<footer class="mt-auto border-t bg-nav">
+    <div class="mx-auto flex max-w-7xl flex-col items-center gap-1 px-4 py-4 text-2xs text-muted-foreground sm:px-6">
+        <div class="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
+            <span class="font-medium text-foreground">Summon.gg</span>
+            <span>Patch @(version ?? "...")</span>
+            <span>&copy; @DateTime.Now.Year</span>
         </div>
-    </header>
+        <p class="text-center">
+            Summon.gg isn't endorsed by Riot Games and doesn't reflect the
+            views or opinions of Riot Games or anyone officially involved in
+            producing or managing Riot Games properties.
+        </p>
+    </div>
+</footer>
 
-    <main class="flex-1">
-        @Body
-    </main>
+@code {
+    private string? version;
 
-    <footer class="border-t py-6 text-center text-xs text-muted-foreground">
-        Summon.gg isn't endorsed by Riot Games and doesn't reflect the views or opinions of Riot Games
-        or anyone officially involved in producing or managing Riot Games properties.
-    </footer>
-</div>
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            version = (await DataDragon.GetAsync()).Version;
+        }
+        catch (HttpRequestException)
+        {
+            // The footer shows "Patch ..." until Data Dragon answers, like the original
+        }
+    }
+}

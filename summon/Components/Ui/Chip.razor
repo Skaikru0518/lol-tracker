@@ -1,0 +1,12 @@
+<span data-slot="chip" class="inline-flex h-5 items-center gap-1 whitespace-nowrap rounded border px-1.5 text-3xs font-semibold hover:cursor-pointer @Class" style="@Style">
+    @ChildContent
+</span>
+
+@code {
+    [Parameter, EditorRequired] public required string Color { get; set; }
+    [Parameter] public string? Class { get; set; }
+    [Parameter, EditorRequired] public required RenderFragment ChildContent { get; set; }
+
+    // Hex text color with a 44 alpha border and a 20 alpha fill
+    private string Style => $"color: {Color}; border-color: {Color}44; background-color: {Color}20";
+}

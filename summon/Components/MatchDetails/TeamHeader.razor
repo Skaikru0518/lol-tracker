@@ -1,0 +1,33 @@
+<div class="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs @(Side == "red" ? "flex-row-reverse text-right" : "")">
+    <span class="font-bold @(Side == "blue" ? "text-team-blue" : "text-team-red")">@Side.ToUpperInvariant()</span>
+    <span class="font-semibold @(Remake ? "text-muted-foreground" : Team.Win ? "text-win" : "text-loss")">
+        @(Remake ? "Remake" : Team.Win ? "Victory" : "Defeat")
+    </span>
+    <span class="text-foreground">@Team.Kills/@Team.Deaths/@Team.Assists</span>
+    <span class="flex items-center gap-2 text-muted-foreground">
+        @foreach (var (label, icon, count) in Objectives)
+        {
+            <span title="@label" class="flex items-center gap-0.5">
+                <img src="@icon" alt="@label" width="14" height="14" class="size-3.5 opacity-80" />
+                @count
+            </span>
+        }
+    </span>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public required TeamSummary Team { get; set; }
+    [Parameter, EditorRequired] public required string Side { get; set; }
+    [Parameter] public bool Remake { get; set; }
+
+    private const string Icons = "https://raw.communitydragon.org/latest/game/assets/ux/minimap/icons";
+
+    private (string Label, string Icon, int Count)[] Objectives =>
+    [
+        ("Towers", $"{Icons}/tower.png", Team.Towers),
+        ("Dragons", $"{Icons}/dragon.png", Team.Dragons),
+        ("Barons", $"{Icons}/baron.png", Team.Barons),
+        ("Rift Heralds", $"{Icons}/riftherald.png", Team.Heralds),
+        ("Void Grubs", $"{Icons}/grub.png", Team.Grubs),
+    ];
+}

@@ -7,7 +7,7 @@ using summon.Riot;
 namespace summon.Accounts;
 
 public record MatchRow(string MatchId, string ChampionName, bool Win, int Kills, int Deaths, int Assists, int Cs, int QueueId, long GameCreation, int GameDuration,
-    int[] Items, int Spell1, int Spell2);
+    int[] Items, int Spell1, int Spell2, int TeamKills);
 
 public class MatchService(SummonDbContext db, RiotClient riot)
 {
@@ -27,8 +27,9 @@ public class MatchService(SummonDbContext db, RiotClient riot)
             .Where(p => p.Puuid == account.Puuid)
             .OrderByDescending(p => p.Match.GameCreation)
             .Take(Count)
+            // Teammates share the win flag, so it stands in for the team id we do not store
             .Select(p => new MatchRow(p.MatchId, p.ChampionName, p.Win, p.Kills, p.Deaths, p.Assists, p.Cs, p.Match.QueueId, p.Match.GameCreation, p.Match.GameDuration,
-                p.Items, p.Spell1, p.Spell2))
+                p.Items, p.Spell1, p.Spell2, p.Match.Participants.Where(o => o.Win == p.Win).Sum(o => o.Kills)))
             .ToListAsync(ct);
     }
 

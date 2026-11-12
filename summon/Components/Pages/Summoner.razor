@@ -3,7 +3,6 @@
 @using System.Net
 @using summon.Accounts
 @using summon.Data
-@using summon.Riot
 @inject AccountService Accounts
 @inject RankedService Ranked
 @inject MatchService Games
@@ -11,51 +10,50 @@
 
 <PageTitle>@(account is null ? "Summoner" : $"{account.GameName}#{account.TagLine}") | Summon.gg</PageTitle>
 
-<section class="mx-auto max-w-7xl px-4 py-10">
-    @if (notFound)
-    {
+@if (notFound)
+{
+    <div class="mx-auto max-w-7xl px-4 py-10 sm:px-6">
         <h1 class="text-2xl font-bold">Summoner not found</h1>
         <p class="mt-2 text-sm text-muted-foreground">No Riot ID matches "@Slug".</p>
-    }
-    else if (account is null)
+    </div>
+}
+else
+{
+    @if (account is not null)
     {
-        <p class="text-sm text-muted-foreground">Loading…</p>
+        <SummonerHero Account="account" Ranked="ranked" />
     }
-    else
-    {
-        <h1 class="text-3xl font-bold tracking-tight">
-            @account.GameName <span class="text-lg font-medium text-muted-foreground">#@account.TagLine</span>
-        </h1>
-        <p class="mt-1 text-sm text-muted-foreground">
-            @(account.Platform switch {"eun1" => "EUNE", "euw1" => "EUW", null => "Unknown server", var other => other.ToUpperInvariant() })
-        </p>
-        <p class="mt-1 font-mono text-xs text-muted-foreground">@account.Puuid</p>
-        <div class="mt-6 grid max-w-xl gap-4 sm:grid-cols-2">
-            <RankedCard QueueName="Ranked Solo/Duo" Entry="@ranked.FirstOrDefault(e => e.QueueType == "RANKED_SOLO_5x5")" />
-            <RankedCard QueueName="Ranked Flex" Entry="@ranked.FirstOrDefault(e => e.QueueType == "RANKED_FLEX_SR")" />
+    <div class="mx-auto max-w-7xl px-4 sm:px-6">
+        <div class="py-4 lg:py-6">
+            <div class="grid gap-4 lg:grid-cols-[330px_minmax(0,1fr)]">
+                <div class="space-y-4">
+                    @foreach (var queueType in Ranks.QueueTypes)
+                    {
+                        if (ranked is null)
+                        {
+                            <Skeleton Class="h-36" />
+                        }
+                        else
+                        {
+                            <RankedPanel QueueType="@queueType" Entry="@ranked.FirstOrDefault(e => e.QueueType == queueType)" />
+                        }
+                    }
+                </div>
+                <div class="min-w-0 space-y-4">
+                    <MatchList Games="games" DataDragon="dataDragon" Puuid="@(account?.Puuid ?? "")" />
+                </div>
+            </div>
         </div>
-        <h2 class="mt-8 text-sm font-semibold">Recent games</h2>
-        <div class="mt-3 grid max-w-3xl gap-2">
-            @if (dataDragon is not null)
-            {
-                @foreach (var game in games)
-                {
-                    <a href="/match/@game.MatchId?puuid=@account.Puuid" class="block transition-opacity hover:opacity-80" @key="game.MatchId">
-                        <RecentGame Game="game" DataDragon="dataDragon" />
-                    </a>
-                }
-            }
-        </div>
-    }
-</section>
+    </div>
+}
 
 @code {
     [Parameter] public required string Slug { get; set; }
 
     private Account? account;
     private bool notFound;
-    private List<RankedEntry> ranked = [];
-    private List<MatchRow> games = [];
+    private List<RankedEntry>? ranked;
+    private List<MatchRow>? games;
     private DataDragonData? dataDragon;
 
     protected override async Task OnInitializedAsync()
@@ -70,16 +68,19 @@
         try
         {
             account = await Accounts.AccountAsync(Slug[..separator], Slug[(separator + 1)..]);
-            notFound = account is null;
-
-            if (account?.Platform is not null)
-                ranked = await Ranked.GetAsync(account) ?? [];
-
-            if (account is not null)
+            if (account is null)
             {
-                dataDragon = await DataDragon.GetAsync();
-                games = await Games.GetRecentAsync(account);
+                notFound = true;
+                return;
             }
+            // Each step streams to the browser, so the hero and panels appear while the match list still loads
+            StateHasChanged();
+
+            ranked = account.Platform is null ? [] : await Ranked.GetAsync(account) ?? [];
+            StateHasChanged();
+
+            dataDragon = await DataDragon.GetAsync();
+            games = await Games.GetRecentAsync(account);
         }
         catch (HttpRequestException e) when (e.StatusCode == HttpStatusCode.NotFound)
         {

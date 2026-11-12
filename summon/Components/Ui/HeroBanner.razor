@@ -1,0 +1,18 @@
+<div class="relative isolate @Class">
+    <div aria-hidden="true" class="absolute inset-0 -z-10 overflow-hidden rounded-[inherit]">
+        @if (SplashUrl is not null)
+        {
+            <img src="@SplashUrl" alt="" class="absolute inset-0 size-full object-cover" style="object-position: @ObjectPosition" />
+        }
+        <div class="absolute inset-0 bg-gradient-to-r from-background via-background/60 to-background/90"></div>
+        <div class="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-b from-transparent to-background"></div>
+    </div>
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public string? SplashUrl { get; set; }
+    [Parameter] public string ObjectPosition { get; set; } = "center 20%";
+    [Parameter] public string? Class { get; set; }
+    [Parameter, EditorRequired] public required RenderFragment ChildContent { get; set; }
+}

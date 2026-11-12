@@ -1,0 +1,51 @@
+<div class="@Root">
+    <div class="flex items-start justify-between gap-4 border-b px-3 py-2">
+        <TeamHeader Team="blueSummary" Side="blue" Remake="remake" />
+        <TeamHeader Team="redSummary" Side="red" Remake="remake" />
+    </div>
+    <div class="@Columns">
+        <div class="@BlueColumn">
+            @for (var i = 0; i < rows; i++)
+            {
+                var p = i < blue.Count ? blue[i] : null;
+                <ScoreboardRow Participant="p" Side="blue" DataDragon="DataDragon" Highlighted="@(p is not null && p.Puuid == HighlightPuuid)" />
+            }
+        </div>
+        <div class="@RedColumn">
+            @for (var i = 0; i < rows; i++)
+            {
+                var p = i < red.Count ? red[i] : null;
+                <ScoreboardRow Participant="p" Side="red" DataDragon="DataDragon" Highlighted="@(p is not null && p.Puuid == HighlightPuuid)" />
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public required RiotMatch Match { get; set; }
+    [Parameter, EditorRequired] public required DataDragonData DataDragon { get; set; }
+    [Parameter] public string? HighlightPuuid { get; set; }
+
+    // Container query classes live in C# strings: in markup Razor would read "@container" as code
+    private const string Root = "@container/scoreboard bg-background/40";
+    private const string Columns = "grid grid-cols-1 @[44rem]/scoreboard:grid-cols-2";
+    private const string BlueColumn = "@container divide-y divide-border/50";
+    private const string RedColumn = "@container divide-y divide-border/50 border-t @[44rem]/scoreboard:border-l @[44rem]/scoreboard:border-t-0";
+
+    private List<RiotParticipant> blue = [];
+    private List<RiotParticipant> red = [];
+    private TeamSummary blueSummary = null!;
+    private TeamSummary redSummary = null!;
+    private int rows;
+    private bool remake;
+
+    protected override void OnParametersSet()
+    {
+        blue = TeamSummary.Players(Match, 100);
+        red = TeamSummary.Players(Match, 200);
+        blueSummary = TeamSummary.Of(Match, 100, blue);
+        redSummary = TeamSummary.Of(Match, 200, red);
+        rows = Math.Max(blue.Count, red.Count);
+        remake = Queues.IsRemake(Match.Info.GameDuration);
+    }
+}

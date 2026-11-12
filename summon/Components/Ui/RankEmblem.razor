@@ -1,0 +1,14 @@
+<img src="@Src" alt="@Alt" width="@Size" height="@Size" style="@Css.Square(Size)" class="shrink-0 object-contain @Class" />
+
+@code {
+    [Parameter] public string? Tier { get; set; }
+    [Parameter] public int Size { get; set; } = 48;
+    [Parameter] public string? Class { get; set; }
+
+    private static readonly HashSet<string> Known =
+        ["iron", "bronze", "silver", "gold", "platinum", "emerald", "diamond", "master", "grandmaster", "challenger"];
+
+    private string Key => (Tier ?? "").Trim().ToLowerInvariant();
+    private string Src => $"/icons/rank/{(Known.Contains(Key) ? Key : "unranked")}.png";
+    private string Alt => $"{(Tier is null ? "unranked" : Tier.ToLowerInvariant())} emblem";
+}

@@ -1,0 +1,24 @@
+@using summon.Riot
+
+<div class="gap-0.5 @Display">
+    @foreach (var itemId in Items)
+    {
+        var src = DataDragon.ItemIcon(itemId);
+        if (src is null)
+        {
+            <span class="rounded bg-muted" style="@Css.Square(Size)"></span>
+        }
+        else
+        {
+            <img src="@src" alt="" width="@Size" height="@Size" style="@Css.Square(Size)" class="rounded" />
+        }
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public required DataDragonData DataDragon { get; set; }
+    [Parameter, EditorRequired] public required IReadOnlyList<int> Items { get; set; }
+    [Parameter] public int Size { get; set; } = 22;
+    // Replaces "flex" instead of being appended, since nothing merges conflicting classes here
+    [Parameter] public string Display { get; set; } = "flex";
+}

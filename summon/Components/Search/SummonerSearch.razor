@@ -1,0 +1,51 @@
+@inject NavigationManager Navigation
+
+<form class="flex w-full gap-2" @onsubmit="Search">
+    <div class="relative flex-1">
+        <SearchIcon Class="pointer-events-none absolute left-3.5 top-1/2 z-10 -translate-y-1/2 size-4 text-muted-foreground" />
+        <input @bind="riotId" placeholder="GameName#TAG" data-slot="input" class="@InputClass" />
+    </div>
+    <button type="submit" data-slot="button" class="@ButtonClass">
+        <SearchIcon Class="size-4 sm:hidden" />
+        <span class="sr-only sm:not-sr-only">Search</span>
+    </button>
+</form>
+
+@if (error is not null)
+{
+    @* shortcut: the original shows this as a toast; switch when toasts exist *@
+    <p class="text-sm text-loss">@error</p>
+}
+
+@code {
+    [Parameter] public bool HeroSurface { get; set; }
+
+    // Over the hero splash the fields need their own blurred backdrop to stay readable
+    private const string Hero = "bg-background/75 backdrop-blur-md border-primary/30 shadow-xl";
+
+    // The shadcn Input and Button classes with this form's overrides already merged in
+    private string InputClass =>
+        "w-full min-w-0 rounded-md border px-2 py-0.5 outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 " +
+        "md:text-xs/relaxed dark:bg-input/30 text-base hover:border-muted-foreground/50 focus:border-primary/50 transition-colors h-12 pl-10 " +
+        (HeroSurface ? Hero + " focus:bg-background/95" : "border-border bg-card");
+
+    private const string ButtonClass =
+        "inline-flex shrink-0 items-center justify-center gap-1 rounded-md bg-clip-padding whitespace-nowrap transition-all outline-none select-none " +
+        "focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 active:translate-y-px disabled:pointer-events-none disabled:opacity-50 " +
+        "h-12 px-3 text-base font-semibold sm:px-8 bg-primary/30 text-white/80 backdrop-blur-sm border border-primary/60 hover:bg-primary/40 hover:border-primary/80";
+
+    private string riotId = "";
+    private string? error;
+
+    private void Search()
+    {
+        var parts = riotId.Split('#', 2, StringSplitOptions.TrimEntries);
+        if (parts.Length != 2 || parts[0] == "" || parts[1] == "")
+        {
+            error = "Use format: GameName#TAG";
+            return;
+        }
+
+        Navigation.NavigateTo($"/summoner/{Format.SummonerSlug(parts[0], parts[1])}");
+    }
+}

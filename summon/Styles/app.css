@@ -1,5 +1,8 @@
-﻿@import "tailwindcss" source("../");
+@import "tailwindcss" source("../");
 
+@custom-variant dark (&:is(.dark *));
+
+/* Dark palette only: the light theme comes with the theme toggle */
 @theme {
     --font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
     --font-mono: "Geist Mono", ui-monospace, monospace;
@@ -7,40 +10,105 @@
     --text-2xs--line-height: 1rem;
     --text-3xs: 0.625rem;
     --text-3xs--line-height: 0.875rem;
+    --radius-sm: 0.3rem;
+    --radius-md: 0.4rem;
+    --radius-lg: 0.5rem;
+    --radius-xl: 0.7rem;
+    --radius-2xl: 0.9rem;
+    --radius-3xl: 1.1rem;
+    --radius-4xl: 1.3rem;
     --color-background: #0d0f1a;
     --color-foreground: #d4d7e6;
     --color-nav: #0a0c15;
     --color-card: #151827;
+    --color-card-foreground: #d4d7e6;
+    --color-popover: #151827;
+    --color-popover-foreground: #d4d7e6;
     --color-primary: #b05ad6;
     --color-primary-foreground: #ffffff;
     --color-secondary: #1d2136;
+    --color-secondary-foreground: #d4d7e6;
     --color-muted: #1d2136;
     --color-muted-foreground: #7d829c;
+    --color-accent: #1d2136;
+    --color-accent-foreground: #ffffff;
+    --color-destructive: #ef5350;
     --color-border: #252a40;
+    --color-input: #1d2136;
     --color-ring: #b05ad6;
+    --color-chart-1: #b05ad6;
+    --color-chart-2: #4f8fe6;
+    --color-chart-3: #34c38f;
+    --color-chart-4: #e9b949;
+    --color-chart-5: #ef5350;
     --color-win: #34c38f;
     --color-loss: #ef5350;
     --color-gold: #e9b949;
     --color-team-blue: #4f8fe6;
     --color-team-red: #ef5350;
+    --color-scrollbar: #2a3048;
+    --color-scrollbar-hover: #3a4160;
+    --animate-shimmer: shimmer 1.5s infinite;
+    --animate-bar-grow: bar-grow 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+
+    @keyframes shimmer {
+        100% {
+            transform: translateX(100%);
+        }
+    }
+
+    @keyframes bar-grow {
+        from {
+            transform: scaleX(0);
+        }
+    }
 }
 
 @layer base {
     html {
+        /* 16px up to 1920px wide, growing to 20px (+25%) at 2560px (1440p) */
         font-size: clamp(1rem, 0.25rem + 0.625vw, 1.25rem);
     }
 
     * {
-        @apply border-border;
+        @apply border-border outline-ring/50;
     }
 
     body {
-        @apply bg-background text-foreground font-sans antialiased;
+        @apply bg-background text-foreground;
     }
 
     button,
+    input,
     select,
-    input {
-        @apply hover:cursor-pointer;
+    [data-slot="badge"] {
+        @apply hover:cursor-pointer! transition-all! duration-150! ease-in-out!;
     }
+}
+
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--color-scrollbar);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--color-scrollbar-hover);
+}
+
+::-webkit-scrollbar-corner {
+    background: transparent;
+}
+
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-scrollbar) transparent;
 }

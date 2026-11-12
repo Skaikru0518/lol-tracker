@@ -1,12 +1,15 @@
-﻿namespace summon.Riot;
+namespace summon.Riot;
 
 public record RiotMatch(RiotMatchInfo Info);
-public record RiotMatchInfo(long GameCreation, int GameDuration, int QueueId, List<RiotParticipant> Participants);
+public record RiotMatchInfo(long GameCreation, int GameDuration, int QueueId, string GameMode, List<RiotParticipant> Participants, List<RiotTeam> Teams);
+public record RiotTeam(int TeamId, bool Win, Dictionary<string, RiotObjective> Objectives);
+public record RiotObjective(int Kills);
 public record RiotParticipant(
     string Puuid,
     string? RiotIdGameName,
     string? RiotIdTagline,
     int TeamId,
+    string TeamPosition,
     string ChampionName,
     int ChampLevel,
     bool Win,

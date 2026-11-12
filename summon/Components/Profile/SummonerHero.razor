@@ -1,0 +1,38 @@
+@using summon.Data
+
+<HeroBanner ObjectPosition="center 25%" Class="border-b">
+    <div class="mx-auto flex max-w-7xl flex-col gap-4 px-4 pb-5 pt-14 sm:flex-row sm:items-end sm:px-6 sm:pt-20">
+        <div class="min-w-0 flex-1">
+            <h1 class="flex flex-wrap items-center gap-2 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+                <span class="truncate">@Account.GameName</span>
+                <span class="text-base font-medium text-muted-foreground sm:text-lg">#@Account.TagLine</span>
+            </h1>
+            <p class="text-sm text-muted-foreground">@PlatformLabel</p>
+            <div class="mt-2 flex flex-wrap gap-1.5">
+                @foreach (var queueType in Ranks.QueueTypes)
+                {
+                    var entry = Ranked?.FirstOrDefault(e => e.QueueType == queueType);
+                    if (entry is not null)
+                    {
+                        <Chip Color="@(Ranks.Color(entry.Tier) ?? "#7d829c")">
+                            @($"{Ranks.Label(entry.Tier, entry.Rank).ToUpperInvariant()} · {Ranks.QueueShort(queueType)}")
+                        </Chip>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+</HeroBanner>
+
+@code {
+    [Parameter, EditorRequired] public required Account Account { get; set; }
+    [Parameter] public List<RankedEntry>? Ranked { get; set; }
+
+    private string PlatformLabel => Account.Platform switch
+    {
+        "eun1" => "EUNE",
+        "euw1" => "EUW",
+        null => "Unknown server",
+        var other => other.ToUpperInvariant()
+    };
+}
