@@ -2,6 +2,15 @@
 
 <HeroBanner ObjectPosition="center 25%" Class="border-b">
     <div class="mx-auto flex max-w-7xl flex-col gap-4 px-4 pb-5 pt-14 sm:flex-row sm:items-end sm:px-6 sm:pt-20">
+        @if (Summoner is not null && DataDragon is not null)
+        {
+            <div class="relative shrink-0 self-start">
+                <img src="@DataDragon.ProfileIcon(Summoner.ProfileIconId)" alt="@Account.GameName" width="80" height="80" class="size-20 rounded-xl border-2 border-primary/70" />
+                <span class="absolute -bottom-2 left-1/2 -translate-x-1/2 rounded-full border bg-nav px-2 text-2xs font-medium text-foreground">
+                    @Summoner.SummonerLevel
+                </span>
+            </div>
+        }
         <div class="min-w-0 flex-1">
             <h1 class="flex flex-wrap items-center gap-2 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
                 <span class="truncate">@Account.GameName</span>
@@ -27,6 +36,8 @@
 @code {
     [Parameter, EditorRequired] public required Account Account { get; set; }
     [Parameter] public List<RankedEntry>? Ranked { get; set; }
+    [Parameter] public RiotSummoner? Summoner { get; set; }
+    [Parameter] public DataDragonData? DataDragon { get; set; }
 
     private string PlatformLabel => Account.Platform switch
     {

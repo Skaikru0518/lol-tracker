@@ -21,4 +21,6 @@ public class RiotClient(HttpClient http)
 
     public Task<string> GetMatchJsonAsync(string matchId, CancellationToken ct = default) =>
         http.GetStringAsync($"{Europe}/lol/match/v5/matches/{Uri.EscapeDataString(matchId)}", ct);
+
+    public Task<RiotSummoner?> GetSummonerAsync(string platform, string puuid, CancellationToken ct = default) => http.GetFromJsonAsync<RiotSummoner>($"https://{platform}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/{Uri.EscapeDataString(puuid)}", ct);
 }

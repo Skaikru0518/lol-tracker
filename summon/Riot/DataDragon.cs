@@ -16,6 +16,8 @@ public record DataDragonData(string Version, IReadOnlyDictionary<int, SummonerSp
 
     public static string ChampionSplash(string championName) => $"{DataDragon.Cdn}/img/champion/splash/{FileName(championName)}_0.jpg";
 
+    public string ProfileIcon(int iconId) => $"{DataDragon.Cdn}/{Version}/img/profileicon/{iconId}.png";
+
     public string? ItemIcon(int itemId) => itemId == 0 ? null : $"{DataDragon.Cdn}/{Version}/img/item/{itemId}.png";
 
     public string? SpellIcon(int spellId) =>
