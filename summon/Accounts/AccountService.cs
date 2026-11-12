@@ -23,6 +23,11 @@ public class AccountService(SummonDbContext db, RiotClient riot)
         return account;
     }
 
+    public Task<RiotSummoner?> SummonerAsync(Account account, CancellationToken ct = default) =>
+        account.Platform is null
+        ? Task.FromResult<RiotSummoner?>(null)
+        : riot.GetSummonerAsync(account.Platform, account.Puuid, ct);
+
     private async Task<Account?> FetchAsync(string gameName, string tagLine, CancellationToken ct)
     {
         var fetched = await riot.GetAccountByRiotIdAsync(gameName, tagLine, ct);
@@ -43,4 +48,5 @@ public class AccountService(SummonDbContext db, RiotClient riot)
         account.UpdatedAt = DateTime.UtcNow;
         return account;
     }
+
 }
