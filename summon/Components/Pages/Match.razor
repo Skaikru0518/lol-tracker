@@ -1,0 +1,59 @@
+﻿@page "/match/{MatchId}"
+@attribute [StreamRendering]
+@using System.Net
+@using summon.Accounts
+@using summon.Riot
+@inject MatchService Games
+@inject DataDragon DataDragon
+
+<PageTitle>Match | Summon.gg</PageTitle>
+
+<section class="mx-auto max-w-6xl px-4 py-10">
+    @if (notFound)
+    {
+        <h1 class="text-2xl font-bold">Match not found</h1>
+        <p class="mt-2 text-sm text-muted-foreground">It may be too old or Riot could not be reached.</p>
+        <a href="/" class="mt-4 inline-block text-sm font-medium text-primary hover:underline">Back to search</a>
+    }
+    else if (match is null || dataDragon is null)
+    {
+        <p class="text-sm text-muted-foreground">Loading…</p>
+    }
+    else
+    {
+        <h1 class="text-2xl font-bold tracking-tight">@Queues.Name(match.Info.QueueId)</h1>
+        <p class="mt-1 text-sm text-muted-foreground">@Duration · @Played</p>
+        <div class="mt-6 grid gap-4">
+            @foreach (var team in match.Info.Participants.GroupBy(p => p.TeamId).OrderBy(t => t.Key))
+            {
+                <MatchTeam Players="team.ToList()" DataDragon="dataDragon" GameDuration="match.Info.GameDuration" HighlightPuuid="@Puuid" />
+            }
+        </div>
+    }
+</section>
+
+@code {
+    [Parameter] public required string MatchId { get; set; }
+    [SupplyParameterFromQuery] public string? Puuid { get; set; }
+
+    private RiotMatch? match;
+    private DataDragonData? dataDragon;
+    private bool notFound;
+
+    private string Duration => TimeSpan.FromSeconds(match!.Info.GameDuration).ToString(@"m\:ss");
+    private string Played => DateTimeOffset.FromUnixTimeMilliseconds(match!.Info.GameCreation).LocalDateTime.ToString("MMM d, yyyy HH:mm");
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            dataDragon = await DataDragon.GetAsync();
+            match = await Games.GetMatchAsync(MatchId);
+        }
+        catch (HttpRequestException e) when (e.StatusCode is HttpStatusCode.NotFound or HttpStatusCode.BadRequest)
+        {
+            notFound = true;
+        }
+    }
+
+}

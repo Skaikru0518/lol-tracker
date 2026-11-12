@@ -1,0 +1,53 @@
+﻿@using summon.Riot
+
+<div class="overflow-hidden rounded-lg bg-card">
+    <div class="flex items-center justify-between border-b border-border px-3 py-2 text-xs font-semibold">
+        <p>
+            <span class="@(Win ? "text-win" : "text-loss")">@(Win ? "Victory" : "Defeat")</span>
+            <span class="@(Blue ? "text-team-blue" : "text-team-red")">· @(Blue ? "Blue team" : "Red team")</span>
+        </p>
+        <p class="text-muted-foreground">
+            @Players.Sum(p => p.Kills) / @Players.Sum(p => p.Deaths) / @Players.Sum(p => p.Assists) · @Gold(Players.Sum(p => p.GoldEarned)) gold
+        </p>
+    </div>
+    @foreach (var p in Players)
+    {
+        <div class="flex items-center gap-3 px-3 py-1.5 text-xs @(p.Puuid == HighlightPuuid ? "bg-secondary" : "")">
+            <div class="relative shrink-0">
+                <img src="@DataDragon.ChampionIcon(p.ChampionName)" alt="@p.ChampionName" class="size-8 rounded-md" />
+                <span class="absolute -bottom-1 -right-1 rounded bg-background px-1 text-3xs">@p.ChampLevel</span>
+            </div>
+            <SpellIcons DataDragon="DataDragon" Spell1="p.Summoner1Id" Spell2="p.Summoner2Id" Size="size-4" />
+            @if (string.IsNullOrEmpty(p.RiotIdGameName))
+            {
+                <span class="w-32 truncate text-muted-foreground">@p.ChampionName</span>
+            }
+            else
+            {
+                <a href="/summoner/@Uri.EscapeDataString($"{p.RiotIdGameName}-{p.RiotIdTagline}")" class="w-32 truncate hover:underline">@p.RiotIdGameName</a>
+            }
+            <p class="w-20 font-semibold">@p.Kills / <span class="text-loss">@p.Deaths</span> / @p.Assists</p>
+            <p class="w-20 text-muted-foreground">@p.TotalDamageDealtToChampions.ToString("N0") dmg</p>
+            <p class="w-12 text-muted-foreground">@Gold(p.GoldEarned)</p>
+            <p class="w-24 text-muted-foreground">@Cs(p) CS (@CsPerMinute(p))</p>
+            <p class="w-12 text-muted-foreground">@p.VisionScore vis</p>
+            <div class="ml-auto">
+                <ItemSlots DataDragon="DataDragon" Items="@(new[] { p.Item0, p.Item1, p.Item2, p.Item3, p.Item4, p.Item5, p.Item6 })" Size="size-5" />
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public required List<RiotParticipant> Players { get; set; }
+    [Parameter, EditorRequired] public required DataDragonData DataDragon { get; set; }
+    [Parameter, EditorRequired] public int GameDuration { get; set; }
+    [Parameter] public string? HighlightPuuid { get; set; }
+
+    private bool Win => Players[0].Win;
+    private bool Blue => Players[0].TeamId == 100;
+
+    private static int Cs(RiotParticipant p) => p.TotalMinionsKilled + p.NeutralMinionsKilled;
+    private string CsPerMinute(RiotParticipant p) => (Cs(p) / (GameDuration / 60.0)).ToString("0.0");
+    private static string Gold(int gold) => $"{gold / 1000.0:0.0}k";
+}
