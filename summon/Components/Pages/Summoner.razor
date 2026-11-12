@@ -21,7 +21,7 @@ else
 {
     @if (account is not null)
     {
-        <SummonerHero Account="account" Ranked="ranked" Summoner="summoner" DataDragon="dataDragon"/>
+        <SummonerHero Account="account" Ranked="ranked" Summoner="summoner" DataDragon="dataDragon" SplashChampion="@splashChampion"/>
     }
     <div class="mx-auto max-w-7xl px-4 sm:px-6">
         <div class="py-4 lg:py-6">
@@ -56,6 +56,7 @@ else
     private List<MatchRow>? games;
     private DataDragonData? dataDragon;
     private RiotSummoner? summoner;
+    private string? splashChampion;
 
     protected override async Task OnInitializedAsync()
     {
@@ -77,6 +78,8 @@ else
             // Each step streams to the browser, so the hero and panels appear while the match list still loads
             dataDragon = await DataDragon.GetAsync();
             summoner = await Accounts.SummonerAsync(account);
+            var topChampionId = await Accounts.TopChampionIdAsync(account);
+            splashChampion = topChampionId is { } id ? dataDragon.ChampionIds.GetValueOrDefault(id) : null;
             StateHasChanged();
 
             ranked = account.Platform is null ? [] : await Ranked.GetAsync(account) ?? [];

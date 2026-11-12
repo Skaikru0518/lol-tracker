@@ -1,6 +1,6 @@
 @using summon.Data
 
-<HeroBanner ObjectPosition="center 25%" Class="border-b">
+<HeroBanner SplashUrl="@(SplashChampion is null ? null : DataDragonData.ChampionSplash(SplashChampion))" ObjectPosition="center 25%" Class="border-b">
     <div class="mx-auto flex max-w-7xl flex-col gap-4 px-4 pb-5 pt-14 sm:flex-row sm:items-end sm:px-6 sm:pt-20">
         @if (Summoner is not null && DataDragon is not null)
         {
@@ -38,6 +38,7 @@
     [Parameter] public List<RankedEntry>? Ranked { get; set; }
     [Parameter] public RiotSummoner? Summoner { get; set; }
     [Parameter] public DataDragonData? DataDragon { get; set; }
+    [Parameter] public string? SplashChampion { get; set; }
 
     private string PlatformLabel => Account.Platform switch
     {
