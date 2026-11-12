@@ -5,7 +5,7 @@ namespace summon.Riot;
 
 public record SummonerSpellInfo(string Image, string Name);
 
-public record DataDragonData(string Version, IReadOnlyDictionary<int, SummonerSpellInfo> Spells)
+public record DataDragonData(string Version, IReadOnlyDictionary<int, SummonerSpellInfo> Spells, IReadOnlyDictionary<int, string> ChampionIds)
 {
     // Match data spells some champions differently from Data Dragon's file names
     private static readonly Dictionary<string, string> NameFixes = new() { ["FiddleSticks"] = "Fiddlesticks" };
@@ -38,7 +38,11 @@ public class DataDragon(HttpClient http, IMemoryCache cache)
             var version = versions![0];
             var summoner = await http.GetFromJsonAsync<SummonerFile>($"{Cdn}/{version}/data/en_US/summoner.json", ct);
             var spells = summoner!.Data.Values.ToDictionary(spell => int.Parse(spell.Key), spell => new SummonerSpellInfo(spell.Image.Full, spell.Name));
-            return new DataDragonData(version, spells);
+
+            var champion = await http.GetFromJsonAsync<ChampionFile>($"{Cdn}/{version}/data/en_US/champion.json", ct);
+            var championIds = champion!.Data.Values.ToDictionary(c => int.Parse(c.Key), c => c.Id);
+
+            return new DataDragonData(version, spells, championIds);
         }))!;
 
     private record SummonerFile(Dictionary<string, SummonerSpell> Data);
@@ -46,4 +50,6 @@ public class DataDragon(HttpClient http, IMemoryCache cache)
     private record SummonerSpell(string Key, string Name, SpellImage Image);
 
     private record SpellImage(string Full);
+    private record ChampionFile(Dictionary<string, ChampionEntry> Data);
+    private record ChampionEntry(string Id, string Key);
 }

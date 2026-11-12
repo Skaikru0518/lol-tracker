@@ -28,6 +28,22 @@ public class AccountService(SummonDbContext db, RiotClient riot)
         ? Task.FromResult<RiotSummoner?>(null)
         : riot.GetSummonerAsync(account.Platform, account.Puuid, ct);
 
+    public async Task<int?> TopChampionIdAsync(Account account, CancellationToken ct = default)
+    {
+        if (account.Platform is null) return null;
+
+        try
+        {
+            var masteries = await riot.GetTopMasteriesAsync(account.Platform, account.Puuid, 1, ct);
+            return masteries?.FirstOrDefault()?.ChampionId;
+        }
+        catch (HttpRequestException)
+        {
+            // The splash is decoration, so a failed mastery call leaves the hero without one, like the original
+            return null;
+        }
+    }
+
     private async Task<Account?> FetchAsync(string gameName, string tagLine, CancellationToken ct)
     {
         var fetched = await riot.GetAccountByRiotIdAsync(gameName, tagLine, ct);
