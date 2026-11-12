@@ -21,8 +21,29 @@
     }
     else
     {
-        <h1 class="text-2xl font-bold tracking-tight">@Queues.Name(match.Info.QueueId)</h1>
-        <p class="mt-1 text-sm text-muted-foreground">@Duration · @Played</p>
+        <div class="relative isolate overflow-hidden rounded-lg border border-border">
+            <div aria-hidden="true" class="absolute inset-0 -z-10">
+                <img src="@dataDragon.ChampionSplash(HeroChampion)" alt="" class="absolute inset-0 size-full object-cover object-[center_20%]" />
+                <div class="absolute inset-0 bg-linear-to-r from-background via-background/60 to-background/90"></div>
+                <div class="absolute inset-x-0 bottom-0 h-16 bg-linear-to-b from-transparent to-background"></div>
+            </div>
+            <div class="flex min-h-36 flex-col justify-end gap-1 p-5">
+                @if (Player is not null)
+                {
+                    <a href="/summoner/@Uri.EscapeDataString($"{Player.RiotIdGameName}-{Player.RiotIdTagline}")" class="mb-auto text-xs font-medium text-primary hover:underline">
+                        ← @Player.RiotIdGameName#@Player.RiotIdTagline
+                    </a>
+                }
+                <h1 class="text-2xl font-bold">@Queues.Name(match.Info.QueueId)</h1>
+                <p class="text-sm text-muted-foreground">
+                    @if (Player is not null)
+                    {
+                        <span class="font-semibold @(Player.Win ? "text-win" : "text-loss")">@(Player.Win ? "Victory" : "Defeat") · </span>
+                    }
+                    @Duration · @Played
+                </p>
+            </div>
+        </div>
         <div class="mt-6 grid gap-4">
             @foreach (var team in match.Info.Participants.GroupBy(p => p.TeamId).OrderBy(t => t.Key))
             {
@@ -40,6 +61,8 @@
     private DataDragonData? dataDragon;
     private bool notFound;
 
+    private RiotParticipant? Player => match?.Info.Participants.FirstOrDefault(p => p.Puuid == Puuid);
+    private string HeroChampion => Player?.ChampionName ?? match!.Info.Participants[0].ChampionName;
     private string Duration => TimeSpan.FromSeconds(match!.Info.GameDuration).ToString(@"m\:ss");
     private string Played => DateTimeOffset.FromUnixTimeMilliseconds(match!.Info.GameCreation).LocalDateTime.ToString("MMM d, yyyy HH:mm");
 

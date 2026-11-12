@@ -5,10 +5,11 @@ namespace summon.Riot;
 
 public record DataDragonData(string Version, IReadOnlyDictionary<int, string> SpellImages)
 {
+    private static readonly Dictionary<string, string> NameFixes = new() { ["FiddleSticks"] = "Fiddlesticks" };
+    private static string FileName(string championName) => NameFixes.GetValueOrDefault(championName, championName);
     public string ChampionIcon(string championName) => $"{DataDragon.Cdn}/{Version}/img/champion/{championName}.png";
-
+    public string ChampionSplash(string championName) => $"{DataDragon.Cdn}/{Version}/img/champion/splash/{FileName}_0.jpg";
     public string ItemIcon(int itemId) => $"{DataDragon.Cdn}/{Version}/img/item/{itemId}.png";
-
     public string? SpellIcon(int spellId) =>
         SpellImages.TryGetValue(spellId, out var image) ? $"{DataDragon.Cdn}/{Version}/img/spell/{image}" : null;
 }
