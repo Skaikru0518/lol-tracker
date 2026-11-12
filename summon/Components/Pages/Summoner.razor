@@ -40,7 +40,9 @@
             {
                 @foreach (var game in games)
                 {
-                    <RecentGame Game="game" DataDragon="dataDragon" @key="game.MatchId" />
+                    <a href="/match/@game.MatchId?puuid=@account.Puuid" class="block transition-opacity hover:opacity-80" @key="game.MatchId">
+                        <RecentGame Game="game" DataDragon="dataDragon" />
+                    </a>
                 }
             }
         </div>
