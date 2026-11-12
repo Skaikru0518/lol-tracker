@@ -23,4 +23,8 @@ public class RiotClient(HttpClient http)
         http.GetStringAsync($"{Europe}/lol/match/v5/matches/{Uri.EscapeDataString(matchId)}", ct);
 
     public Task<RiotSummoner?> GetSummonerAsync(string platform, string puuid, CancellationToken ct = default) => http.GetFromJsonAsync<RiotSummoner>($"https://{platform}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/{Uri.EscapeDataString(puuid)}", ct);
+
+    public Task<List<RiotMastery>?> GetTopMasteriesAsync(string platform, string puuid, int count, CancellationToken ct = default) =>
+        http.GetFromJsonAsync<List<RiotMastery>>(
+            $"https://{platform}.api.riotgames.com/lol/champion-mastery/v4/champion-masteries/by-puuid/{Uri.EscapeDataString(puuid)}/top?count={count}", ct);
 }
