@@ -30,7 +30,7 @@ export function SearchSpotlight({
 						animate={{ y: 0 }}
 						exit={{ y: -12 }}
 						transition={{ duration: 0.15, ease: "easeOut" }}
-						className="w-full max-w-lg"
+						className="w-full max-w-2xl"
 						onClick={(event) => event.stopPropagation()}
 					>
 						<Panel className="flex flex-col gap-3 overflow-visible p-4 shadow-xl">

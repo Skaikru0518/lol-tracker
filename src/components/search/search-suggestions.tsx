@@ -7,6 +7,7 @@ import { getSummonerIcon, RANK_COLORS } from "@/lib/game/icon-helpers";
 import { lookupCandidate } from "@/lib/summoner/search/search-query";
 import { suggestionStatus } from "@/lib/summoner/search/search-results";
 import { cn } from "@/lib/utils";
+import { MarqueeText } from "@/components/widget/widget-motion";
 import { PLATFORMS, type Platform } from "@/lib/game/platforms";
 import { type RecentSearch } from "@/lib/validators/recent-searches";
 
@@ -50,9 +51,12 @@ export function SearchSuggestions({
 						) : (
 							<span className="size-6 rounded bg-muted" />
 						)}
-						<span className="min-w-0 flex-1 truncate text-sm text-foreground">
-							{r.gameName}
-							<span className="text-muted-foreground">#{r.tagLine}</span>
+						{/* MarqueeText measures its outer span, so that span must be a shrinkable flex item */}
+						<span className="flex min-w-0 flex-1 text-sm text-foreground [&>span]:min-w-0 [&>span]:overflow-hidden">
+							<MarqueeText animate>
+								{r.gameName}
+								<span className="text-muted-foreground">#{r.tagLine}</span>
+							</MarqueeText>
 						</span>
 						<span className="text-3xs font-semibold text-muted-foreground">{PLATFORMS[r.platform].label}</span>
 						<span className="text-xs" style={{ color: r.soloTier ? RANK_COLORS[r.soloTier] : undefined }}>
