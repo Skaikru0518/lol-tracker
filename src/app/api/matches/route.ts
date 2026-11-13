@@ -49,10 +49,13 @@ async function getStoredChampionMatches(
 	`;
 }
 
-/** Stored matches (with data) in the given queues, newest first. */
+/** Stored matches in the given queues, newest first, carrying only the player's own participant: the Rift panel reads nothing else, and it cuts ~90% of each document. */
 async function getStoredQueueMatches(puuid: string, queueIds: number[], count: number, start: number): Promise<StoredRow[]> {
 	return prisma.$queryRaw<StoredRow[]>`
-		SELECT "matchId", data FROM "Match"
+		SELECT "matchId", jsonb_set(data, '{info,participants}', COALESCE((
+			SELECT jsonb_agg(p) FROM jsonb_array_elements(data->'info'->'participants') p WHERE p->>'puuid' = ${puuid}
+		), '[]'::jsonb)) AS data
+		FROM "Match"
 		WHERE data->'metadata'->'participants' @> ${JSON.stringify(puuid)}::jsonb
 			AND "queueId" = ANY(${queueIds}::int[])
 		ORDER BY "gameCreation" DESC

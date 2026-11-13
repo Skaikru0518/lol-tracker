@@ -8,7 +8,7 @@ export function riftMatchesKey(puuid: string | undefined, newestMatchId: string 
 	return ["matches", puuid, "rift", newestMatchId ?? null] as const;
 }
 
-/** Last 50 stored Summoner's Rift matches (normals, ranked, Clash), newest first; refetches when `newestMatchId` changes. */
+/** Last 50 stored Summoner's Rift matches (normals, ranked, Clash), newest first, with only this player's participant; refetches when `newestMatchId` changes. */
 export function useRiftMatches(puuid: string | undefined, newestMatchId: string | undefined) {
 	return useQuery<Match[]>({
 		queryKey: riftMatchesKey(puuid, newestMatchId),
