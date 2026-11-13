@@ -53,3 +53,14 @@ export async function loadCurrentRanks(puuid: string): Promise<(CurrentRank & { 
 export async function loadMasteries(puuid: string): Promise<MasteryPoint[]> {
 	return prisma.championMastery.findMany({ where: { puuid }, select: { championLevel: true, championPoints: true } });
 }
+
+/** Players whose achievement inputs may have changed since `since`: new games, LP snapshots, masteries or account rows. */
+export async function changedPuuids(since: Date): Promise<Set<string>> {
+	const rows = await prisma.$queryRaw<{ puuid: string }[]>`
+		SELECT jsonb_array_elements_text(data->'metadata'->'participants') AS puuid FROM "Match" WHERE "updatedAt" > ${since}
+		UNION SELECT puuid FROM "LPHistory" WHERE "createdAt" > ${since}
+		UNION SELECT puuid FROM "ChampionMastery" WHERE "updatedAt" > ${since}
+		UNION SELECT puuid FROM "Account" WHERE "updatedAt" > ${since}
+	`;
+	return new Set(rows.map((r) => r.puuid));
+}
