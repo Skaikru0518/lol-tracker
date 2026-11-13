@@ -2,14 +2,25 @@
 <span class="group/tip relative inline-flex @Class">
     @ChildContent
     <span role="tooltip"
-          class="pointer-events-none invisible absolute bottom-full left-1/2 z-50 mb-2 inline-flex w-max max-w-xs -translate-x-1/2 items-center gap-1.5 rounded-md bg-foreground px-3 py-1.5 text-xs text-background opacity-0 transition-opacity group-hover/tip:visible group-hover/tip:opacity-100 group-hover/tip:delay-200 dark:bg-secondary dark:text-foreground">
-        @Text
-        <span class="absolute left-1/2 top-full size-2.5 -translate-x-1/2 -translate-y-1/2 rotate-45 rounded-[2px] bg-foreground dark:bg-secondary"></span>
+          class="pointer-events-none invisible absolute z-50 inline-flex w-max max-w-xs items-center gap-1.5 rounded-md bg-foreground px-3 py-1.5 text-xs text-background opacity-0 transition-opacity group-hover/tip:visible group-hover/tip:opacity-100 group-hover/tip:delay-200 dark:bg-secondary dark:text-foreground @(Side == "right" ? "left-full top-1/2 ml-2 -translate-y-1/2" : "bottom-full left-1/2 mb-2 -translate-x-1/2")">
+        @if (Content is not null)
+        {
+            @Content
+        }
+        else
+        {
+            @Text
+        }
+        <span class="absolute size-2.5 rotate-45 rounded-[2px] bg-foreground dark:bg-secondary @(Side == "right" ? "right-full top-1/2 translate-x-1/2 -translate-y-1/2" : "left-1/2 top-full -translate-x-1/2 -translate-y-1/2")"></span>
     </span>
 </span>
 
 @code {
-    [Parameter, EditorRequired] public required string Text { get; set; }
+    [Parameter] public string? Text { get; set; }
+    // Richer tooltip body; takes the place of Text when set
+    [Parameter] public RenderFragment? Content { get; set; }
     [Parameter, EditorRequired] public required RenderFragment ChildContent { get; set; }
     [Parameter] public string? Class { get; set; }
+    // "top" (default) or "right"; right keeps tall tooltips inside panels that clip what sticks out above them
+    [Parameter] public string Side { get; set; } = "top";
 }

@@ -20,7 +20,7 @@
 
         @if (Performance is not null)
         {
-            <ScoreCircle Score="Performance.Score" Grade="@Performance.Grade" />
+            <ScoreCircle Score="Performance.Score" Grade="@Performance.Grade" Categories="Performance.Categories" Role="@Performance.Role" />
         }
         else if (PerformanceLoading && ScoreEngine.IsEligible(Game.QueueId, Game.GameDuration))
         {
