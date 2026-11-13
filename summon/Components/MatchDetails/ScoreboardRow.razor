@@ -1,3 +1,5 @@
+@using summon.Data
+
 @if (Participant is null)
 {
     <div class="h-13"></div>
@@ -6,6 +8,16 @@ else
 {
     var p = Participant;
     <div class="flex h-13 items-center gap-2 px-2 @(Side == "red" ? "flex-row-reverse" : "") @(Highlighted ? "bg-gold/10" : "")">
+        @if (RanksLoading)
+        {
+            <Skeleton Class="size-5 shrink-0 rounded-full" />
+        }
+        else
+        {
+            <span title="@(Rank is null ? "Unranked" : $"{Ranks.Label(Rank.Tier, Rank.Rank)} · {Rank.LeaguePoints} LP")" class="shrink-0">
+                <RankEmblem Tier="@Rank?.Tier" Size="20" />
+            </span>
+        }
         <ChampionIcon DataDragon="DataDragon" ChampionName="@p.ChampionName" Size="28" Level="p.ChampLevel" />
         <div class="flex shrink-0 flex-col gap-0.5">
             @foreach (var (runeId, i) in new[] { p.Keystone, p.SecondaryStyle }.Select((id, i) => (id, i)))
@@ -26,12 +38,22 @@ else
                class="block truncate text-xs font-semibold hover:text-primary @(Highlighted ? "text-gold" : "text-foreground")">
                 @p.RiotIdGameName
             </a>
+            <div class="block truncate text-3xs text-muted-foreground">
+                @if (RanksLoading)
+                {
+                    <Skeleton Class="mt-0.5 h-2.5 w-14" />
+                }
+                else
+                {
+                    @(Rank is null ? "Unranked" : Ranks.Label(Rank.Tier, Rank.Rank))
+                }
+            </div>
         </div>
         <div class="w-24 shrink-0 whitespace-nowrap text-center leading-tight">
             <p class="text-xs font-semibold text-foreground">@p.Kills/@p.Deaths/@p.Assists</p>
             <p class="text-3xs text-muted-foreground">@(p.TotalMinionsKilled + p.NeutralMinionsKilled) CS · @Format.Thousands(p.GoldEarned)</p>
         </div>
-        <ItemSlots DataDragon="DataDragon" Items="@(new[] { p.Item0, p.Item1, p.Item2, p.Item3, p.Item4, p.Item5, p.Item6 })" Size="17" Display="@ItemsDisplay" />
+        <ItemSlots DataDragon="DataDragon" Items="@(new[] { p.Item0, p.Item1, p.Item2, p.Item3, p.Item4, p.Item5, p.Item6 })" Size="17" Display="@ItemsDisplay" ShowNames="true" />
     </div>
 }
 
@@ -40,6 +62,8 @@ else
     [Parameter, EditorRequired] public required string Side { get; set; }
     [Parameter, EditorRequired] public required DataDragonData DataDragon { get; set; }
     [Parameter] public bool Highlighted { get; set; }
+    [Parameter] public RankedEntry? Rank { get; set; }
+    [Parameter] public bool RanksLoading { get; set; }
 
     // Container query classes live in C# strings: in markup Razor would read "@sm" as code
     private const string NameColumn = "w-24 min-w-0 leading-tight @sm:w-28";

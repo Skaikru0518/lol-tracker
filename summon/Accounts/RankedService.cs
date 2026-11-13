@@ -61,6 +61,76 @@ namespace summon.Accounts
             return stored;
         }
 
+        /// <summary>
+        /// Ranked entries for several players (a scoreboard), DB first with the same two-minute freshness; the rest come
+        /// from Riot five at a time. Players we have never seen get a placeholder account row, like the original.
+        /// </summary>
+        public async Task<Dictionary<string, List<RankedEntry>>> GetBatchAsync(string platform, IReadOnlyCollection<string> puuids, CancellationToken ct = default)
+        {
+            var now = DateTime.UtcNow;
+            var stored = (await db.RankedEntries.Where(e => puuids.Contains(e.Puuid)).ToListAsync(ct))
+                .GroupBy(e => e.Puuid)
+                .ToDictionary(g => g.Key, g => g.ToList());
+
+            var result = new Dictionary<string, List<RankedEntry>>();
+            var missing = new List<string>();
+            foreach (var puuid in puuids)
+            {
+                if (stored.TryGetValue(puuid, out var entries) && entries.All(e => now - e.UpdatedAt < MaxAge)) result[puuid] = entries;
+                else missing.Add(puuid);
+            }
+
+            foreach (var batch in missing.Chunk(5))
+            {
+                // Riot calls run in parallel; the DbContext is not thread safe, so the writes happen one by one afterwards
+                var fetched = await Task.WhenAll(batch.Select(async puuid =>
+                {
+                    try
+                    {
+                        return (Puuid: puuid, Entries: await riot.GetLeagueEntriesAsync(platform, puuid, ct) ?? []);
+                    }
+                    catch (HttpRequestException)
+                    {
+                        return (Puuid: puuid, Entries: (List<RiotLeagueEntry>?)null);
+                    }
+                }));
+
+                foreach (var (puuid, entries) in fetched)
+                {
+                    if (entries is null)
+                    {
+                        result[puuid] = stored.GetValueOrDefault(puuid) ?? [];
+                        continue;
+                    }
+
+                    if (await db.Accounts.FindAsync([puuid], ct) is null)
+                        db.Accounts.Add(new Account { Puuid = puuid, GameName = "", TagLine = "", Platform = platform, UpdatedAt = now });
+
+                    var rows = stored.GetValueOrDefault(puuid) ?? [];
+                    foreach (var f in entries)
+                    {
+                        var entry = rows.Find(e => e.QueueType == f.QueueType);
+                        if (entry is null)
+                        {
+                            entry = new RankedEntry { Puuid = puuid, QueueType = f.QueueType, Tier = f.Tier, Rank = f.Rank };
+                            db.RankedEntries.Add(entry);
+                            rows.Add(entry);
+                        }
+                        entry.Tier = f.Tier;
+                        entry.Rank = f.Rank;
+                        entry.LeaguePoints = f.LeaguePoints;
+                        entry.Wins = f.Wins;
+                        entry.Losses = f.Losses;
+                        entry.UpdatedAt = now;
+                    }
+                    result[puuid] = rows;
+                }
+            }
+
+            await db.SaveChangesAsync(ct);
+            return result;
+        }
+
         /// <summary>The last 100 snapshots of each ranked queue, oldest first.</summary>
         public async Task<Dictionary<string, List<LpSnapshot>>> GetLpHistoryAsync(string puuid, CancellationToken ct = default)
         {

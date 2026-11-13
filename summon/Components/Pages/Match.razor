@@ -1,7 +1,9 @@
 ﻿@page "/match/{MatchId}"
 @attribute [StreamRendering]
 @using summon.Accounts
+@using summon.Data
 @inject MatchService Games
+@inject RankedService RankedService
 @inject DataDragon DataDragon
 
 <PageTitle>Match | Summon.gg</PageTitle>
@@ -27,10 +29,19 @@ else if (match is null || dataDragon is null)
 }
 else
 {
+    var arena = Queues.IsArena(match.Info.QueueId);
     <div class="mx-auto max-w-6xl space-y-4 px-4 py-6">
-        <MatchHero Match="match" Player="@match.Info.Participants.FirstOrDefault(p => p.Puuid == Puuid)" />
+        <MatchHero Match="match" Player="@match.Info.Participants.FirstOrDefault(p => p.Puuid == Puuid)"
+                   AvgRank="@(arena ? null : Ranks.Average(ranks, match.Info.QueueId))" />
         <Panel>
-            <MirroredScoreboard Match="match" DataDragon="dataDragon" HighlightPuuid="@Puuid" />
+            @if (arena)
+            {
+                <ArenaScoreboard Participants="match.Info.Participants" DataDragon="dataDragon" HighlightPuuid="@Puuid" ShowItems="true" />
+            }
+            else
+            {
+                <MirroredScoreboard Match="match" DataDragon="dataDragon" HighlightPuuid="@Puuid" Ranks="ranks" RanksLoading="ranks is null" />
+            }
         </Panel>
     </div>
 }
@@ -41,6 +52,7 @@ else
 
     private RiotMatch? match;
     private DataDragonData? dataDragon;
+    private Dictionary<string, List<RankedEntry>>? ranks;
     private bool notFound;
 
     protected override async Task OnInitializedAsync()
@@ -54,6 +66,20 @@ else
         {
             // Unknown ids, malformed ids and an unreachable Riot all land on the same message, like the original
             notFound = true;
+            return;
+        }
+
+        if (Queues.IsArena(match.Info.QueueId)) return;
+
+        // The page streams the scoreboard first; the ranks fill in once Riot answers
+        StateHasChanged();
+        try
+        {
+            ranks = await RankedService.GetBatchAsync(Queues.PlatformOf(MatchId), match.Info.Participants.Select(p => p.Puuid).Distinct().ToList());
+        }
+        catch (HttpRequestException)
+        {
+            ranks = [];
         }
     }
 }

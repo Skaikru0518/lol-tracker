@@ -1,4 +1,5 @@
 ﻿@using summon.Accounts
+@using summon.Data
 @inject IServiceScopeFactory ScopeFactory
 
 <div class="border-t">
@@ -12,9 +13,14 @@
             <Skeleton Class="h-64" />
         </div>
     }
+    else if (Queues.IsArena(match.Info.QueueId))
+    {
+        <ArenaScoreboard Participants="match.Info.Participants" DataDragon="DataDragon" HighlightPuuid="@Puuid" />
+        <div class="border-t px-3 py-2 text-center text-xs">@FullMatch</div>
+    }
     else
     {
-        <MirroredScoreboard Match="match" DataDragon="DataDragon" HighlightPuuid="@Puuid" Footer="FullMatch" />
+        <MirroredScoreboard Match="match" DataDragon="DataDragon" HighlightPuuid="@Puuid" Footer="FullMatch" Ranks="ranks" RanksLoading="ranks is null" />
     }
 </div>
 
@@ -24,6 +30,7 @@
     [Parameter, EditorRequired] public required DataDragonData DataDragon { get; set; }
 
     private RiotMatch? match;
+    private Dictionary<string, List<RankedEntry>>? ranks;
     private bool failed;
 
     private RenderFragment FullMatch =>
@@ -36,10 +43,17 @@
         try
         {
             match = await scope.ServiceProvider.GetRequiredService<MatchService>().GetMatchAsync(MatchId);
+            if (Queues.IsArena(match.Info.QueueId)) return;
+
+            // The scoreboard shows first, then the ranks fill in, like the original fetching them on open
+            StateHasChanged();
+            var puuids = match.Info.Participants.Select(p => p.Puuid).Distinct().ToList();
+            ranks = await scope.ServiceProvider.GetRequiredService<RankedService>().GetBatchAsync(Queues.PlatformOf(MatchId), puuids);
         }
         catch (HttpRequestException)
         {
-            failed = true;
+            if (match is null) failed = true;
+            else ranks = [];
         }
     }
 }

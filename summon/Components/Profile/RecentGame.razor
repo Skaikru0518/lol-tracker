@@ -1,10 +1,19 @@
 @using summon.Accounts
 
 <div class="border-b last:border-b-0">
-    <button type="button" @onclick="() => open = !open" aria-expanded="@(open ? "true" : "false")"
+    <button type="button" @onclick="Toggle" aria-expanded="@(open ? "true" : "false")"
             class="flex w-full flex-wrap items-center gap-x-3 gap-y-2 bg-gradient-to-r to-transparent to-60% px-3 py-2.5 text-left transition-colors hover:bg-accent/40 sm:flex-nowrap sm:px-4 @Gradient">
         <div class="w-[4.75rem] shrink-0 leading-tight">
-            <p class="text-sm font-bold @ResultColor">@ResultLabel</p>
+            @if (Arena)
+            {
+                <p class="text-sm font-bold" style="color: @Queues.PlacementColor(Placement)">
+                    @Placement<span class="align-super text-3xs">@Queues.PlacementSuffix(Placement)</span>
+                </p>
+            }
+            else
+            {
+                <p class="text-sm font-bold @ResultColor">@ResultLabel</p>
+            }
             <p class="truncate text-2xs text-foreground">@Queues.Short(Game.QueueId)</p>
             <p class="text-3xs text-muted-foreground">@Format.Duration(Game.GameDuration) · @Format.TimeAgo(Game.GameCreation)</p>
         </div>
@@ -20,7 +29,10 @@
         </div>
 
         <div class="hidden gap-1 md:flex">
-            @Stat(Game.Cs.ToString(), $"CS {Format.CsPerMinute(Game.Cs, Game.GameDuration)}")
+            @if (!Arena)
+            {
+                @Stat(Game.Cs.ToString(), $"CS {Format.CsPerMinute(Game.Cs, Game.GameDuration)}")
+            }
             @Stat($"{Format.Percent(Game.Kills + Game.Assists, Game.TeamKills)}%", "KP")
             @if (Ranks.QueueForQueueId(Game.QueueId) is not null)
             {
@@ -39,9 +51,14 @@
         </svg>
     </button>
 
-    @if (open)
+    @if (mounted)
     {
-        <MatchRowExpanded MatchId="@Game.MatchId" Puuid="@Puuid" DataDragon="DataDragon" />
+        @* Grid rows between 0fr and 1fr animate to the content's own height: a keyframe on first show, a transition after *@
+        <div class="grid transition-all duration-[180ms] @(open ? "animate-expand grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0")">
+            <div class="overflow-hidden" inert="@(!open)">
+                <MatchRowExpanded MatchId="@Game.MatchId" Puuid="@Puuid" DataDragon="DataDragon" />
+            </div>
+        </div>
     }
 </div>
 
@@ -51,14 +68,25 @@
     [Parameter, EditorRequired] public required DataDragonData DataDragon { get; set; }
     [Parameter] public int? LpChange { get; set; }
 
-    private bool Remake => Queues.IsRemake(Game.GameDuration);
-    private string ResultLabel => Remake ? "Remake" : Game.Win ? "Victory" : "Defeat";
-    private string ResultColor => Remake ? "text-muted-foreground" : Game.Win ? "text-win" : "text-loss";
-    private string Gradient => Remake ? "from-muted/40" : Game.Win ? "from-win/20" : "from-loss/20";
+    private bool open;
+    private bool mounted;
+
+    private bool Arena => Queues.IsArena(Game.QueueId);
+    private int Placement => Game.Placement is > 0 and var placement ? placement : Game.Win ? 1 : 5;
+
+    // Remakes first, then Arena's top four or the win flag
+    private string Result => Queues.IsRemake(Game.GameDuration) ? "remake" : (Arena ? Placement <= 4 : Game.Win) ? "win" : "loss";
+    private string ResultLabel => Result switch { "win" => "Victory", "loss" => "Defeat", _ => "Remake" };
+    private string ResultColor => Result switch { "win" => "text-win", "loss" => "text-loss", _ => "text-muted-foreground" };
+    private string Gradient => Result switch { "win" => "from-win/20", "loss" => "from-loss/20", _ => "from-muted/40" };
 
     private string? Kda => Format.Kda(Game.Kills, Game.Deaths, Game.Assists);
 
-    private bool open;
+    private void Toggle()
+    {
+        mounted = true;
+        open = !open;
+    }
 
     private static RenderFragment Stat(string value, string label, string className = "text-foreground") =>
         @<div class="w-11 text-center leading-tight">

@@ -10,11 +10,15 @@
         }
         <h1 class="text-2xl font-bold text-foreground">@Queues.Name(Match.Info.QueueId, Match.Info.GameMode)</h1>
         <p class="text-sm text-muted-foreground">
-            @if (Player is not null)
+            @if (Player is not null && Arena)
+            {
+                <span class="font-semibold" style="color: @Queues.PlacementColor(Placement)">@(Placement)@(Queues.PlacementSuffix(Placement)) place · </span>
+            }
+            else if (Player is not null)
             {
                 <span class="font-semibold @ResultTone">@Result · </span>
             }
-            @Format.Duration(Match.Info.GameDuration) · @Date
+            @Format.Duration(Match.Info.GameDuration) · @(Date)@(AvgRank is { } avg ? $" · Avg. {Ranks.Label(avg.Tier, avg.Rank)}" : "")
         </p>
     </div>
 </HeroBanner>
@@ -22,7 +26,10 @@
 @code {
     [Parameter, EditorRequired] public required RiotMatch Match { get; set; }
     [Parameter] public RiotParticipant? Player { get; set; }
+    [Parameter] public (string Tier, string Rank)? AvgRank { get; set; }
 
+    private bool Arena => Queues.IsArena(Match.Info.QueueId);
+    private int Placement => Player!.Placement is > 0 and var placement ? placement : Player.Win ? 1 : 5;
     private bool Remake => Queues.IsRemake(Match.Info.GameDuration);
     private string Result => Remake ? "Remake" : Player!.Win ? "Victory" : "Defeat";
     private string ResultTone => Remake ? "text-muted-foreground" : Player!.Win ? "text-win" : "text-loss";

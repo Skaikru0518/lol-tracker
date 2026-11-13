@@ -1,7 +1,7 @@
 @using summon.Riot
 
 <span class="relative inline-block shrink-0 @Class" style="@Css.Square(Size)">
-    <img src="@DataDragon.ChampionIcon(ChampionName)" alt="@ChampionName" width="@Size" height="@Size" class="size-full rounded-md object-cover" />
+    <img src="@DataDragon.ChampionIcon(ChampionName)" alt="@DataDragon.ChampionName(ChampionName)" width="@Size" height="@Size" class="size-full rounded-md object-cover" />
     @if (Level is not null)
     {
         <span class="absolute -bottom-1 -right-1 rounded-md border bg-background px-1 text-3xs leading-tight text-foreground">@Level</span>

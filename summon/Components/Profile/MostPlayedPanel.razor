@@ -63,7 +63,7 @@
                     <ChampionIcon DataDragon="DataDragon" ChampionName="@s.ChampionName" Size="32" />
                     <div class="min-w-0 flex-1">
                         <div class="flex items-baseline justify-between gap-2 text-sm">
-                            <span class="truncate font-semibold text-foreground">@s.ChampionName</span>
+                            <span class="truncate font-semibold text-foreground">@DataDragon.ChampionName(s.ChampionName)</span>
                             <span class="text-xs text-muted-foreground">@s.Kda.ToString(System.Globalization.CultureInfo.InvariantCulture) KDA</span>
                         </div>
                         <div class="mt-1 h-1.5 overflow-hidden rounded-full bg-muted">

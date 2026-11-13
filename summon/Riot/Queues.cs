@@ -38,6 +38,28 @@ public static class Queues
 
     private static readonly int[] ArenaIds = [1700, 1710, 1750];
 
+    public static bool IsArena(int queueId) => ArenaIds.Contains(queueId);
+
+    /// <summary>Platform host of a match id, e.g. EUN1_123 to eun1.</summary>
+    public static string PlatformOf(string matchId) => matchId.Split('_')[0].ToLowerInvariant();
+
+    public static string PlacementColor(int placement) => placement switch
+    {
+        1 => "#f1c40f",
+        2 => "#bdc3c7",
+        3 => "#e67e22",
+        4 => "#2ecc71",
+        _ => "#e74c3c"
+    };
+
+    public static string PlacementSuffix(int placement) => placement switch
+    {
+        1 => "st",
+        2 => "nd",
+        3 => "rd",
+        _ => "th"
+    };
+
     /// <summary>Queue ids a filter keeps (include) or drops (exclude); "all" drops Arena.</summary>
     public static (bool Include, int[] Ids) Selection(string filter) => filter switch
     {

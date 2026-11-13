@@ -1,0 +1,51 @@
+<div class="divide-y divide-border/50 bg-background/40">
+    @foreach (var team in teams)
+    {
+        <div class="flex items-center gap-3 px-3 py-2 @(team.Placement > 4 ? "opacity-60" : "") @(team.Placement == 4 ? "border-b-2 border-b-border" : "")">
+            <span class="w-8 text-sm font-bold" style="color: @Queues.PlacementColor(team.Placement)">
+                @team.Placement<span class="align-super text-3xs">@Queues.PlacementSuffix(team.Placement)</span>
+            </span>
+            <div class="grid flex-1 gap-1 sm:grid-cols-2">
+                @foreach (var p in team.Players)
+                {
+                    <div class="flex min-w-0 items-center gap-2 text-xs">
+                        <ChampionIcon DataDragon="DataDragon" ChampionName="@p.ChampionName" Size="22" />
+                        <a href="/summoner/@Format.SummonerSlug(p.RiotIdGameName, p.RiotIdTagline)"
+                           class="truncate font-medium hover:text-primary @(p.Puuid == HighlightPuuid ? "text-gold" : "text-foreground")">
+                            @p.RiotIdGameName
+                        </a>
+                        @if (ShowItems)
+                        {
+                            <ItemSlots DataDragon="DataDragon" Items="@(new[] { p.Item0, p.Item1, p.Item2, p.Item3, p.Item4, p.Item5, p.Item6 })" Size="18" Display="ml-auto hidden md:flex" ShowNames="true" />
+                        }
+                        <span class="ml-auto text-muted-foreground @(ShowItems ? "md:ml-0" : "")">
+                            @p.Kills/@p.Deaths/@p.Assists · @Format.Thousands(p.TotalDamageDealtToChampions)
+                        </span>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public required List<RiotParticipant> Participants { get; set; }
+    [Parameter, EditorRequired] public required DataDragonData DataDragon { get; set; }
+    [Parameter] public string? HighlightPuuid { get; set; }
+    // The match page adds items; the expanded match row does not
+    [Parameter] public bool ShowItems { get; set; }
+
+    private record ArenaTeam(int Placement, List<RiotParticipant> Players);
+
+    private List<ArenaTeam> teams = [];
+
+    protected override void OnParametersSet()
+    {
+        // Arena duos share a subteam id; the team's placement is its first player's
+        teams = Participants
+            .GroupBy(p => p.PlayerSubteamId ?? p.TeamId)
+            .Select(g => new ArenaTeam(g.First().SubteamPlacement ?? g.First().Placement ?? 8, g.ToList()))
+            .OrderBy(t => t.Placement)
+            .ToList();
+    }
+}

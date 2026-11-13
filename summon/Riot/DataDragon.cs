@@ -9,7 +9,9 @@ public record DataDragonData(
     string Version,
     IReadOnlyDictionary<int, SummonerSpellInfo> Spells,
     IReadOnlyDictionary<int, string> ChampionIds,
-    IReadOnlyDictionary<int, string> RuneIcons)
+    IReadOnlyDictionary<int, string> RuneIcons,
+    IReadOnlyDictionary<string, string> ChampionNames,
+    IReadOnlyDictionary<int, string> ItemNames)
 {
     // Match data spells some champions differently from Data Dragon's file names
     private static readonly Dictionary<string, string> NameFixes = new() { ["FiddleSticks"] = "Fiddlesticks" };
@@ -19,6 +21,9 @@ public record DataDragonData(
     public string ChampionIcon(string championName) => $"{DataDragon.Cdn}/{Version}/img/champion/{FileName(championName)}.png";
 
     public static string ChampionSplash(string championName) => $"{DataDragon.Cdn}/img/champion/splash/{FileName(championName)}_0.jpg";
+
+    /// <summary>Display name for a match or Data Dragon champion name, e.g. MonkeyKing to Wukong.</summary>
+    public string ChampionName(string championName) => ChampionNames.GetValueOrDefault(FileName(championName), championName);
 
     public string ProfileIcon(int iconId) => $"{DataDragon.Cdn}/{Version}/img/profileicon/{iconId}.png";
 
@@ -49,6 +54,10 @@ public class DataDragon(HttpClient http, IMemoryCache cache)
 
             var champion = await http.GetFromJsonAsync<ChampionFile>($"{Cdn}/{version}/data/en_US/champion.json", ct);
             var championIds = champion!.Data.Values.ToDictionary(c => int.Parse(c.Key), c => c.Id);
+            var championNames = champion.Data.Values.ToDictionary(c => c.Id, c => c.Name);
+
+            var item = await http.GetFromJsonAsync<ItemFile>($"{Cdn}/{version}/data/en_US/item.json", ct);
+            var itemNames = item!.Data.ToDictionary(i => int.Parse(i.Key), i => i.Value.Name);
 
             var trees = await http.GetFromJsonAsync<List<RuneTree>>($"{Cdn}/{version}/data/en_US/runesReforged.json", ct);
             var runeIcons = trees!
@@ -56,7 +65,7 @@ public class DataDragon(HttpClient http, IMemoryCache cache)
                 .Concat(trees!.SelectMany(tree => tree.Slots).SelectMany(slot => slot.Runes).Select(rune => (rune.Id, rune.Icon)))
                 .ToDictionary(r => r.Id, r => r.Icon);
 
-            return new DataDragonData(version, spells, championIds, runeIcons);
+            return new DataDragonData(version, spells, championIds, runeIcons, championNames, itemNames);
         }))!;
 
     private record SummonerFile(Dictionary<string, SummonerSpell> Data);
@@ -67,7 +76,11 @@ public class DataDragon(HttpClient http, IMemoryCache cache)
 
     private record ChampionFile(Dictionary<string, ChampionEntry> Data);
 
-    private record ChampionEntry(string Id, string Key);
+    private record ChampionEntry(string Id, string Key, string Name);
+
+    private record ItemFile(Dictionary<string, ItemEntry> Data);
+
+    private record ItemEntry(string Name);
 
     private record RuneTree(int Id, string Icon, List<RuneSlot> Slots);
 

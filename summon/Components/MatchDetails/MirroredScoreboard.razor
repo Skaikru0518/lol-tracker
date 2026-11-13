@@ -8,14 +8,16 @@
             @for (var i = 0; i < rows; i++)
             {
                 var p = i < blue.Count ? blue[i] : null;
-                <ScoreboardRow Participant="p" Side="blue" DataDragon="DataDragon" Highlighted="@(p is not null && p.Puuid == HighlightPuuid)" />
+                <ScoreboardRow Participant="p" Side="blue" DataDragon="DataDragon" Highlighted="@(p is not null && p.Puuid == HighlightPuuid)"
+                               Rank="@RankOf(p)" RanksLoading="RanksLoading" />
             }
         </div>
         <div class="@RedColumn">
             @for (var i = 0; i < rows; i++)
             {
                 var p = i < red.Count ? red[i] : null;
-                <ScoreboardRow Participant="p" Side="red" DataDragon="DataDragon" Highlighted="@(p is not null && p.Puuid == HighlightPuuid)" />
+                <ScoreboardRow Participant="p" Side="red" DataDragon="DataDragon" Highlighted="@(p is not null && p.Puuid == HighlightPuuid)"
+                               Rank="@RankOf(p)" RanksLoading="RanksLoading" />
             }
         </div>
     </div>
@@ -27,6 +29,16 @@
     [Parameter, EditorRequired] public required DataDragonData DataDragon { get; set; }
     [Parameter] public string? HighlightPuuid { get; set; }
     [Parameter] public RenderFragment? Footer { get; set; }
+    [Parameter] public IReadOnlyDictionary<string, List<summon.Data.RankedEntry>>? Ranks { get; set; }
+    [Parameter] public bool RanksLoading { get; set; }
+
+    // Ranks shown for the match's own ranked queue, Solo/Duo for everything else
+    private summon.Data.RankedEntry? RankOf(RiotParticipant? p)
+    {
+        if (p is null || Ranks is null) return null;
+        var queueType = summon.Riot.Ranks.QueueForQueueId(Match.Info.QueueId) ?? "RANKED_SOLO_5x5";
+        return Ranks.GetValueOrDefault(p.Puuid)?.FirstOrDefault(e => e.QueueType == queueType);
+    }
 
     // Container query classes live in C# strings: in markup Razor would read "@container" as code
     private const string Root = "@container/scoreboard bg-background/40";

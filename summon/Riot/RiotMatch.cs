@@ -33,7 +33,10 @@ public record RiotParticipant(
     int Item6,
     int Summoner1Id,
     int Summoner2Id,
-    RiotPerks Perks
+    RiotPerks Perks,
+    int? PlayerSubteamId,
+    int? SubteamPlacement,
+    int? Placement
 )
 {
     // Arena and some modes send fewer rune styles, so missing entries mean "no rune" rather than an error

@@ -148,6 +148,9 @@ namespace summon.Migrations
                     b.Property<int>("Kills")
                         .HasColumnType("integer");
 
+                    b.Property<int?>("Placement")
+                        .HasColumnType("integer");
+
                     b.Property<int>("SecondaryStyle")
                         .HasColumnType("integer");
 

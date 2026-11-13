@@ -16,6 +16,7 @@ public class MatchParticipant
     public int ChampLevel { get; set; }
     public int Keystone { get; set; }
     public int SecondaryStyle { get; set; }
+    public int? Placement { get; set; }
 
     public Match Match { get; set; } = null!;
 }

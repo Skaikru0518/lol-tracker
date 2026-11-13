@@ -4,9 +4,16 @@
     @foreach (var itemId in Items)
     {
         var src = DataDragon.ItemIcon(itemId);
+        var name = ShowNames ? DataDragon.ItemNames.GetValueOrDefault(itemId) : null;
         if (src is null)
         {
             <span class="rounded bg-muted" style="@Css.Square(Size)"></span>
+        }
+        else if (name is not null)
+        {
+            <Tooltip Text="@name">
+                <img src="@src" alt="@name" width="@Size" height="@Size" style="@Css.Square(Size)" class="cursor-pointer rounded" />
+            </Tooltip>
         }
         else
         {
@@ -21,4 +28,6 @@
     [Parameter] public int Size { get; set; } = 22;
     // Replaces "flex" instead of being appended, since nothing merges conflicting classes here
     [Parameter] public string Display { get; set; } = "flex";
+    // The original only names items where it loaded the item list: the scoreboards, not the match rows
+    [Parameter] public bool ShowNames { get; set; }
 }

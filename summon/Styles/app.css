@@ -50,6 +50,15 @@
     --color-scrollbar-hover: #3a4160;
     --animate-shimmer: shimmer 1.5s infinite;
     --animate-bar-grow: bar-grow 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    /* Opening a match row: the original animates height from 0 to auto in 0.18 s */
+    --animate-expand: expand 180ms ease-out;
+
+    @keyframes expand {
+        from {
+            grid-template-rows: 0fr;
+            opacity: 0;
+        }
+    }
 
     @keyframes shimmer {
         100% {
