@@ -13,6 +13,7 @@ public class MatchParticipant
     public int[] Items { get; set; } = [];
     public int Spell1 { get; set; }
     public int Spell2 { get; set; }
+    public int ChampLevel { get; set; }
 
     public Match Match { get; set; } = null!;
 }

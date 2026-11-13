@@ -82,6 +82,9 @@ namespace summon.Migrations
                     b.Property<int>("Assists")
                         .HasColumnType("integer");
 
+                    b.Property<int>("ChampLevel")
+                        .HasColumnType("integer");
+
                     b.Property<string>("ChampionName")
                         .IsRequired()
                         .HasColumnType("text");

@@ -9,7 +9,7 @@
             <p class="text-3xs text-muted-foreground">@Format.Duration(Game.GameDuration) · @Format.TimeAgo(Game.GameCreation)</p>
         </div>
 
-        <ChampionIcon DataDragon="DataDragon" ChampionName="@Game.ChampionName" Size="44" />
+        <ChampionIcon DataDragon="DataDragon" ChampionName="@Game.ChampionName" Size="44" Level="Game.ChampionLevel" />
         <SpellRuneStack DataDragon="DataDragon" Spell1="Game.Spell1" Spell2="Game.Spell2" Display="hidden sm:grid" />
 
         <div class="w-24 leading-tight">
