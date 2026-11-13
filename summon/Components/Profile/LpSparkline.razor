@@ -1,0 +1,63 @@
+@using System.Globalization
+@using summon.Accounts
+@using summon.Data
+
+@if (Snapshots is { Count: >= 2 })
+{
+    var count = Snapshots.Count;
+    var active = hover is { } h ? Snapshots[h] : null;
+    var ratio = hover is { } i ? (double)i / (count - 1) : 0;
+    // Keep the tooltip inside the card at both ends
+    var shift = ratio < 0.2 ? "0%" : ratio > 0.8 ? "-100%" : "-50%";
+
+    <div class="relative mt-3" @onmouseleave="() => hover = null">
+        <svg viewBox="0 0 @Width @Height" preserveAspectRatio="none" class="h-9 w-full" aria-hidden="true">
+            <polyline points="@Points" fill="none" stroke="var(--color-primary)" stroke-width="2" vector-effect="non-scaling-stroke" />
+            @if (hover is not null)
+            {
+                var x = Num(ratio * Width);
+                <line x1="@x" x2="@x" y1="0" y2="@Height" stroke="var(--color-muted-foreground)" stroke-dasharray="2 2" vector-effect="non-scaling-stroke" />
+            }
+        </svg>
+        @* One hover strip per point, split halfway between neighbours, so no JavaScript is needed to find the nearest point *@
+        <div class="absolute inset-0 flex">
+            @for (var index = 0; index < count; index++)
+            {
+                var point = index;
+                <div class="h-full" style="flex-grow: @(point == 0 || point == count - 1 ? 1 : 2)" @onmouseenter="() => hover = point"></div>
+            }
+        </div>
+        @if (active is not null)
+        {
+            <div class="pointer-events-none absolute -top-7 whitespace-nowrap rounded-md border bg-popover px-1.5 py-0.5 text-2xs text-popover-foreground shadow-sm"
+                 style="left: @Num(ratio * 100)%; transform: translateX(@shift)">
+                @active.CreatedAt.ToLocalTime().ToString("d MMM, HH:mm", CultureInfo.InvariantCulture) · @Ranks.Label(active.Tier, active.Rank) @active.Lp LP
+            </div>
+        }
+    </div>
+}
+
+@code {
+    [Parameter] public List<LpSnapshot>? Snapshots { get; set; }
+
+    private const int Width = 240;
+    private const int Height = 36;
+
+    private int? hover;
+
+    private static string Num(double value) => Math.Round(value, 2).ToString(CultureInfo.InvariantCulture);
+
+    /// <summary>SVG points: the lowest LP maps to the bottom, the highest to the top.</summary>
+    private string Points
+    {
+        get
+        {
+            var values = Snapshots!.Select(s => LpEstimate.ToAbsolute(s.Tier, s.Rank, s.Lp)).ToList();
+            var min = values.Min();
+            var span = values.Max() - min;
+            var step = (double)Width / (values.Count - 1);
+            return string.Join(" ", values.Select((value, index) =>
+                $"{Num(index * step)},{Num(span == 0 ? Height / 2.0 : Height - (double)(value - min) / span * Height)}"));
+        }
+    }
+}

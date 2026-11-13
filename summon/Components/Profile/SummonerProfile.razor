@@ -37,12 +37,30 @@ else
                         }
                         else
                         {
-                            <RankedPanel QueueType="@queueType" Entry="@ranked.FirstOrDefault(e => e.QueueType == queueType)" />
+                            <RankedPanel QueueType="@queueType" Entry="@ranked.FirstOrDefault(e => e.QueueType == queueType)"
+                                         Snapshots="@lpHistory?.GetValueOrDefault(queueType)" />
                         }
+                    }
+                    @if (riftMatches is not null && account is not null)
+                    {
+                        <RolesPerformancePanel Matches="riftMatches" Puuid="@account.Puuid" />
+                    }
+                    else
+                    {
+                        <Skeleton Class="h-72" />
+                    }
+                    @if (account is not null && dataDragon is not null)
+                    {
+                        <MostPlayedPanel Puuid="@account.Puuid" DataDragon="dataDragon" LoadVersion="loadVersion"
+                                         ChampionsPath="@($"/summoner/{Format.SummonerSlug(account.GameName, account.TagLine)}/champions")" />
+                    }
+                    @if (recentMatches is not null && account is not null && dataDragon is not null)
+                    {
+                        <RecentlyPlayedPanel Matches="recentMatches" Puuid="@account.Puuid" DataDragon="dataDragon" />
                     }
                 </div>
                 <div class="min-w-0 space-y-4">
-                    <MatchList Games="games" DataDragon="dataDragon" Puuid="@(account?.Puuid ?? "")" />
+                    <MatchList Games="games" DataDragon="dataDragon" Puuid="@(account?.Puuid ?? "")" LpChanges="lpChanges" />
                 </div>
             </div>
         </div>
@@ -61,6 +79,11 @@ else
     private DataDragonData? dataDragon;
     private RiotSummoner? summoner;
     private string? splashChampion;
+    private Dictionary<string, List<LpSnapshot>>? lpHistory;
+    private Dictionary<string, int>? lpChanges;
+    private List<RiotMatch>? riftMatches;
+    private List<RiotMatch>? recentMatches;
+    private int loadVersion;
 
     protected override Task OnInitializedAsync() => LoadAsync();
 
@@ -115,7 +138,16 @@ else
             ranked = loaded.Platform is null ? [] : await rankedService.GetAsync(loaded) ?? [];
             StateHasChanged();
 
+            lpHistory = await rankedService.GetLpHistoryAsync(loaded.Puuid);
+            StateHasChanged();
+
             games = await matchService.GetRecentAsync(loaded);
+            lpChanges = LpEstimate.ForRows(games, lpHistory);
+            StateHasChanged();
+
+            riftMatches = await matchService.GetStoredMatchesAsync(loaded.Puuid, 50, Queues.RiftIds);
+            recentMatches = await matchService.GetStoredMatchesAsync(loaded.Puuid, 50);
+            loadVersion++;
             failed = false;
         }
         catch (HttpRequestException e) when (e.StatusCode == HttpStatusCode.NotFound && account is null)

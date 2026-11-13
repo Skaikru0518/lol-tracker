@@ -22,9 +22,15 @@
     }
     else
     {
-        @foreach (var game in Games)
+        @foreach (var game in Games.Take(visible))
         {
-            <RecentGame Game="game" Puuid="@Puuid" DataDragon="DataDragon" @key="game.MatchId" />
+            <RecentGame Game="game" Puuid="@Puuid" DataDragon="DataDragon" LpChange="@(LpChanges?.TryGetValue(game.MatchId, out var lp) == true ? lp : null)" @key="game.MatchId" />
+        }
+        @if (visible < Games.Count)
+        {
+            <div class="p-3">
+                <button type="button" data-slot="button" class="@LoadMoreClass" @onclick="() => visible += PageSize">Load more</button>
+            </div>
         }
     }
 </Panel>
@@ -33,4 +39,15 @@
     [Parameter] public List<MatchRow>? Games { get; set; }
     [Parameter] public DataDragonData? DataDragon { get; set; }
     [Parameter, EditorRequired] public required string Puuid { get; set; }
+    [Parameter] public IReadOnlyDictionary<string, int>? LpChanges { get; set; }
+
+    private const int PageSize = 20;
+
+    // The shadcn Button classes for variant "outline", default size, with "w-full"
+    private const string LoadMoreClass =
+        "group/button inline-flex shrink-0 items-center justify-center gap-1 rounded-md border border-border bg-clip-padding px-2 h-7 w-full text-xs/relaxed font-medium whitespace-nowrap " +
+        "transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 active:translate-y-px " +
+        "disabled:pointer-events-none disabled:opacity-50 hover:bg-input/50 hover:text-foreground dark:bg-input/30";
+
+    private int visible = PageSize;
 }

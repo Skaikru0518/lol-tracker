@@ -1,0 +1,54 @@
+<Panel>
+    <PanelHeader Title="Recently played with" />
+    @if (teammates.Count == 0)
+    {
+        <EmptyState Title="No repeat teammates" Description="Players you queued with twice or more show up here." />
+    }
+    else
+    {
+        <PanelBody Class="space-y-1 p-2">
+            @foreach (var t in teammates)
+            {
+                var winRate = (int)Math.Floor(100.0 * t.Wins / t.Games + 0.5);
+                <a href="/summoner/@Format.SummonerSlug(t.GameName, t.TagLine)" class="flex items-center gap-3 rounded-md px-2 py-1.5 transition-colors hover:bg-accent">
+                    <img src="@DataDragon.ProfileIcon(t.ProfileIcon)" alt="" width="32" height="32" class="size-8 rounded-md" />
+                    <div class="min-w-0 flex-1 text-sm">
+                        <p class="truncate font-medium text-foreground">
+                            @t.GameName<span class="ml-1 text-muted-foreground">#@t.TagLine</span>
+                        </p>
+                        <p class="text-xs text-muted-foreground">@t.Games games</p>
+                    </div>
+                    <span class="text-sm font-medium @(winRate >= 50 ? "text-win" : "text-loss")">@winRate%</span>
+                </a>
+            }
+        </PanelBody>
+    }
+</Panel>
+
+@code {
+    [Parameter, EditorRequired] public required List<RiotMatch> Matches { get; set; }
+    [Parameter, EditorRequired] public required string Puuid { get; set; }
+    [Parameter, EditorRequired] public required DataDragonData DataDragon { get; set; }
+
+    private record Teammate(string Puuid, string? GameName, string? TagLine, int ProfileIcon, int Games, int Wins);
+
+    private const int MinGamesTogether = 2;
+    private const int Limit = 5;
+
+    private List<Teammate> teammates = [];
+
+    protected override void OnParametersSet()
+    {
+        teammates = Matches
+            .Select(m => (Match: m, Me: m.Info.Participants.FirstOrDefault(p => p.Puuid == Puuid)))
+            .Where(x => x.Me is not null)
+            .SelectMany(x => x.Match.Info.Participants.Where(p => p.TeamId == x.Me!.TeamId && p.Puuid != Puuid))
+            .GroupBy(p => p.Puuid)
+            // The first appearance is the newest game, so name and icon are the current ones
+            .Select(g => new Teammate(g.Key, g.First().RiotIdGameName, g.First().RiotIdTagline, g.First().ProfileIcon, g.Count(), g.Count(p => p.Win)))
+            .Where(t => t.Games >= MinGamesTogether)
+            .OrderByDescending(t => t.Games)
+            .Take(Limit)
+            .ToList();
+    }
+}

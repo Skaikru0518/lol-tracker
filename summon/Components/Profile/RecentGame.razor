@@ -24,7 +24,8 @@
             @Stat($"{Format.Percent(Game.Kills + Game.Assists, Game.TeamKills)}%", "KP")
             @if (Ranks.QueueForQueueId(Game.QueueId) is not null)
             {
-                @Stat("—", "LP", "text-muted-foreground")
+                @Stat(LpChange is { } lp ? $"{(lp >= 0 ? "+" : "")}{lp}" : "—", "LP",
+                    LpChange is null ? "text-muted-foreground" : LpChange >= 0 ? "text-win" : "text-loss")
             }
         </div>
 
@@ -48,6 +49,7 @@
     [Parameter, EditorRequired] public required MatchRow Game { get; set; }
     [Parameter, EditorRequired] public required string Puuid { get; set; }
     [Parameter, EditorRequired] public required DataDragonData DataDragon { get; set; }
+    [Parameter] public int? LpChange { get; set; }
 
     private bool Remake => Queues.IsRemake(Game.GameDuration);
     private string ResultLabel => Remake ? "Remake" : Game.Win ? "Victory" : "Defeat";

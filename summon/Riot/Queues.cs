@@ -33,6 +33,20 @@ public static class Queues
         [2400] = "ARAM Mayhem",
     };
 
+    /// <summary>Summoner's Rift queues where roles mean something: normals, ranked and Clash.</summary>
+    public static readonly int[] RiftIds = [400, 420, 430, 440, 480, 490, 700, 710];
+
+    private static readonly int[] ArenaIds = [1700, 1710, 1750];
+
+    /// <summary>Queue ids a filter keeps (include) or drops (exclude); "all" drops Arena.</summary>
+    public static (bool Include, int[] Ids) Selection(string filter) => filter switch
+    {
+        "solo" => (true, [420]),
+        "flex" => (true, [440]),
+        "premade" => (true, [710]),
+        _ => (false, ArenaIds)
+    };
+
     public static string Name(int queueId, string fallback = "Custom") => Names.GetValueOrDefault(queueId, fallback);
 
     /// <summary>Queue label for a match row: ranked queues use their short ranked title.</summary>

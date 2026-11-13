@@ -1,0 +1,155 @@
+@using System.Globalization
+
+<Panel>
+    <PanelHeader Title="Roles & Performance">
+        <Actions>
+            <span class="text-xs text-muted-foreground">Last @players.Count</span>
+        </Actions>
+    </PanelHeader>
+    @if (players.Count == 0)
+    {
+        <EmptyState Title="No Summoner's Rift games yet" />
+    }
+    else
+    {
+        <PanelBody Class="space-y-4">
+            <div class="flex items-center gap-4">
+                <div class="grid size-20 shrink-0 place-items-center rounded-full" style="background: @Donut">
+                    <div class="grid size-14 place-items-center rounded-full bg-card text-2xs font-semibold text-foreground">
+                        @(shares.FirstOrDefault()?.Role ?? "-")
+                    </div>
+                </div>
+                <ul class="min-w-0 flex-1 space-y-1 text-sm">
+                    @foreach (var (share, index) in shares.Take(4).Select((s, i) => (s, i)))
+                    {
+                        <li class="flex items-center gap-2">
+                            <span class="size-2 rounded-sm" style="background: @RoleColors[index % RoleColors.Length]"></span>
+                            <span class="flex-1 text-foreground">@share.Role</span>
+                            <span class="text-muted-foreground">@share.Share%</span>
+                        </li>
+                    }
+                </ul>
+            </div>
+
+            <div>
+                <p class="text-xl font-bold">
+                    <span class="text-win">@Num(Average(p => p.Kills), 1)</span> / <span class="text-loss">@Num(Average(p => p.Deaths), 1)</span> /
+                    <span class="text-gold">@Num(Average(p => p.Assists), 1)</span>
+                    <span class="ml-2 text-sm font-medium text-muted-foreground">@Num(Kda, 2) KDA</span>
+                </p>
+                <p class="text-sm text-muted-foreground">
+                    <span class="@(WinRate >= 50 ? "text-win" : "text-loss")">@WinRate%</span> · @(wins)W @(players.Count - wins)L
+                </p>
+            </div>
+
+            <dl class="grid grid-cols-4 gap-2 text-center">
+                @foreach (var (label, value) in StatTiles)
+                {
+                    <div>
+                        <dd class="text-sm font-semibold text-foreground">@value</dd>
+                        <dt class="text-2xs text-muted-foreground">@label</dt>
+                    </div>
+                }
+            </dl>
+
+            <div class="flex gap-0.5">
+                @foreach (var p in players)
+                {
+                    <span class="h-3 flex-1 rounded-sm @(p.Win ? "bg-win" : "bg-loss")"></span>
+                }
+            </div>
+        </PanelBody>
+    }
+</Panel>
+
+@code {
+    [Parameter, EditorRequired] public required List<RiotMatch> Matches { get; set; }
+    [Parameter, EditorRequired] public required string Puuid { get; set; }
+
+    private record RoleShare(string Role, int Count, int Share);
+
+    private static readonly string[] RoleColors =
+        ["var(--color-primary)", "var(--color-team-blue)", "var(--color-win)", "var(--color-gold)", "var(--color-loss)"];
+
+    private static readonly Dictionary<string, string> RoleLabels = new()
+    {
+        ["TOP"] = "Top",
+        ["JUNGLE"] = "Jungle",
+        ["MIDDLE"] = "Mid",
+        ["BOTTOM"] = "ADC",
+        ["UTILITY"] = "Support",
+    };
+
+    private List<RiotParticipant> players = [];
+    private List<RoleShare> shares = [];
+    private int wins;
+
+    protected override void OnParametersSet()
+    {
+        // Roles and averages only mean something on Summoner's Rift; newest first, so the trend reads left to right from the latest game
+        players = Matches
+            .Where(m => Queues.RiftIds.Contains(m.Info.QueueId))
+            .Select(m => m.Info.Participants.FirstOrDefault(p => p.Puuid == Puuid))
+            .OfType<RiotParticipant>()
+            .ToList();
+        wins = players.Count(p => p.Win);
+
+        var roles = players
+            .Where(p => !string.IsNullOrEmpty(p.TeamPosition))
+            .GroupBy(p => RoleLabels.GetValueOrDefault(p.TeamPosition, p.TeamPosition))
+            .Select(g => (Role: g.Key, Count: g.Count()))
+            .ToList();
+        var total = roles.Sum(r => r.Count);
+        shares = roles
+            .Select(r => new RoleShare(r.Role, r.Count, JsRound(100.0 * r.Count / total)))
+            .OrderByDescending(r => r.Count)
+            .ToList();
+    }
+
+    private double Average(Func<RiotParticipant, int> value) => players.Count == 0 ? 0 : players.Average(value);
+
+    private double Kda
+    {
+        get
+        {
+            var deaths = Average(p => p.Deaths);
+            var kills = Average(p => p.Kills) + Average(p => p.Assists);
+            return deaths == 0 ? kills : kills / deaths;
+        }
+    }
+
+    private int WinRate => players.Count == 0 ? 0 : JsRound(100.0 * wins / players.Count);
+
+    private (string Label, string Value)[] StatTiles =>
+    [
+        ("CS", JsRound(Average(p => p.TotalMinionsKilled + p.NeutralMinionsKilled)).ToString(CultureInfo.InvariantCulture)),
+        ("Gold", Format.Thousands(JsRound(Average(p => p.GoldEarned)))),
+        ("Damage", Format.Thousands(JsRound(Average(p => p.TotalDamageDealtToChampions)))),
+        ("Vision", Num(Average(p => p.VisionScore), 1)),
+    ];
+
+    /// <summary>Conic gradient for the role donut; the last slice runs to 100% so rounding never leaves a gap.</summary>
+    private string Donut
+    {
+        get
+        {
+            if (shares.Count == 0) return "conic-gradient(var(--color-border) 0% 100%)";
+            var start = 0;
+            var stops = shares.Select((share, index) =>
+            {
+                var end = index == shares.Count - 1 ? 100 : start + share.Share;
+                var stop = $"{RoleColors[index % RoleColors.Length]} {start}% {end}%";
+                start = end;
+                return stop;
+            }).ToList();
+            return $"conic-gradient({string.Join(", ", stops)})";
+        }
+    }
+
+    // Math.round from JavaScript, which the original's percentages and averages use
+    private static int JsRound(double value) => (int)Math.Floor(value + 0.5);
+
+    // toFixed then parseFloat: rounded, without trailing zeros
+    private static string Num(double value, int decimals) =>
+        Math.Round(value, decimals, MidpointRounding.AwayFromZero).ToString(CultureInfo.InvariantCulture);
+}

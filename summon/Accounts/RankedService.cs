@@ -7,6 +7,7 @@ namespace summon.Accounts
     public class RankedService(SummonDbContext db, RiotClient riot)
     {
         private static readonly TimeSpan MaxAge = TimeSpan.FromMinutes(2);
+        private const int HistoryLimit = 100;
 
         public async Task<List<RankedEntry>> GetAsync(Account account, CancellationToken ct = default)
         {
@@ -34,10 +35,47 @@ namespace summon.Accounts
                 entry.Wins = f.Wins;
                 entry.Losses = f.Losses;
                 entry.UpdatedAt = now;
+
+                // A snapshot only when the rank moved, so consecutive snapshots bracket the games that moved it
+                var last = await db.LpSnapshots
+                    .Where(s => s.Puuid == account.Puuid && s.QueueType == f.QueueType)
+                    .OrderByDescending(s => s.CreatedAt)
+                    .FirstOrDefaultAsync(ct);
+                if (last is null || last.Tier != f.Tier || last.Rank != f.Rank || last.Lp != f.LeaguePoints)
+                {
+                    db.LpSnapshots.Add(new LpSnapshot
+                    {
+                        Puuid = account.Puuid,
+                        QueueType = f.QueueType,
+                        Tier = f.Tier,
+                        Rank = f.Rank,
+                        Lp = f.LeaguePoints,
+                        Wins = f.Wins,
+                        Losses = f.Losses,
+                        CreatedAt = now,
+                    });
+                }
             }
 
             await db.SaveChangesAsync(ct);
             return stored;
+        }
+
+        /// <summary>The last 100 snapshots of each ranked queue, oldest first.</summary>
+        public async Task<Dictionary<string, List<LpSnapshot>>> GetLpHistoryAsync(string puuid, CancellationToken ct = default)
+        {
+            var history = new Dictionary<string, List<LpSnapshot>>();
+            foreach (var queueType in Ranks.QueueTypes)
+            {
+                var snapshots = await db.LpSnapshots.AsNoTracking()
+                    .Where(s => s.Puuid == puuid && s.QueueType == queueType)
+                    .OrderByDescending(s => s.CreatedAt)
+                    .Take(HistoryLimit)
+                    .ToListAsync(ct);
+                snapshots.Reverse();
+                history[queueType] = snapshots;
+            }
+            return history;
         }
     }
 }
