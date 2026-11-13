@@ -8,6 +8,7 @@ namespace summon.Data
         public DbSet<RankedEntry> RankedEntries => Set<RankedEntry>();
         public DbSet<Match> Matches => Set<Match>();
         public DbSet<MatchParticipant> MatchParticipants => Set<MatchParticipant>();
+        public DbSet<LpSnapshot> LpSnapshots => Set<LpSnapshot>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -34,6 +35,12 @@ namespace summon.Data
                 participant.HasKey(p => new { p.MatchId, p.Puuid });
                 participant.HasIndex(p => p.Puuid);
                 participant.HasOne(p => p.Match).WithMany(m => m.Participants).HasForeignKey(p => p.MatchId);
+            });
+
+            modelBuilder.Entity<LpSnapshot>(snapshot =>
+            {
+                snapshot.HasIndex(s => new { s.Puuid, s.QueueType });
+                snapshot.HasOne(s => s.Account).WithMany().HasForeignKey(s => s.Puuid);
             });
         }
 

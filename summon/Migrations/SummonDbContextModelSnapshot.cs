@@ -48,6 +48,49 @@ namespace summon.Migrations
                     b.ToTable("Accounts");
                 });
 
+            modelBuilder.Entity("summon.Data.LpSnapshot", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("Losses")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Lp")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Puuid")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("QueueType")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Rank")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Tier")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int?>("Wins")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Puuid", "QueueType");
+
+                    b.ToTable("LpSnapshots");
+                });
+
             modelBuilder.Entity("summon.Data.Match", b =>
                 {
                     b.Property<string>("MatchId")
@@ -155,6 +198,17 @@ namespace summon.Migrations
                     b.HasKey("Puuid", "QueueType");
 
                     b.ToTable("RankedEntries");
+                });
+
+            modelBuilder.Entity("summon.Data.LpSnapshot", b =>
+                {
+                    b.HasOne("summon.Data.Account", "Account")
+                        .WithMany()
+                        .HasForeignKey("Puuid")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Account");
                 });
 
             modelBuilder.Entity("summon.Data.MatchParticipant", b =>
