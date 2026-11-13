@@ -1,8 +1,8 @@
 @using summon.Accounts
 
 <div class="border-b last:border-b-0">
-    @* shortcut: the original row expands into the scoreboard in place; until that exists it links to the match page *@
-    <a href="/match/@Game.MatchId?puuid=@Puuid" class="flex w-full flex-wrap items-center gap-x-3 gap-y-2 bg-gradient-to-r to-transparent to-60% px-3 py-2.5 text-left transition-colors hover:bg-accent/40 sm:flex-nowrap sm:px-4 @Gradient">
+    <button type="button" @onclick="() => open = !open" aria-expanded="@(open ? "true" : "false")"
+            class="flex w-full flex-wrap items-center gap-x-3 gap-y-2 bg-gradient-to-r to-transparent to-60% px-3 py-2.5 text-left transition-colors hover:bg-accent/40 sm:flex-nowrap sm:px-4 @Gradient">
         <div class="w-[4.75rem] shrink-0 leading-tight">
             <p class="text-sm font-bold @ResultColor">@ResultLabel</p>
             <p class="truncate text-2xs text-foreground">@Queues.Short(Game.QueueId)</p>
@@ -31,7 +31,17 @@
         <div class="ml-auto flex basis-full flex-col items-start gap-1 sm:basis-auto sm:items-end">
             <ItemSlots DataDragon="DataDragon" Items="Game.Items" Size="22" />
         </div>
-    </a>
+
+        @* Lucide "chevron-down" icon *@
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4 shrink-0 text-muted-foreground transition-transform @(open ? "rotate-180" : "")" aria-hidden="true">
+            <path d="m6 9 6 6 6-6" />
+        </svg>
+    </button>
+
+    @if (open)
+    {
+        <MatchRowExpanded MatchId="@Game.MatchId" Puuid="@Puuid" DataDragon="DataDragon" />
+    }
 </div>
 
 @code {
@@ -43,7 +53,10 @@
     private string ResultLabel => Remake ? "Remake" : Game.Win ? "Victory" : "Defeat";
     private string ResultColor => Remake ? "text-muted-foreground" : Game.Win ? "text-win" : "text-loss";
     private string Gradient => Remake ? "from-muted/40" : Game.Win ? "from-win/20" : "from-loss/20";
+
     private string? Kda => Format.Kda(Game.Kills, Game.Deaths, Game.Assists);
+
+    private bool open;
 
     private static RenderFragment Stat(string value, string label, string className = "text-foreground") =>
         @<div class="w-11 text-center leading-tight">

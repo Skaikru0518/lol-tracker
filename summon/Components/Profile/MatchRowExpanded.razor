@@ -1,0 +1,45 @@
+﻿@using summon.Accounts
+@inject IServiceScopeFactory ScopeFactory
+
+<div class="border-t">
+    @if (failed)
+    {
+        <EmptyState Title="Match not found" Description="It may be too old or Riot could not be reached." />
+    }
+    else if (match is null)
+    {
+        <div class="p-3">
+            <Skeleton Class="h-64" />
+        </div>
+    }
+    else
+    {
+        <MirroredScoreboard Match="match" DataDragon="DataDragon" HighlightPuuid="@Puuid" Footer="FullMatch" />
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public required string MatchId { get; set; }
+    [Parameter, EditorRequired] public required string Puuid { get; set; }
+    [Parameter, EditorRequired] public required DataDragonData DataDragon { get; set; }
+
+    private RiotMatch? match;
+    private bool failed;
+
+    private RenderFragment FullMatch =>
+        @<a href="/match/@MatchId?puuid=@Puuid" class="font-medium text-primary hover:underline">Full match &rarr;</a>;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Runs inside the circuit, so it opens its own scope like the profile's loads do
+        await using var scope = ScopeFactory.CreateAsyncScope();
+        try
+        {
+            match = await scope.ServiceProvider.GetRequiredService<MatchService>().GetMatchAsync(MatchId);
+        }
+        catch (HttpRequestException)
+        {
+            failed = true;
+        }
+    }
+}
