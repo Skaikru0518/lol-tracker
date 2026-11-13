@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 
 namespace summon.Data
 {
@@ -28,6 +28,8 @@ namespace summon.Data
             {
                 match.HasKey(m => m.MatchId);
                 match.Property(m => m.Data).HasColumnType("jsonb");
+                // Baselines read the recent ranked games across all players
+                match.HasIndex(m => new { m.QueueId, m.GameCreation });
             });
 
             modelBuilder.Entity<MatchParticipant>(participant =>
@@ -39,7 +41,8 @@ namespace summon.Data
 
             modelBuilder.Entity<LpSnapshot>(snapshot =>
             {
-                snapshot.HasIndex(s => new { s.Puuid, s.QueueType });
+                // CreatedAt last, so the newest snapshots of a queue come straight from the index
+                snapshot.HasIndex(s => new { s.Puuid, s.QueueType, s.CreatedAt });
                 snapshot.HasOne(s => s.Account).WithMany().HasForeignKey(s => s.Puuid);
             });
         }

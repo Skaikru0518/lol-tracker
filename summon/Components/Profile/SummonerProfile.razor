@@ -68,7 +68,7 @@ else
                     {
                         <Skeleton Class="h-64" />
                     }
-                    <MatchList Games="games" DataDragon="dataDragon" Puuid="@(account?.Puuid ?? "")" LpChanges="lpChanges" Performance="performance" />
+                    <MatchList Games="games" DataDragon="dataDragon" Puuid="@(account?.Puuid ?? "")" LpChanges="lpChanges" Performance="performance" Matches="matchesById" />
                 </div>
             </div>
         </div>
@@ -91,6 +91,7 @@ else
     private Dictionary<string, int>? lpChanges;
     private List<RiotMatch>? riftMatches;
     private List<RiotMatch>? recentMatches;
+    private Dictionary<string, RiotMatch>? matchesById;
     private int loadVersion;
     private Dictionary<string, PerformanceScore>? performance;
     private RecentSummary? recentSummary;
@@ -156,12 +157,14 @@ else
             lpChanges = LpEstimate.ForRows(games, lpHistory);
             StateHasChanged();
 
-            riftMatches = await matchService.GetStoredMatchesAsync(loaded.Puuid, 50, Queues.RiftIds);
-            recentMatches = await matchService.GetStoredMatchesAsync(loaded.Puuid, 50);
+            var stored = await matchService.GetProfileMatchesAsync(loaded.Puuid);
+            riftMatches = stored.Rift;
+            recentMatches = stored.Recent;
+            matchesById = stored.Recent.ToDictionary(m => m.Metadata.MatchId);
             StateHasChanged();
 
             performance = await performanceService.ScoreAsync(recentMatches, loaded.Puuid);
-            recentSummary = await performanceService.RecentAsync(loaded.Puuid);
+            recentSummary = await performanceService.RecentAsync(stored.Ranked, loaded.Puuid);
             loadVersion++;
             failed = false;
         }

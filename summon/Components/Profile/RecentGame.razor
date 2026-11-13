@@ -69,7 +69,7 @@
         @* Grid rows between 0fr and 1fr animate to the content's own height: a keyframe on first show, a transition after *@
         <div class="grid transition-all duration-[180ms] @(open ? "animate-expand grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0")">
             <div class="overflow-hidden" inert="@(!open)">
-                <MatchRowExpanded MatchId="@Game.MatchId" Puuid="@Puuid" DataDragon="DataDragon" />
+                <MatchRowExpanded MatchId="@Game.MatchId" Puuid="@Puuid" DataDragon="DataDragon" Match="Match" />
             </div>
         </div>
     }
@@ -82,6 +82,7 @@
     [Parameter] public int? LpChange { get; set; }
     [Parameter] public PerformanceScore? Performance { get; set; }
     [Parameter] public bool PerformanceLoading { get; set; }
+    [Parameter] public RiotMatch? Match { get; set; }
 
     private bool open;
     private bool mounted;

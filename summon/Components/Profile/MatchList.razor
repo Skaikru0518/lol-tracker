@@ -26,7 +26,8 @@
         @foreach (var game in Games.Take(visible))
         {
             <RecentGame Game="game" Puuid="@Puuid" DataDragon="DataDragon" LpChange="@(LpChanges?.TryGetValue(game.MatchId, out var lp) == true ? lp : null)"
-                        Performance="@Performance?.GetValueOrDefault(game.MatchId)" PerformanceLoading="Performance is null" @key="game.MatchId" />
+                        Performance="@Performance?.GetValueOrDefault(game.MatchId)" PerformanceLoading="Performance is null"
+                        Match="@Matches?.GetValueOrDefault(game.MatchId)" @key="game.MatchId" />
         }
         @if (visible < Games.Count)
         {
@@ -44,6 +45,8 @@
     [Parameter] public IReadOnlyDictionary<string, int>? LpChanges { get; set; }
     // Null while the scores are being calculated, so eligible rows show a skeleton instead of the "no score" mark
     [Parameter] public IReadOnlyDictionary<string, PerformanceScore>? Performance { get; set; }
+    // The profile already holds these match documents, so opening a row needs no database read
+    [Parameter] public IReadOnlyDictionary<string, RiotMatch>? Matches { get; set; }
 
     private const int PageSize = 20;
 

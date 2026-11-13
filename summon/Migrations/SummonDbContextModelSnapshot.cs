@@ -86,7 +86,7 @@ namespace summon.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Puuid", "QueueType");
+                    b.HasIndex("Puuid", "QueueType", "CreatedAt");
 
                     b.ToTable("LpSnapshots");
                 });
@@ -110,6 +110,8 @@ namespace summon.Migrations
                         .HasColumnType("integer");
 
                     b.HasKey("MatchId");
+
+                    b.HasIndex("QueueId", "GameCreation");
 
                     b.ToTable("Matches");
                 });

@@ -25,7 +25,6 @@ public record RecentSummary(
 public class PerformanceService(SummonDbContext db, IMemoryCache cache)
 {
     private const int WindowDays = 60;
-    private const int RecentGames = 30;
     private const int TopChampions = 3;
     private static readonly int[] EligibleQueues = [420, 440, 710];
 
@@ -56,15 +55,8 @@ public class PerformanceService(SummonDbContext db, IMemoryCache cache)
     }
 
     /// <summary>Summary of the player's last 30 stored ranked games: winrate, top champions, average score, MVP/ACE and category averages.</summary>
-    public async Task<RecentSummary> RecentAsync(string puuid, CancellationToken ct = default)
+    public async Task<RecentSummary> RecentAsync(IReadOnlyList<RiotMatch> matches, string puuid, CancellationToken ct = default)
     {
-        var json = await db.MatchParticipants
-            .Where(p => p.Puuid == puuid && EligibleQueues.Contains(p.Match.QueueId) && p.Match.GameDuration >= 300)
-            .OrderByDescending(p => p.Match.GameCreation)
-            .Take(RecentGames)
-            .Select(p => p.Match.Data)
-            .ToListAsync(ct);
-        var matches = json.Select(j => JsonSerializer.Deserialize<RiotMatch>(j, JsonSerializerOptions.Web)!).ToList();
         var baselines = await GetBaselinesAsync(ct);
 
         var games = matches

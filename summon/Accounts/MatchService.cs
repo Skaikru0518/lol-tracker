@@ -9,6 +9,9 @@ namespace summon.Accounts;
 public record MatchRow(string MatchId, string ChampionName, bool Win, int Kills, int Deaths, int Assists, int Cs, int QueueId, long GameCreation, int GameDuration,
     int[] Items, int Spell1, int Spell2, int TeamKills, int ChampionLevel, int Keystone, int SecondaryStyle, int? Placement);
 
+/// <summary>The overview's stored match documents, each list newest first.</summary>
+public record ProfileMatches(List<RiotMatch> Recent, List<RiotMatch> Rift, List<RiotMatch> Ranked);
+
 /// <summary>Per-champion totals over a player's stored games, remakes excluded.</summary>
 public record ChampionStat(string ChampionName, int Games, int Wins, double WinRate, double Kda);
 
@@ -16,14 +19,42 @@ public class MatchService(SummonDbContext db, RiotClient riot)
 {
     // The overview loads 50 games like the original: the list pages through them, the side panels read all of them
     private const int Count = 50;
+    private const int FetchBatch = 5;
+    private const int RecentRankedGames = 30;
+    private static readonly int[] RankedQueues = [420, 440, 710];
 
     public async Task<List<MatchRow>> GetRecentAsync(Account account, CancellationToken ct = default)
     {
-        var ids = await riot.GetMatchIdsAsync(account.Puuid, Count, ct) ?? [];
+        List<string> ids;
+        try
+        {
+            ids = await riot.GetMatchIdsAsync(account.Puuid, Count, ct) ?? [];
+        }
+        catch (HttpRequestException)
+        {
+            // Riot down or rate limited: show the games already stored instead of failing the whole profile
+            ids = [];
+        }
         var known = await db.Matches.Where(m => ids.Contains(m.MatchId)).Select(m => m.MatchId).ToListAsync(ct);
 
-        foreach (var id in ids.Except(known))
-            db.Matches.Add(ToEntity(id, await riot.GetMatchJsonAsync(id, ct)));
+        foreach (var batch in ids.Except(known).Chunk(FetchBatch))
+        {
+            // Riot calls run in parallel; the DbContext is not thread safe, so the entities are added one by one afterwards
+            var fetched = await Task.WhenAll(batch.Select(async id =>
+            {
+                try
+                {
+                    return (Id: id, Json: await riot.GetMatchJsonAsync(id, ct));
+                }
+                catch (HttpRequestException)
+                {
+                    // A game that failed now is fetched on the next load
+                    return (Id: id, Json: (string?)null);
+                }
+            }));
+            foreach (var (id, json) in fetched)
+                if (json is not null) db.Matches.Add(ToEntity(id, json));
+        }
 
         await db.SaveChangesAsync(ct);
 
@@ -37,13 +68,28 @@ public class MatchService(SummonDbContext db, RiotClient riot)
             .ToListAsync(ct);
     }
 
-    /// <summary>The player's newest stored matches, optionally only from some queues, newest first.</summary>
-    public async Task<List<RiotMatch>> GetStoredMatchesAsync(string puuid, int take, int[]? queueIds = null, CancellationToken ct = default)
+    /// <summary>
+    /// The stored matches the overview reads: the newest 50, the newest 50 on Summoner's Rift and the newest 30 scorable ranked games.
+    /// The three sets overlap, so their ids are picked from a light query and each match document is loaded once.
+    /// </summary>
+    public async Task<ProfileMatches> GetProfileMatchesAsync(string puuid, CancellationToken ct = default)
     {
-        var query = db.MatchParticipants.Where(p => p.Puuid == puuid);
-        if (queueIds is not null) query = query.Where(p => queueIds.Contains(p.Match.QueueId));
-        var json = await query.OrderByDescending(p => p.Match.GameCreation).Take(take).Select(p => p.Match.Data).ToListAsync(ct);
-        return json.Select(j => JsonSerializer.Deserialize<RiotMatch>(j, JsonSerializerOptions.Web)!).ToList();
+        var games = await db.MatchParticipants
+            .Where(p => p.Puuid == puuid)
+            .OrderByDescending(p => p.Match.GameCreation)
+            .Select(p => new { p.MatchId, p.Match.QueueId, p.Match.GameDuration })
+            .ToListAsync(ct);
+
+        var recent = games.Take(Count).Select(g => g.MatchId).ToList();
+        var rift = games.Where(g => Queues.RiftIds.Contains(g.QueueId)).Take(Count).Select(g => g.MatchId).ToList();
+        var ranked = games.Where(g => RankedQueues.Contains(g.QueueId) && !Queues.IsRemake(g.GameDuration)).Take(RecentRankedGames).Select(g => g.MatchId).ToList();
+        var ids = recent.Concat(rift).Concat(ranked).Distinct().ToList();
+
+        var byId = (await db.Matches.Where(m => ids.Contains(m.MatchId)).Select(m => new { m.MatchId, m.Data }).ToListAsync(ct))
+            .ToDictionary(m => m.MatchId, m => JsonSerializer.Deserialize<RiotMatch>(m.Data, JsonSerializerOptions.Web)!);
+
+        List<RiotMatch> Pick(List<string> list) => list.Where(byId.ContainsKey).Select(id => byId[id]).ToList();
+        return new ProfileMatches(Pick(recent), Pick(rift), Pick(ranked));
     }
 
     public async Task<List<ChampionStat>> GetChampionStatsAsync(string puuid, string queueFilter, CancellationToken ct = default)

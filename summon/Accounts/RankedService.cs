@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using summon.Data;
 using summon.Riot;
 
@@ -17,7 +17,16 @@ namespace summon.Accounts
             // shortcut: unranked players have no rows, so they are fetched on every view; add a checked-at time on Account if that costs too much
             if (account.Platform is null || (stored.Count > 0 && stored.All(e => now - e.UpdatedAt < MaxAge))) return stored;
 
-            var fetched = await riot.GetLeagueEntriesAsync(account.Platform, account.Puuid, ct) ?? [];
+            List<RiotLeagueEntry> fetched;
+            try
+            {
+                fetched = await riot.GetLeagueEntriesAsync(account.Platform, account.Puuid, ct) ?? [];
+            }
+            catch (HttpRequestException)
+            {
+                // Riot down or rate limited: the stored entries are better than no ranked panels at all
+                return stored;
+            }
 
             foreach(var f in fetched)
             {
@@ -80,6 +89,9 @@ namespace summon.Accounts
                 else missing.Add(puuid);
             }
 
+            // One query for which players already have an account row, instead of one lookup each
+            var known = (await db.Accounts.Where(a => missing.Contains(a.Puuid)).Select(a => a.Puuid).ToListAsync(ct)).ToHashSet();
+
             foreach (var batch in missing.Chunk(5))
             {
                 // Riot calls run in parallel; the DbContext is not thread safe, so the writes happen one by one afterwards
@@ -103,7 +115,7 @@ namespace summon.Accounts
                         continue;
                     }
 
-                    if (await db.Accounts.FindAsync([puuid], ct) is null)
+                    if (!known.Contains(puuid))
                         db.Accounts.Add(new Account { Puuid = puuid, GameName = "", TagLine = "", Platform = platform, UpdatedAt = now });
 
                     var rows = stored.GetValueOrDefault(puuid) ?? [];
@@ -134,18 +146,18 @@ namespace summon.Accounts
         /// <summary>The last 100 snapshots of each ranked queue, oldest first.</summary>
         public async Task<Dictionary<string, List<LpSnapshot>>> GetLpHistoryAsync(string puuid, CancellationToken ct = default)
         {
-            var history = new Dictionary<string, List<LpSnapshot>>();
-            foreach (var queueType in Ranks.QueueTypes)
-            {
-                var snapshots = await db.LpSnapshots.AsNoTracking()
+            // The newest 100 of each queue, concatenated into one UNION ALL query instead of a round trip per queue
+            var snapshots = await Ranks.QueueTypes
+                .Select(queueType => db.LpSnapshots.AsNoTracking()
                     .Where(s => s.Puuid == puuid && s.QueueType == queueType)
                     .OrderByDescending(s => s.CreatedAt)
-                    .Take(HistoryLimit)
-                    .ToListAsync(ct);
-                snapshots.Reverse();
-                history[queueType] = snapshots;
-            }
-            return history;
+                    .Take(HistoryLimit))
+                .Aggregate(Queryable.Concat)
+                .ToListAsync(ct);
+
+            return Ranks.QueueTypes.ToDictionary(
+                queueType => queueType,
+                queueType => snapshots.Where(s => s.QueueType == queueType).OrderBy(s => s.CreatedAt).ToList());
         }
     }
 }

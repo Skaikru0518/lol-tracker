@@ -1,4 +1,4 @@
-﻿@using summon.Accounts
+@using summon.Accounts
 @using summon.Data
 @inject IServiceScopeFactory ScopeFactory
 
@@ -28,6 +28,8 @@
     [Parameter, EditorRequired] public required string MatchId { get; set; }
     [Parameter, EditorRequired] public required string Puuid { get; set; }
     [Parameter, EditorRequired] public required DataDragonData DataDragon { get; set; }
+    // Passed when the profile already has the match document; otherwise it is read from the database
+    [Parameter] public RiotMatch? Match { get; set; }
 
     private RiotMatch? match;
     private Dictionary<string, List<RankedEntry>>? ranks;
@@ -42,7 +44,7 @@
         await using var scope = ScopeFactory.CreateAsyncScope();
         try
         {
-            match = await scope.ServiceProvider.GetRequiredService<MatchService>().GetMatchAsync(MatchId);
+            match = Match ?? await scope.ServiceProvider.GetRequiredService<MatchService>().GetMatchAsync(MatchId);
             if (Queues.IsArena(match.Info.QueueId)) return;
 
             // The scoreboard shows first, then the ranks fill in, like the original fetching them on open
