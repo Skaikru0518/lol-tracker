@@ -19,12 +19,14 @@
             }
         </div>
     </div>
+    <BansRow Blue="blueSummary.Bans" Red="redSummary.Bans" DataDragon="DataDragon" ChildContent="Footer" />
 </div>
 
 @code {
     [Parameter, EditorRequired] public required RiotMatch Match { get; set; }
     [Parameter, EditorRequired] public required DataDragonData DataDragon { get; set; }
     [Parameter] public string? HighlightPuuid { get; set; }
+    [Parameter] public RenderFragment? Footer { get; set; }
 
     // Container query classes live in C# strings: in markup Razor would read "@container" as code
     private const string Root = "@container/scoreboard bg-background/40";

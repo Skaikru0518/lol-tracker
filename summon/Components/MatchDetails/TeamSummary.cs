@@ -2,7 +2,7 @@ using summon.Riot;
 
 namespace summon.Components.MatchDetails;
 
-public record TeamSummary(bool Win, int Kills, int Deaths, int Assists, int Towers, int Dragons, int Barons, int Heralds, int Grubs)
+public record TeamSummary(bool Win, int Kills, int Deaths, int Assists,IReadOnlyList<int> Bans ,int Towers, int Dragons, int Barons, int Heralds, int Grubs)
 {
     private static readonly string[] PositionOrder = ["TOP", "JUNGLE", "MIDDLE", "BOTTOM", "UTILITY"];
 
@@ -23,6 +23,7 @@ public record TeamSummary(bool Win, int Kills, int Deaths, int Assists, int Towe
             players.Sum(p => p.Kills),
             players.Sum(p => p.Deaths),
             players.Sum(p => p.Assists),
+            team?.Bans?.Select(b => b.ChampionId).Where(id => id > 0).ToList() ?? [],
             Objective("tower"),
             Objective("dragon"),
             Objective("baron"),

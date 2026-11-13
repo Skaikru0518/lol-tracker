@@ -1,0 +1,33 @@
+﻿@if (Blue.Count > 0 || Red.Count > 0)
+{
+    <div class="flex items-center justify-between gap-2 border-t px-3 py-2 text-xs text-muted-foreground">
+        <span class="flex items-center gap-1.5">Bans @Icons(Blue)</span>
+        @ChildContent
+        <span class="flex items-center gap-1.5">@Icons(Red) Bans</span>
+    </div>
+}
+else if (ChildContent is not null)
+{
+    <div class="flex justify-center border-t px-3 py-2 text-xs">@ChildContent</div>
+}
+
+@code {
+    [Parameter, EditorRequired] public required IReadOnlyList<int> Blue { get; set; }
+    [Parameter, EditorRequired] public required IReadOnlyList<int> Red { get; set; }
+    [Parameter, EditorRequired] public required DataDragonData DataDragon { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private RenderFragment Icons(IReadOnlyList<int> bans) =>
+        @<span class="flex items-center gap-1">
+            @foreach (var id in bans)
+            {
+                var champion = DataDragon.ChampionIds.GetValueOrDefault(id);
+                if (champion is not null)
+                {
+                    @* shortcut: title stands in for the original tooltip; switch when the Tooltip component exists *@
+                    <img src="@DataDragon.ChampionIcon(champion)" alt="@champion" title="@champion" width="18" height="18"
+                         class="size-4.5 cursor-pointer rounded-full opacity-70 grayscale transition hover:opacity-100 hover:grayscale-0" />
+                }
+            }
+        </span>;
+}
