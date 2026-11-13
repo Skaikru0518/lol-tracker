@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/tooltip";
 
 interface IconTooltipProps {
-	label: string;
+	label: React.ReactNode;
 	children: React.ReactNode;
 }
 
@@ -22,7 +22,7 @@ export default function IconTooltip({ label, children }: IconTooltipProps) {
 			<Tooltip>
 				<TooltipTrigger asChild>{children}</TooltipTrigger>
 				<TooltipContent>
-					<p className="text-xs">{label}</p>
+					<div className="text-xs">{label}</div>
 				</TooltipContent>
 			</Tooltip>
 		</TooltipProvider>

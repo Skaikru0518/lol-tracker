@@ -10,7 +10,7 @@ const SIZES = {
 	lg: { box: 80, stroke: 6, text: "text-2xl", crown: "-top-3.5 size-4.5" },
 };
 
-export function ScoreCircle({ score, grade, size = "sm", className }: { score: number; grade: Grade; size?: "sm" | "lg"; className?: string }) {
+export function ScoreCircle({ score, grade, size = "sm", className, tooltip }: { score: number; grade: Grade; size?: "sm" | "lg"; className?: string; tooltip?: React.ReactNode }) {
 	const gradientId = useId();
 	const { box, stroke, text, crown } = SIZES[size];
 	const color = GRADE_COLORS[grade];
@@ -20,7 +20,7 @@ export function ScoreCircle({ score, grade, size = "sm", className }: { score: n
 	const glow = top || grade === "S" ? `drop-shadow(0 0 ${size === "sm" ? 4 : 9}px ${color}99)` : undefined;
 
 	return (
-		<IconTooltip label={`Performance score ${score} · ${grade}`}>
+		<IconTooltip label={tooltip ?? `Performance score ${score} · ${grade}`}>
 			<div className={cn("relative shrink-0", size === "sm" ? "size-9" : "size-20", className)} style={{ filter: glow }}>
 				{top && <Crown className={cn("absolute left-1/2 -translate-x-1/2 fill-current", crown)} style={{ color }} />}
 				<svg viewBox={`0 0 ${box} ${box}`} className="size-full -rotate-90">

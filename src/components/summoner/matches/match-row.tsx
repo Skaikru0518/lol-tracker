@@ -18,6 +18,7 @@ import { MatchBadges } from "./match-badges";
 import { MatchRowExpanded } from "./match-row-expanded";
 import { SHOW_SKILL_ESTIMATES } from "@/lib/shared/features";
 import { PerformanceRankSlot } from "./performance-rank-slot";
+import { ScoreBreakdown } from "./score-breakdown";
 import { rankedQueueForQueueId } from "@/lib/game/ranked-queues";
 
 function Stat({ value, label, className }: { value: React.ReactNode; label: string; className?: string }) {
@@ -91,7 +92,7 @@ export function MatchRow({
 				</div>
 
 				{performance ? (
-					<ScoreCircle score={performance.score} grade={performance.grade} />
+					<ScoreCircle score={performance.score} grade={performance.grade} tooltip={<ScoreBreakdown matchId={match.metadata.matchId} puuid={player.puuid} />} />
 				) : performanceLoading ? (
 					<Skeleton className="size-9 rounded-full" />
 				) : (
