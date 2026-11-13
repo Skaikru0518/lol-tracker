@@ -1,7 +1,7 @@
 import { getMatchById } from "@/lib/riot/matches";
 import { RiotApiError } from "@/lib/riot/riot";
 import { prisma } from "@/lib/server/db";
-import { projectMatch } from "@/lib/match/projection";
+import { projectedMatchSql, projectMatch } from "@/lib/match/projection";
 import { NextRequest, NextResponse } from "next/server";
 import { withApiLog } from "@/lib/server/log";
 
@@ -11,9 +11,9 @@ async function getHandler(
 ) {
 	const { id } = await params;
 	try {
-		const cached = await prisma.match.findUnique({ where: { matchId: id } });
+		const [cached] = await prisma.$queryRaw<{ data: unknown }[]>`SELECT ${projectedMatchSql()} AS data FROM "Match" WHERE "matchId" = ${id}`;
 		if (cached) {
-			return NextResponse.json(projectMatch(cached.data));
+			return NextResponse.json(cached.data);
 		}
 
 		const matchData = await getMatchById(id);

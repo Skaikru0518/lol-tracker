@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { participantSchema } from "@/lib/validators/match";
 
 /**
@@ -38,4 +39,16 @@ export function projectMatch(match: unknown): unknown {
 			}),
 		},
 	};
+}
+
+/**
+ * The same projection done by Postgres, so stored matches leave the database already trimmed.
+ * With `puuid`, only that player's participant is kept.
+ */
+export function projectedMatchSql(puuid?: string): Prisma.Sql {
+	return Prisma.sql`jsonb_set(data, '{info,participants}', COALESCE((
+		SELECT jsonb_agg((SELECT jsonb_object_agg(k, v) FROM jsonb_each(p) AS f(k, v) WHERE k = ANY(${PARTICIPANT_FIELDS}::text[])) ORDER BY i)
+		FROM jsonb_array_elements(data->'info'->'participants') WITH ORDINALITY AS e(p, i)
+		${puuid ? Prisma.sql`WHERE p->>'puuid' = ${puuid}` : Prisma.empty}
+	), '[]'::jsonb))`;
 }

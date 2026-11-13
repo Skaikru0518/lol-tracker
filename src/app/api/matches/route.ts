@@ -3,7 +3,7 @@ import { getMatchIdsByPuuid } from "@/lib/riot/matches";
 import { fetchAndStoreMatch } from "@/lib/match/store";
 import { RiotApiError } from "@/lib/riot/riot";
 import { prisma } from "@/lib/server/db";
-import { projectMatch } from "@/lib/match/projection";
+import { projectedMatchSql, projectMatch } from "@/lib/match/projection";
 import { parseChampionId, parseMatchCount } from "@/lib/match/query";
 import { RIFT_QUEUE_IDS } from "@/lib/game/queue-filters";
 import { withApiLog } from "@/lib/server/log";
@@ -38,7 +38,7 @@ async function getStoredChampionMatches(
 	start: number,
 ): Promise<StoredRow[]> {
 	return prisma.$queryRaw<StoredRow[]>`
-		SELECT m."matchId", m.data FROM "Match" m
+		SELECT m."matchId", ${projectedMatchSql()} AS data FROM "Match" m
 		WHERE m.data->'metadata'->'participants' @> ${JSON.stringify(puuid)}::jsonb
 			AND EXISTS (
 				SELECT 1 FROM jsonb_array_elements(m.data->'info'->'participants') p
@@ -52,9 +52,7 @@ async function getStoredChampionMatches(
 /** Stored matches in the given queues, newest first, carrying only the player's own participant: the Rift panel reads nothing else, and it cuts ~90% of each document. */
 async function getStoredQueueMatches(puuid: string, queueIds: number[], count: number, start: number): Promise<StoredRow[]> {
 	return prisma.$queryRaw<StoredRow[]>`
-		SELECT "matchId", jsonb_set(data, '{info,participants}', COALESCE((
-			SELECT jsonb_agg(p) FROM jsonb_array_elements(data->'info'->'participants') p WHERE p->>'puuid' = ${puuid}
-		), '[]'::jsonb)) AS data
+		SELECT "matchId", ${projectedMatchSql(puuid)} AS data
 		FROM "Match"
 		WHERE data->'metadata'->'participants' @> ${JSON.stringify(puuid)}::jsonb
 			AND "queueId" = ANY(${queueIds}::int[])
@@ -100,7 +98,8 @@ async function getHandler(req: NextRequest) {
 		}
 
 		// Batch DB lookup — single query instead of 50 individual ones
-		const cachedMatches = stored ?? (await prisma.match.findMany({ where: { matchId: { in: matchIds } } }));
+		const cachedMatches =
+			stored ?? (await prisma.$queryRaw<StoredRow[]>`SELECT "matchId", ${projectedMatchSql()} AS data FROM "Match" WHERE "matchId" = ANY(${matchIds}::text[])`);
 		const cachedMap = new Map(cachedMatches.map((m) => [m.matchId, m.data]));
 
 		// Find which matches are missing from DB
