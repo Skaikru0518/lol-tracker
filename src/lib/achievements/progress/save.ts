@@ -6,7 +6,7 @@ import { evaluateSeasonal } from "../seasonal/evaluate";
 import { seasonRange } from "../seasons";
 import { championTotals, seasonGames, seasonRanks } from "./aggregate";
 import { hasSeasonData, seasonsToCompute } from "./backfill";
-import { mergeProgress } from "./merge";
+import { mergeProgress, progressChanged } from "./merge";
 import { loadCurrentRanks, loadGameRows, loadMasteries, loadTierSnapshots } from "./query";
 import { type ProgressResult, type StoredProgress } from "./types";
 
@@ -39,15 +39,19 @@ export async function recomputeProgress(puuid: string, now: Date = new Date()): 
 		computed.push(...evaluateSeasonal(season.id, inputs));
 	}
 
-	await prisma.$transaction(
-		computed.map((result) => {
-			const merged = mergeProgress(byKey.get(key(result)), result, now, { keepHighestValue: PEAK_IDS.has(result.achievementId) });
-			const data = { value: merged.value, tier: merged.tier, reachedAt: merged.reachedAt };
-			return prisma.achievementProgress.upsert({
+	// Unchanged rows are skipped: an identical upsert still writes a new row version and WAL
+	const writes = computed.flatMap((result) => {
+		const stored = byKey.get(key(result));
+		const merged = mergeProgress(stored, result, now, { keepHighestValue: PEAK_IDS.has(result.achievementId) });
+		if (!progressChanged(stored, merged)) return [];
+		const data = { value: merged.value, tier: merged.tier, reachedAt: merged.reachedAt };
+		return [
+			prisma.achievementProgress.upsert({
 				where: { puuid_achievementId_scope: { puuid, achievementId: result.achievementId, scope: result.scope } },
 				update: data,
 				create: { puuid, achievementId: result.achievementId, scope: result.scope, ...data },
-			});
-		}),
-	);
+			}),
+		];
+	});
+	if (writes.length > 0) await prisma.$transaction(writes);
 }

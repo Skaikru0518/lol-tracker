@@ -11,3 +11,13 @@ export function mergeProgress(stored: StoredProgress | undefined, computed: Prog
 		reachedAt: [...reachedAt, ...Array.from({ length: Math.max(0, tier - reachedAt.length) }, () => now)],
 	};
 }
+
+export function progressChanged(stored: StoredProgress | undefined, merged: StoredProgress): boolean {
+	return (
+		!stored ||
+		stored.value !== merged.value ||
+		stored.tier !== merged.tier ||
+		stored.reachedAt.length !== merged.reachedAt.length ||
+		stored.reachedAt.some((d, i) => d.getTime() !== merged.reachedAt[i].getTime())
+	);
+}

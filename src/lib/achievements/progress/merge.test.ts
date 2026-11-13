@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { mergeProgress } from "./merge";
+import { mergeProgress, progressChanged } from "./merge";
 
 const now = new Date("2026-10-11T12:00:00Z");
 const earlier = new Date("2026-05-01T12:00:00Z");
@@ -24,5 +24,23 @@ describe("mergeProgress", () => {
 	it("keeps the highest value for peaks, so the card never contradicts the tier", () => {
 		const stored = { ...row, achievementId: "peak-rank", value: 7, tier: 3, reachedAt: [earlier, earlier, earlier] };
 		expect(mergeProgress(stored, { ...row, achievementId: "peak-rank", value: 5, tier: 1 }, now, { keepHighestValue: true })).toEqual(stored);
+	});
+});
+
+describe("progressChanged", () => {
+	const stored = { ...row, value: 250, tier: 2, reachedAt: [earlier, earlier] };
+
+	it("is true for a row not saved yet", () => {
+		expect(progressChanged(undefined, stored)).toBe(true);
+	});
+
+	it("is false when the merge left the row as it was", () => {
+		expect(progressChanged(stored, mergeProgress(stored, { ...row, value: 250, tier: 2 }, now))).toBe(false);
+	});
+
+	it("is true when the value, the tier or the dates changed", () => {
+		expect(progressChanged(stored, mergeProgress(stored, { ...row, value: 260, tier: 2 }, now))).toBe(true);
+		expect(progressChanged(stored, mergeProgress(stored, { ...row, value: 600, tier: 3 }, now))).toBe(true);
+		expect(progressChanged(stored, { ...stored, reachedAt: [earlier, now] })).toBe(true);
 	});
 });

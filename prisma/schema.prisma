@@ -158,8 +158,6 @@ model MatchBadge {
   badgeId String
 
   @@unique([matchId, puuid, badgeId])
-  @@index([matchId])
-  @@index([puuid])
 }
 
 model AppSettings {
