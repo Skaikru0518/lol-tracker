@@ -5,15 +5,20 @@ import { saveRarity } from "@/lib/achievements/progress/rarity";
 import { refreshAchievements } from "@/lib/achievements/refresh";
 import { getAppSetting, setAppSetting } from "@/lib/server/app-settings";
 import { isAuthorizedCronRequest } from "@/lib/server/cron-auth";
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import { withApiLog } from "@/lib/server/log";
+
+// A full run outlasts Cloudflare's ~100 s response timeout, so the work continues after the response; one run at a time per pod
+let running = false;
 
 async function getHandler(req: Request) {
 	if (!isAuthorizedCronRequest(req)) {
 		return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 	}
+	if (running) return NextResponse.json({ ok: true, skipped: "already running" });
 
 	try {
+		running = true;
 		// Changes written while the run is going are picked up by the next run, so the window starts here
 		const startedAt = new Date();
 		const state = parseRunState(await getAppSetting(ACHIEVEMENT_RUN_KEY));
@@ -25,32 +30,31 @@ async function getHandler(req: Request) {
 		const changed = plan.since ? await changedPuuids(plan.since) : null;
 		const accounts = changed ? all.filter((a) => changed.has(a.puuid)) : all;
 
-		let totalAwarded = 0;
-
-		for (const account of accounts) {
+		after(async () => {
 			try {
-				totalAwarded += await refreshAchievements(account.puuid);
+				let totalAwarded = 0;
+				for (const account of accounts) {
+					try {
+						totalAwarded += await refreshAchievements(account.puuid);
+					} catch (error) {
+						console.error(`[cron/achievements] failed for ${account.puuid}:`, error);
+					}
+				}
+				await saveRarity();
+				await setAppSetting(ACHIEVEMENT_RUN_KEY, JSON.stringify(nextRunState(state, plan, startedAt)));
+				console.log(`[cron/achievements] done: ${accounts.length} accounts, ${totalAwarded} awarded, ${Math.round((Date.now() - startedAt.getTime()) / 1000)}s`);
 			} catch (error) {
-				console.error(`[cron/achievements] failed for ${account.puuid}:`, error);
+				console.error("[cron/achievements] run failed:", error);
+			} finally {
+				running = false;
 			}
-		}
-
-		await saveRarity();
-		await setAppSetting(ACHIEVEMENT_RUN_KEY, JSON.stringify(nextRunState(state, plan, startedAt)));
-
-		return NextResponse.json({
-			ok: true,
-			full: plan.full,
-			accounts: all.length,
-			processed: accounts.length,
-			totalAwarded,
 		});
+
+		return NextResponse.json({ ok: true, started: true, full: plan.full, accounts: all.length, processed: accounts.length });
 	} catch (error) {
+		running = false;
 		console.error("[cron/achievements] run failed:", error);
-		return NextResponse.json(
-			{ error: "Internal server error" },
-			{ status: 500 },
-		);
+		return NextResponse.json({ error: "Internal server error" }, { status: 500 });
 	}
 }
 

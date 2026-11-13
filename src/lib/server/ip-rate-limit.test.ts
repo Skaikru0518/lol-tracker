@@ -30,4 +30,10 @@ describe("rateLimited", () => {
 		expect(rateLimited(req("1.2.3.4"), "ranked")).toBe(false);
 		expect(rateLimited(req("5.6.7.8"), "matches")).toBe(false);
 	});
+
+	it("trusts Cloudflare's client IP over a forwarded header the client can set", () => {
+		const viaCloudflare = (spoofed: string) => new Request("https://summon.gg/api/x", { headers: { "cf-connecting-ip": "9.9.9.9", "x-forwarded-for": spoofed } });
+		for (let i = 0; i < 30; i++) expect(rateLimited(viaCloudflare(`10.0.0.${i}`), "matches")).toBe(false);
+		expect(rateLimited(viaCloudflare("10.0.0.99"), "matches")).toBe(true);
+	});
 });

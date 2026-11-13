@@ -25,7 +25,8 @@ export function allowRequest(key: string, now: number = Date.now()): boolean {
 
 /** Per-IP limit on a route; `scope` gives each route its own budget. */
 export function rateLimited(req: Request, scope: string): boolean {
-	const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+	// Behind Cloudflare the first forwarded IP is whatever the client sent; Cloudflare sets cf-connecting-ip itself
+	const ip = req.headers.get("cf-connecting-ip") || req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
 	return !allowRequest(`${scope}:${ip}`);
 }
 
