@@ -129,6 +129,16 @@ describe("buildWidgetData", () => {
 		expect(next?.games.map((g) => g.matchId)).toEqual(["m1", "m2", "m3"]);
 	});
 
+	it("forgets widgets nobody polled for a while once many are kept", async () => {
+		await buildWidgetData(SLUG, { queue: "solo", live: false }, NOW);
+		vi.mocked(resolveAccount).mockImplementation((async (gameName: string) => ({ puuid: gameName, gameName, tagLine: "EUNE" })) as never);
+		for (let i = 0; i < 200; i++) await buildWidgetData(`other${i}-EUNE`, { queue: "solo", live: false }, NOW + 16 * MIN);
+		vi.mocked(resolveAccount).mockResolvedValue({ puuid: "me", gameName: "Skaikru", tagLine: "HEAVN" } as never);
+		vi.mocked(prisma.match.findMany).mockClear();
+		await buildWidgetData(SLUG, { queue: "solo", live: false }, NOW + 17 * MIN);
+		expect(prisma.match.findMany).toHaveBeenCalledTimes(1);
+	});
+
 	it("checks the live game only when asked, at most every two minutes", async () => {
 		await buildWidgetData(SLUG, { queue: "solo", live: false }, NOW);
 		expect(getLiveGame).not.toHaveBeenCalled();

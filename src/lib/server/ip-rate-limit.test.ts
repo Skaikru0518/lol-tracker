@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { allowRequest, resetRateLimit } from "./ip-rate-limit";
+import { allowRequest, rateLimited, resetRateLimit } from "./ip-rate-limit";
 
 describe("allowRequest", () => {
 	beforeEach(() => resetRateLimit());
@@ -17,5 +17,17 @@ describe("allowRequest", () => {
 	it("keeps keys independent", () => {
 		for (let i = 0; i < 31; i++) allowRequest("1.2.3.4", 1_000);
 		expect(allowRequest("5.6.7.8", 1_000)).toBe(true);
+	});
+});
+
+describe("rateLimited", () => {
+	beforeEach(() => resetRateLimit());
+	const req = (ip: string) => new Request("https://summon.gg/api/x", { headers: { "x-forwarded-for": `${ip}, 10.0.0.1` } });
+
+	it("limits by the client IP and keeps each route's budget separate", () => {
+		for (let i = 0; i < 30; i++) expect(rateLimited(req("1.2.3.4"), "matches")).toBe(false);
+		expect(rateLimited(req("1.2.3.4"), "matches")).toBe(true);
+		expect(rateLimited(req("1.2.3.4"), "ranked")).toBe(false);
+		expect(rateLimited(req("5.6.7.8"), "matches")).toBe(false);
 	});
 });

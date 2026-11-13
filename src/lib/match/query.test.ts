@@ -6,8 +6,8 @@ describe("parseMatchCount", () => {
 		expect(parseMatchCount(null)).toBe(20);
 	});
 
-	it("clamps to 1..100", () => {
-		expect(parseMatchCount("100000")).toBe(100);
+	it("clamps to 1..50", () => {
+		expect(parseMatchCount("100000")).toBe(50);
 		expect(parseMatchCount("0")).toBe(1);
 		expect(parseMatchCount("-5")).toBe(1);
 	});

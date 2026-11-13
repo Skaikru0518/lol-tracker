@@ -6,6 +6,7 @@ import { prisma } from "@/lib/server/db";
 import { projectedMatchSql, projectMatch } from "@/lib/match/projection";
 import { parseChampionId, parseMatchCount } from "@/lib/match/query";
 import { RIFT_QUEUE_IDS } from "@/lib/game/queue-filters";
+import { rateLimited } from "@/lib/server/ip-rate-limit";
 import { withApiLog } from "@/lib/server/log";
 
 /**
@@ -62,6 +63,7 @@ async function getStoredQueueMatches(puuid: string, queueIds: number[], count: n
 }
 
 async function getHandler(req: NextRequest) {
+	if (rateLimited(req, "matches")) return NextResponse.json({ error: "Too many requests" }, { status: 429 });
 	const puuid = req.nextUrl.searchParams.get("puuid");
 	const count = parseMatchCount(req.nextUrl.searchParams.get("count"));
 	const championId = parseChampionId(req.nextUrl.searchParams.get("championId"));

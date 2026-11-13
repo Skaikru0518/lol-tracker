@@ -23,6 +23,12 @@ export function allowRequest(key: string, now: number = Date.now()): boolean {
 	return true;
 }
 
+/** Per-IP limit on a route; `scope` gives each route its own budget. */
+export function rateLimited(req: Request, scope: string): boolean {
+	const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+	return !allowRequest(`${scope}:${ip}`);
+}
+
 export function resetRateLimit(): void {
 	hits.clear();
 }

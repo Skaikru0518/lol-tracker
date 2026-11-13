@@ -21,6 +21,8 @@ const IDS_LOOKBACK_MS = 24 * 60 * MIN;
 const ID_COUNT = 20;
 const SEASON_GAME_COUNT = 10;
 const MATCH_FETCH_CAP = 10;
+const MAX_STATES = 200;
+const STATE_IDLE_MS = 15 * MIN;
 
 const QUEUES = {
 	solo: { queueId: 420, queueType: "RANKED_SOLO_5x5" },
@@ -28,6 +30,7 @@ const QUEUES = {
 } as const;
 
 interface CallState {
+	usedAt: number;
 	rankedAt: number;
 	idsAt: number;
 	ids: string[] | null;
@@ -46,12 +49,15 @@ export function clearWidgetState(): void {
 	states.clear();
 }
 
-function stateFor(key: string): CallState {
+function stateFor(key: string, now: number): CallState {
+	// Generator previews create a state for every summoner opened; idle ones are dropped so the map cannot grow forever
+	if (states.size >= MAX_STATES) for (const [k, s] of states) if (now - s.usedAt >= STATE_IDLE_MS) states.delete(k);
 	let state = states.get(key);
 	if (!state) {
-		state = { rankedAt: -Infinity, idsAt: -Infinity, ids: null, idsTotal: null, liveAt: -Infinity, liveChampion: null, liveStartedAt: null, matches: new Map() };
+		state = { usedAt: now, rankedAt: -Infinity, idsAt: -Infinity, ids: null, idsTotal: null, liveAt: -Infinity, liveChampion: null, liveStartedAt: null, matches: new Map() };
 		states.set(key, state);
 	}
+	state.usedAt = now;
 	return state;
 }
 
@@ -75,7 +81,7 @@ export async function buildWidgetData(slug: string, query: WidgetQuery, now: num
 	const { puuid } = account;
 	const { queueId, queueType } = QUEUES[query.queue];
 	const season = query.scope === "season";
-	const state = stateFor(`${puuid}:${query.queue}:${season ? "season" : "session"}`);
+	const state = stateFor(`${puuid}:${query.queue}:${season ? "season" : "session"}`, now);
 
 	let limited = false;
 	async function riot<T>(fn: () => Promise<T>): Promise<T | null> {

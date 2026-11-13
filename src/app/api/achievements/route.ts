@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/server/db";
 import { loadAchievementPayload } from "@/lib/achievements/payload";
-import { detectAchievements } from "@/lib/achievements/profile/detect";
-import { loadAchievementMatches } from "@/lib/achievements/profile/query";
-import { recomputeProgress } from "@/lib/achievements/progress/save";
+import { refreshAchievements } from "@/lib/achievements/refresh";
+import { rateLimited } from "@/lib/server/ip-rate-limit";
 import { type AchievementPayload } from "@/lib/validators/achievements";
 import { withApiLog } from "@/lib/server/log";
 
@@ -18,16 +16,12 @@ async function getHandler(req: NextRequest): Promise<Response> {
 
 /** Recomputes Current form, milestones and seasons for one account, then returns its payload. */
 async function postHandler(req: NextRequest): Promise<Response> {
+	if (rateLimited(req, "achievements")) return NextResponse.json({ error: "Too many requests" }, { status: 429 });
 	const { puuid } = await req.json();
 	if (!puuid) return NextResponse.json({ error: "puuid is required" }, { status: 400 });
 
 	try {
-		const earnedIds = detectAchievements({ matches: await loadAchievementMatches(puuid), puuid });
-		if (earnedIds.length > 0) {
-			await prisma.playerAchievement.createMany({ data: earnedIds.map((achievementId) => ({ puuid, achievementId })), skipDuplicates: true });
-		}
-		await prisma.playerAchievement.deleteMany({ where: { puuid, achievementId: { notIn: earnedIds } } });
-		await recomputeProgress(puuid);
+		await refreshAchievements(puuid);
 	} catch (error) {
 		console.error("[api/achievements] detection failed:", error);
 		return NextResponse.json({ error: "Internal server error" }, { status: 500 });

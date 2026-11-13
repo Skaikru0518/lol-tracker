@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { RiotApiError } from "@/lib/riot/riot";
-import { allowRequest } from "@/lib/server/ip-rate-limit";
+import { rateLimited } from "@/lib/server/ip-rate-limit";
 import { withApiLog } from "@/lib/server/log";
 import { widgetQuerySchema } from "@/lib/validators/widget";
 import { buildWidgetData } from "@/lib/widget/widget-data";
 
 async function getHandler(req: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
-	const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
-	if (!allowRequest(`widget:${ip}`)) return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+	if (rateLimited(req, "widget")) return NextResponse.json({ error: "Too many requests" }, { status: 429 });
 
 	const query = widgetQuerySchema.parse(Object.fromEntries(req.nextUrl.searchParams));
 	try {

@@ -1,10 +1,8 @@
 import { prisma } from "@/lib/server/db";
-import { detectAchievements } from "@/lib/achievements/profile/detect";
-import { loadAchievementMatches } from "@/lib/achievements/profile/query";
 import { ACHIEVEMENT_RUN_KEY, nextRunState, parseRunState, planAchievementRun } from "@/lib/achievements/progress/cron-plan";
 import { changedPuuids } from "@/lib/achievements/progress/query";
 import { saveRarity } from "@/lib/achievements/progress/rarity";
-import { recomputeProgress } from "@/lib/achievements/progress/save";
+import { refreshAchievements } from "@/lib/achievements/refresh";
 import { getAppSetting, setAppSetting } from "@/lib/server/app-settings";
 import { isAuthorizedCronRequest } from "@/lib/server/cron-auth";
 import { NextResponse } from "next/server";
@@ -31,33 +29,7 @@ async function getHandler(req: Request) {
 
 		for (const account of accounts) {
 			try {
-				const matches = await loadAchievementMatches(account.puuid);
-
-				const earnedIds = detectAchievements({
-					matches,
-					puuid: account.puuid,
-				});
-
-				if (earnedIds.length > 0) {
-					const inserted = await prisma.playerAchievement.createMany({
-						data: earnedIds.map((achievementId) => ({
-							puuid: account.puuid,
-							achievementId,
-						})),
-						skipDuplicates: true,
-					});
-					totalAwarded += inserted.count;
-				}
-
-				// Remove achievements no longer earned
-				await prisma.playerAchievement.deleteMany({
-					where: {
-						puuid: account.puuid,
-						achievementId: { notIn: earnedIds },
-					},
-				});
-
-				await recomputeProgress(account.puuid);
+				totalAwarded += await refreshAchievements(account.puuid);
 			} catch (error) {
 				console.error(`[cron/achievements] failed for ${account.puuid}:`, error);
 			}
