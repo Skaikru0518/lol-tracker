@@ -60,7 +60,15 @@ else
                     }
                 </div>
                 <div class="min-w-0 space-y-4">
-                    <MatchList Games="games" DataDragon="dataDragon" Puuid="@(account?.Puuid ?? "")" LpChanges="lpChanges" />
+                    @if (dataDragon is not null)
+                    {
+                        <RecentPerformancePanel Summary="recentSummary" DataDragon="dataDragon" />
+                    }
+                    else
+                    {
+                        <Skeleton Class="h-64" />
+                    }
+                    <MatchList Games="games" DataDragon="dataDragon" Puuid="@(account?.Puuid ?? "")" LpChanges="lpChanges" Performance="performance" />
                 </div>
             </div>
         </div>
@@ -84,6 +92,8 @@ else
     private List<RiotMatch>? riftMatches;
     private List<RiotMatch>? recentMatches;
     private int loadVersion;
+    private Dictionary<string, PerformanceScore>? performance;
+    private RecentSummary? recentSummary;
 
     protected override Task OnInitializedAsync() => LoadAsync();
 
@@ -118,6 +128,7 @@ else
         var rankedService = scope.ServiceProvider.GetRequiredService<RankedService>();
         var matchService = scope.ServiceProvider.GetRequiredService<MatchService>();
         var dataDragonService = scope.ServiceProvider.GetRequiredService<DataDragon>();
+        var performanceService = scope.ServiceProvider.GetRequiredService<PerformanceService>();
 
         try
         {
@@ -147,6 +158,10 @@ else
 
             riftMatches = await matchService.GetStoredMatchesAsync(loaded.Puuid, 50, Queues.RiftIds);
             recentMatches = await matchService.GetStoredMatchesAsync(loaded.Puuid, 50);
+            StateHasChanged();
+
+            performance = await performanceService.ScoreAsync(recentMatches, loaded.Puuid);
+            recentSummary = await performanceService.RecentAsync(loaded.Puuid);
             loadVersion++;
             failed = false;
         }

@@ -1,0 +1,27 @@
+@if (Summary is null)
+{
+    <Skeleton Class="h-64" />
+}
+else if (Summary.Games > 0)
+{
+    <Panel Class="@Container">
+        <PanelHeader Title="@($"Last {Summary.Games} ranked games")" />
+        <div class="@Body">
+            <SummaryHeadline Summary="Summary" />
+            <TopChampions Champions="Summary.Champions" DataDragon="DataDragon" />
+            @if (Summary.Score is { } score && Summary.Categories.Count > 0)
+            {
+                <CategoryRadar Categories="Summary.Categories" Grade="@score.Grade" />
+            }
+        </div>
+    </Panel>
+}
+
+@code {
+    [Parameter] public RecentSummary? Summary { get; set; }
+    [Parameter, EditorRequired] public required DataDragonData DataDragon { get; set; }
+
+    // Container query classes live in C# strings: in markup Razor would read "@container" as code
+    private const string Container = "@container";
+    private const string Body = "flex flex-wrap items-center justify-evenly gap-x-4 gap-y-6 p-4 @min-[48rem]:flex-nowrap";
+}

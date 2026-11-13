@@ -1,0 +1,18 @@
+@using System.Globalization
+
+<ul class="space-y-1.5">
+    @foreach (var c in Champions)
+    {
+        <li class="flex items-center gap-2 text-xs">
+            <ChampionIcon DataDragon="DataDragon" ChampionName="@c.ChampionName" Size="28" />
+            <span class="w-9 font-semibold @(c.WinRate >= 50 ? "text-win" : "text-loss")">@c.WinRate%</span>
+            <span class="w-11 text-muted-foreground">@(c.Wins)W–@(c.Games - c.Wins)L</span>
+            <span class="text-muted-foreground">@c.Kda.ToString(CultureInfo.InvariantCulture) KDA</span>
+        </li>
+    }
+</ul>
+
+@code {
+    [Parameter, EditorRequired] public required List<ChampionSummary> Champions { get; set; }
+    [Parameter, EditorRequired] public required DataDragonData DataDragon { get; set; }
+}

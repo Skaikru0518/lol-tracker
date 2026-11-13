@@ -1,0 +1,64 @@
+@using System.Globalization
+
+<svg viewBox="0 0 @Width @Height" class="w-50 shrink-0 overflow-visible" role="img" aria-label="Category scores">
+    <defs>
+        <radialGradient id="@fillId">
+            <stop offset="0" stop-color="@Color" stop-opacity="0.05" />
+            <stop offset="1" stop-color="@Color" stop-opacity="0.35" />
+        </radialGradient>
+    </defs>
+    @foreach (var ring in Rings)
+    {
+        <polygon points="@Polygon(_ => ring)" fill="@(ring == 100 ? "var(--color-muted)" : "none")" fill-opacity="0.5" stroke="var(--color-border)" />
+    }
+    <polygon points="@Polygon(i => Categories[i].Score)" fill="url(#@fillId)" stroke="@Color" stroke-width="1.5" stroke-linejoin="round" />
+    @for (var index = 0; index < Categories.Count; index++)
+    {
+        var c = Categories[index];
+        var dot = At(index, c.Score);
+        var edge = At(index, 100);
+        var anchor = Anchor(index);
+        var x = edge.X + (anchor == "start" ? 8 : anchor == "end" ? -8 : 0);
+        var y = edge.Y + (anchor != "middle" ? 0 : edge.Y < Height / 2.0 ? -18 : 16);
+        <g>
+            <title>@($"{Weights.CategoryLabels[c.Id]} {c.Score} · {c.Grade}")</title>
+            <circle cx="@Num(dot.X)" cy="@Num(dot.Y)" r="3" fill="@Grades.Colors[c.Grade]" />
+            <text x="@Num(x)" y="@Num(y - 5)" text-anchor="@anchor" dominant-baseline="middle" font-size="9.5" font-weight="600" fill="var(--color-muted-foreground)">@Weights.CategoryShortLabels[c.Id]</text>
+            <text x="@Num(x)" y="@Num(y + 6)" text-anchor="@anchor" dominant-baseline="middle" font-size="10.5" font-weight="800" fill="@Grades.Colors[c.Grade]">@c.Score</text>
+        </g>
+    }
+</svg>
+
+@code {
+    [Parameter, EditorRequired] public required List<CategorySummary> Categories { get; set; }
+    [Parameter, EditorRequired] public required string Grade { get; set; }
+
+    private const int Width = 200;
+    private const int Height = 180;
+    private const int Radius = 58;
+    private static readonly int[] Rings = [100, 66, 33];
+
+    private readonly string fillId = $"radar-{Guid.NewGuid():N}";
+
+    private string Color => Grades.Colors[Grade];
+
+    // Axes clockwise from the top
+    private double Angle(int index) => -Math.PI / 2 + index * 2 * Math.PI / Categories.Count;
+
+    private (double X, double Y) At(int index, double value)
+    {
+        var r = Radius * Math.Clamp(value, 0, 100) / 100;
+        return (Width / 2.0 + Math.Cos(Angle(index)) * r, Height / 2.0 + Math.Sin(Angle(index)) * r);
+    }
+
+    private string Anchor(int index)
+    {
+        var x = Math.Cos(Angle(index));
+        return Math.Abs(x) < 1e-6 ? "middle" : x > 0 ? "start" : "end";
+    }
+
+    private string Polygon(Func<int, double> value) =>
+        string.Join(" ", Enumerable.Range(0, Categories.Count).Select(i => At(i, value(i))).Select(p => $"{Num(p.X)},{Num(p.Y)}"));
+
+    private static string Num(double value) => Math.Round(value, 3).ToString(CultureInfo.InvariantCulture);
+}

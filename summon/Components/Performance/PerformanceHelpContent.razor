@@ -1,0 +1,92 @@
+<div class="space-y-5 text-sm text-muted-foreground">
+    <div class="flex items-center gap-4 rounded-xl border p-3.5" style="background-image: linear-gradient(110deg, @(Grades.Colors["B"])22, transparent 60%)">
+        <ScoreCircle Score="65" Grade="B" Large="true" />
+        <ul class="grid flex-1 gap-x-4 gap-y-1.5 text-xs sm:grid-cols-2">
+            @foreach (var fact in Facts)
+            {
+                <li class="flex gap-2">
+                    <span class="text-primary">◆</span>
+                    @fact
+                </li>
+            }
+        </ul>
+    </div>
+
+    <section class="space-y-2">
+        <h3 class="text-sm font-semibold text-foreground">Grades</h3>
+        <div>
+            <div class="flex h-7 overflow-hidden rounded-lg text-xs font-extrabold text-black/80">
+                @foreach (var (grade, min, max) in Grades.Bands())
+                {
+                    <div class="flex items-center justify-center" style="width: @(max - min)%; background-color: @Grades.Colors[grade]">@grade</div>
+                }
+            </div>
+            <div class="relative mt-1 flex text-3xs">
+                @foreach (var (grade, min, max) in Grades.Bands())
+                {
+                    <span style="width: @(max - min)%">@min</span>
+                }
+                <span class="absolute right-0">100</span>
+            </div>
+        </div>
+    </section>
+
+    <section class="space-y-2">
+        <h3 class="text-sm font-semibold text-foreground">Categories</h3>
+        <ul class="space-y-1.5">
+            @foreach (var id in Weights.Categories)
+            {
+                <li><span class="font-semibold text-foreground">@Weights.CategoryLabels[id]:</span> @CategoryHelp[id]</li>
+            }
+        </ul>
+    </section>
+
+    <section class="space-y-2">
+        <h3 class="text-sm font-semibold text-foreground">How much each category counts</h3>
+        <div class="overflow-x-auto">
+            <table class="w-full text-xs">
+                <thead>
+                    <tr class="text-left">
+                        <th class="py-1 pr-2 font-medium">Role</th>
+                        @foreach (var id in Weights.Categories)
+                        {
+                            <th class="px-1 py-1 text-right font-medium">@Weights.CategoryLabels[id]</th>
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var role in Weights.Roles)
+                    {
+                        <tr class="border-t">
+                            <td class="py-1 pr-2 text-foreground">@Weights.RoleLabels[role]</td>
+                            @foreach (var id in Weights.Categories)
+                            {
+                                <td class="px-1 py-1 text-right">@Weights.RoleWeights[role][id]%</td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+
+@code {
+    private static readonly string[] Facts =
+    [
+        "Every ranked Solo, Flex and 5s game gets a 0–100 score for each player.",
+        "You are compared with players in your role from games Summon.gg stored over the last 60 days.",
+        "An average game lands around 65 (B); S+ is roughly the top 7%.",
+        "Normals, ARAM, Arena and remakes are not scored. A score never changes once calculated.",
+    ];
+
+    private static readonly Dictionary<string, string> CategoryHelp = new()
+    {
+        ["laning"] = "Gold, XP, CS and damage against your lane opponent, per minute.",
+        ["farming"] = "CS and gold per minute.",
+        ["combat"] = "KDA, deaths per minute (fewer is better) and kill participation.",
+        ["teamfight"] = "Your share of your team's damage dealt and damage taken, and kill participation.",
+        ["objectives"] = "Damage to objectives, dragons and barons, turrets and inhibitors, and objective steals.",
+        ["vision"] = "Vision score, wards placed and destroyed per minute, and control wards bought.",
+    };
+}

@@ -4,6 +4,7 @@
     <div class="flex flex-col gap-2 border-b px-4 py-2.5 sm:flex-row sm:items-center">
         <div class="flex items-center gap-1.5">
             <h2 class="text-sm font-semibold text-foreground">Recent games</h2>
+            <PerformanceHelp />
         </div>
     </div>
 
@@ -24,7 +25,8 @@
     {
         @foreach (var game in Games.Take(visible))
         {
-            <RecentGame Game="game" Puuid="@Puuid" DataDragon="DataDragon" LpChange="@(LpChanges?.TryGetValue(game.MatchId, out var lp) == true ? lp : null)" @key="game.MatchId" />
+            <RecentGame Game="game" Puuid="@Puuid" DataDragon="DataDragon" LpChange="@(LpChanges?.TryGetValue(game.MatchId, out var lp) == true ? lp : null)"
+                        Performance="@Performance?.GetValueOrDefault(game.MatchId)" PerformanceLoading="Performance is null" @key="game.MatchId" />
         }
         @if (visible < Games.Count)
         {
@@ -40,6 +42,8 @@
     [Parameter] public DataDragonData? DataDragon { get; set; }
     [Parameter, EditorRequired] public required string Puuid { get; set; }
     [Parameter] public IReadOnlyDictionary<string, int>? LpChanges { get; set; }
+    // Null while the scores are being calculated, so eligible rows show a skeleton instead of the "no score" mark
+    [Parameter] public IReadOnlyDictionary<string, PerformanceScore>? Performance { get; set; }
 
     private const int PageSize = 20;
 

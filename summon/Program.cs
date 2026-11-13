@@ -4,6 +4,7 @@ using summon.Data;
 using summon.Components;
 using summon.Riot;
 using summon.Accounts;
+using summon.Scoring;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -30,6 +31,7 @@ builder.Services.AddHttpClient<DataDragon>();
 builder.Services.AddScoped<AccountService>();
 builder.Services.AddScoped<RankedService>();
 builder.Services.AddScoped<MatchService>();
+builder.Services.AddScoped<PerformanceService>();
 
 var app = builder.Build();
 

@@ -1,0 +1,41 @@
+@* The "?" next to Recent games: a tooltip on hover, the explanation in a dialog on click *@
+<Tooltip Text="The circle is a 0–100 performance score against players in your role. Click for details.">
+    <button type="button" aria-label="How performance scores work" class="text-muted-foreground transition-colors hover:text-foreground" @onclick="() => open = true">
+        @* Lucide "circle-help" icon *@
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-3.5" aria-hidden="true">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+            <path d="M12 17h.01" />
+        </svg>
+    </button>
+</Tooltip>
+
+@if (open)
+{
+    <div data-slot="dialog-overlay" class="fixed inset-0 z-50 bg-black/60" @onclick="() => open = false"></div>
+    <div role="dialog" aria-modal="true" aria-labelledby="performance-help-title" data-slot="dialog-content" @onkeydown="OnKeyDown"
+         class="fixed top-1/2 left-1/2 z-50 grid max-h-[85vh] w-[calc(100%-2rem)] max-w-xl -translate-x-1/2 -translate-y-1/2 gap-4 overflow-y-auto rounded-lg border bg-card p-6 text-card-foreground shadow-lg">
+        <div data-slot="dialog-header" class="flex flex-col gap-1.5 pr-6">
+            <h2 id="performance-help-title" class="text-lg font-semibold text-foreground">How performance scores work</h2>
+            <p class="text-sm text-muted-foreground">What the score next to each ranked game means and how it is calculated.</p>
+        </div>
+        <PerformanceHelpContent />
+        <button type="button" class="absolute top-4 right-4 rounded-sm text-muted-foreground opacity-70 transition-opacity hover:opacity-100" @onclick="() => open = false">
+            @* Lucide "x" icon *@
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true">
+                <path d="M18 6 6 18" />
+                <path d="m6 6 12 12" />
+            </svg>
+            <span class="sr-only">Close</span>
+        </button>
+    </div>
+}
+
+@code {
+    private bool open;
+
+    private void OnKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Escape") open = false;
+    }
+}

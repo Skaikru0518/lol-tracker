@@ -18,6 +18,19 @@
             <p class="text-3xs text-muted-foreground">@Format.Duration(Game.GameDuration) · @Format.TimeAgo(Game.GameCreation)</p>
         </div>
 
+        @if (Performance is not null)
+        {
+            <ScoreCircle Score="Performance.Score" Grade="@Performance.Grade" />
+        }
+        else if (PerformanceLoading && ScoreEngine.IsEligible(Game.QueueId, Game.GameDuration))
+        {
+            <Skeleton Class="size-9 rounded-full" />
+        }
+        else
+        {
+            <ScorePlaceholder />
+        }
+
         <ChampionIcon DataDragon="DataDragon" ChampionName="@Game.ChampionName" Size="44" Level="Game.ChampionLevel" />
         <SpellRuneStack DataDragon="DataDragon" Spell1="Game.Spell1" Spell2="Game.Spell2" Keystone="Game.Keystone" SecondaryStyle="Game.SecondaryStyle" Display="hidden sm:grid" />
 
@@ -67,6 +80,8 @@
     [Parameter, EditorRequired] public required string Puuid { get; set; }
     [Parameter, EditorRequired] public required DataDragonData DataDragon { get; set; }
     [Parameter] public int? LpChange { get; set; }
+    [Parameter] public PerformanceScore? Performance { get; set; }
+    [Parameter] public bool PerformanceLoading { get; set; }
 
     private bool open;
     private bool mounted;

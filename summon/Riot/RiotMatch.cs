@@ -1,6 +1,7 @@
 namespace summon.Riot;
 
-public record RiotMatch(RiotMatchInfo Info);
+public record RiotMatch(RiotMetadata Metadata, RiotMatchInfo Info);
+public record RiotMetadata(string MatchId);
 public record RiotMatchInfo(long GameCreation, int GameDuration, int QueueId, string GameMode, List<RiotParticipant> Participants, List<RiotTeam> Teams);
 public record RiotTeam(int TeamId, bool Win,List<RiotBan> Bans ,Dictionary<string, RiotObjective> Objectives);
 public record RiotBan(int ChampionId);
@@ -24,6 +25,18 @@ public record RiotParticipant(
     int GoldEarned,
     int TotalDamageDealtToChampions,
     int VisionScore,
+    int TotalDamageTaken,
+    int WardsPlaced,
+    int WardsKilled,
+    int VisionWardsBoughtInGame,
+    int TurretKills,
+    int InhibitorKills,
+    int DragonKills,
+    int BaronKills,
+    // Older match documents may lack these three, so missing means "not scored" rather than zero
+    int? ChampExperience,
+    int? DamageDealtToObjectives,
+    int? ObjectivesStolen,
     int Item0,
     int Item1,
     int Item2,

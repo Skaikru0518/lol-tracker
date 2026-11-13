@@ -1,0 +1,64 @@
+@using System.Globalization
+
+<Tooltip Text="@($"Performance score {Score} · {Grade}")" Class="shrink-0">
+    <div class="relative shrink-0 @(Large ? "size-20" : "size-9") @Class" style="@(Glow is null ? null : $"filter: {Glow}")">
+        @if (Top)
+        {
+            @* Lucide "crown" icon *@
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                 class="absolute left-1/2 -translate-x-1/2 fill-current @(Large ? "-top-3.5 size-4.5" : "-top-2 size-3")" style="color: @Color" aria-hidden="true">
+                <path d="M11.562 3.266a.5.5 0 0 1 .876 0L15.39 8.87a1 1 0 0 0 1.516.294L21.183 5.5a.5.5 0 0 1 .798.519l-2.834 10.246a1 1 0 0 1-.956.734H5.81a1 1 0 0 1-.957-.734L2.02 6.02a.5.5 0 0 1 .798-.519l4.276 3.664a1 1 0 0 0 1.516-.294z" />
+                <path d="M5 21h14" />
+            </svg>
+        }
+        <svg viewBox="0 0 @Box @Box" class="size-full -rotate-90">
+            @if (Top)
+            {
+                <defs>
+                    <linearGradient id="@gradientId" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0" stop-color="#fff3c4" />
+                        <stop offset="0.5" stop-color="@Color" />
+                        <stop offset="1" stop-color="#c98a12" />
+                    </linearGradient>
+                </defs>
+            }
+            <circle cx="@Num(Box / 2.0)" cy="@Num(Box / 2.0)" r="@Num(Radius)" fill="@(Color)14" stroke="var(--color-border)" stroke-width="@Stroke" />
+            <circle cx="@Num(Box / 2.0)" cy="@Num(Box / 2.0)" r="@Num(Radius)" fill="none" stroke="@(Top ? $"url(#{gradientId})" : Color)" stroke-width="@Stroke"
+                    stroke-linecap="round" stroke-dasharray="@Num(Circumference)" stroke-dashoffset="@Num(Circumference * (1 - Math.Clamp(Score / 100.0, 0, 1)))" />
+            @if (Top)
+            {
+                <circle cx="@Num(Box / 2.0)" cy="@Num(Box / 2.0)" r="@Num(Radius)" fill="none" stroke="#fff" stroke-opacity="0.7" stroke-width="@Stroke" stroke-linecap="round"
+                        stroke-dasharray="@($"{Num(Circumference * 0.06)} {Num(Circumference)}")" class="@SpinClass" />
+            }
+        </svg>
+        <span class="absolute inset-0 flex flex-col items-center justify-center font-extrabold leading-none @(Large ? "text-2xl" : "text-xs")" style="color: @Color">
+            @Score
+            @if (Large)
+            {
+                <span class="mt-0.5 text-xs font-bold opacity-85">@Grade</span>
+            }
+        </span>
+    </div>
+</Tooltip>
+
+@code {
+    [Parameter, EditorRequired] public int Score { get; set; }
+    [Parameter, EditorRequired] public required string Grade { get; set; }
+    [Parameter] public bool Large { get; set; }
+    [Parameter] public string? Class { get; set; }
+
+    // A class with brackets and a slash in a C# string, so Razor and Tailwind both read it as written
+    private const string SpinClass = "origin-center [transform-box:fill-box] motion-safe:animate-[spin_3s_linear_infinite]";
+
+    private readonly string gradientId = $"score-{Guid.NewGuid():N}";
+
+    private int Box => Large ? 80 : 36;
+    private int Stroke => Large ? 6 : 3;
+    private double Radius => (Box - Stroke) / 2.0;
+    private double Circumference => 2 * Math.PI * Radius;
+    private string Color => Grades.Colors[Grade];
+    private bool Top => Grade == "S+";
+    private string? Glow => Top || Grade == "S" ? $"drop-shadow(0 0 {(Large ? 9 : 4)}px {Color}99)" : null;
+
+    private static string Num(double value) => Math.Round(value, 3).ToString(CultureInfo.InvariantCulture);
+}

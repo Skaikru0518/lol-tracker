@@ -1,0 +1,27 @@
+<div class="flex shrink-0 items-center gap-3.5">
+    @if (Summary.Score is { } score)
+    {
+        <ScoreCircle Score="score.Average" Grade="@score.Grade" Large="true" />
+    }
+    <div>
+        <p class="text-xs font-medium text-muted-foreground">@(Summary.Score is null ? "Winrate" : "Avg score · Winrate")</p>
+        <p class="mt-0.5 text-xl font-extrabold">
+            <span class="@(Summary.WinRate >= 50 ? "text-win" : "text-loss")">@Summary.WinRate%</span>
+            <span class="text-sm font-medium text-muted-foreground">@(Summary.Wins)W – @(Summary.Losses)L</span>
+        </p>
+        @if (Summary.Score is not null)
+        {
+            <div class="mt-1.5 flex gap-1.5">
+                @Count("MVP", Summary.Mvp, "#f5c542")
+                @Count("ACE", Summary.Ace, "#a78bfa")
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public required RecentSummary Summary { get; set; }
+
+    private static RenderFragment Count(string label, int value, string color) =>
+        @<span class="rounded px-1.5 py-0.5 text-3xs font-extrabold" style="color: @color; background-color: @(color)22">@label ×@value</span>;
+}
