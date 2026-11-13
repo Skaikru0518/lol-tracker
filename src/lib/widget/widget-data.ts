@@ -35,6 +35,8 @@ interface CallState {
 	liveAt: number;
 	liveChampion: string | null;
 	liveStartedAt: number | null;
+	// Session games trimmed to the player's own participant, so a poll re-reads the database only for new ids
+	matches: Map<string, Match>;
 }
 
 // Per pod, keyed by summoner and queue: every browser showing the same widget shares one call budget
@@ -47,7 +49,7 @@ export function clearWidgetState(): void {
 function stateFor(key: string): CallState {
 	let state = states.get(key);
 	if (!state) {
-		state = { rankedAt: -Infinity, idsAt: -Infinity, ids: null, idsTotal: null, liveAt: -Infinity, liveChampion: null, liveStartedAt: null };
+		state = { rankedAt: -Infinity, idsAt: -Infinity, ids: null, idsTotal: null, liveAt: -Infinity, liveChampion: null, liveStartedAt: null, matches: new Map() };
 		states.set(key, state);
 	}
 	return state;
@@ -109,14 +111,17 @@ export async function buildWidgetData(slug: string, query: WidgetQuery, now: num
 	}
 
 	const ids = state.ids ?? [];
-	const rows = ids.length ? await prisma.match.findMany({ where: { matchId: { in: ids } }, select: { matchId: true, data: true } }) : [];
-	const matches = new Map(rows.map((row) => [row.matchId, row.data as unknown as Match]));
-	for (const id of ids.filter((id) => !matches.has(id)).slice(0, MATCH_FETCH_CAP)) {
+	const own = (match: Match): Match => ({ ...match, info: { ...match.info, participants: match.info.participants.filter((p) => p.puuid === puuid) } });
+	const uncached = ids.filter((id) => !state.matches.has(id));
+	const rows = uncached.length ? await prisma.match.findMany({ where: { matchId: { in: uncached } }, select: { matchId: true, data: true } }) : [];
+	for (const row of rows) state.matches.set(row.matchId, own(row.data as unknown as Match));
+	for (const id of ids.filter((id) => !state.matches.has(id)).slice(0, MATCH_FETCH_CAP)) {
 		const fetched = await riot(() => fetchAndStoreMatch(id));
-		if (fetched) matches.set(id, fetched);
+		if (fetched) state.matches.set(id, own(fetched));
 	}
+	for (const id of state.matches.keys()) if (!ids.includes(id)) state.matches.delete(id);
 
-	const all = sessionGames([...matches.values()], puuid, queueId, query.since ?? 0);
+	const all = sessionGames(ids.flatMap((id) => state.matches.get(id) ?? []), puuid, queueId, query.since ?? 0);
 	const games = season ? all : query.since === undefined ? autoSession(all, now, AUTO_SESSION_GAP_MS) : all;
 	const sessionWins = games.filter((g) => g.win).length;
 	const record = season

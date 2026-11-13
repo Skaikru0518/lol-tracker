@@ -115,6 +115,20 @@ describe("buildWidgetData", () => {
 		expect(getMatchIdsByPuuid).toHaveBeenCalledTimes(3);
 	});
 
+	it("reads stored matches once while the match ids stay the same", async () => {
+		await buildWidgetData(SLUG, { queue: "solo", live: false }, NOW);
+		const again = await buildWidgetData(SLUG, { queue: "solo", live: false }, NOW + 2 * MIN);
+		expect(prisma.match.findMany).toHaveBeenCalledTimes(1);
+		expect(fetchAndStoreMatch).toHaveBeenCalledTimes(1);
+		expect(again?.games.map((g) => g.matchId)).toEqual(["m1", "m2"]);
+
+		vi.mocked(getMatchIdsByPuuid).mockResolvedValue(["m3", "m2", "m1"]);
+		vi.mocked(prisma.match.findMany).mockResolvedValue([{ matchId: "m3", data: match("m3", NOW - 10 * MIN) }] as never);
+		const next = await buildWidgetData(SLUG, { queue: "solo", live: false }, NOW + 8 * MIN);
+		expect(prisma.match.findMany).toHaveBeenLastCalledWith(expect.objectContaining({ where: { matchId: { in: ["m3"] } } }));
+		expect(next?.games.map((g) => g.matchId)).toEqual(["m1", "m2", "m3"]);
+	});
+
 	it("checks the live game only when asked, at most every two minutes", async () => {
 		await buildWidgetData(SLUG, { queue: "solo", live: false }, NOW);
 		expect(getLiveGame).not.toHaveBeenCalled();
