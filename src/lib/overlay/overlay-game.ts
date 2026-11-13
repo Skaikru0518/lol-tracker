@@ -155,6 +155,8 @@ export async function buildOverlayGame(query: OverlayQuery, now: number = Date.n
 		gameStartTime: live.gameStartTime,
 		players: drafts,
 	};
+	// Keys of other players are never overwritten, so expired games would stay in memory
+	for (const [key, entry] of cache) if (entry.expires <= now) cache.delete(key);
 	live.participants.forEach((p) => {
 		if (isReal(p)) cache.set(p.puuid, { value, expires: now + CACHE_TTL_MS });
 	});

@@ -1,9 +1,5 @@
 "use client";
 
-// NOTE: Requires shadcn tooltip component to be installed.
-// Run: npx shadcn@latest add tooltip
-// If tooltip.tsx does not exist at @/components/ui/tooltip, install it first.
-
 import {
 	Tooltip,
 	TooltipContent,
