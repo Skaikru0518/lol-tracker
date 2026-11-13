@@ -82,5 +82,5 @@ export const ROLE_WEIGHTS: Record<Role, Record<CategoryId, number>> = {
 	JUNGLE: { laning: 10, farming: 15, combat: 20, teamfight: 20, objectives: 25, vision: 10 },
 	MIDDLE: { laning: 25, farming: 15, combat: 25, teamfight: 20, objectives: 10, vision: 5 },
 	BOTTOM: { laning: 20, farming: 25, combat: 20, teamfight: 20, objectives: 10, vision: 5 },
-	UTILITY: { laning: 15, farming: 5, combat: 15, teamfight: 30, objectives: 10, vision: 25 },
+	UTILITY: { laning: 15, farming: 5, combat: 15, teamfight: 25, objectives: 10, vision: 30 },
 };
