@@ -7,10 +7,19 @@ else
     var p = Participant;
     <div class="flex h-13 items-center gap-2 px-2 @(Side == "red" ? "flex-row-reverse" : "") @(Highlighted ? "bg-gold/10" : "")">
         <ChampionIcon DataDragon="DataDragon" ChampionName="@p.ChampionName" Size="28" Level="p.ChampLevel" />
-        @* Runes are not loaded yet, so both rune slots show their empty state *@
         <div class="flex shrink-0 flex-col gap-0.5">
-            <span class="rounded-full bg-muted" style="@Css.Square(13)"></span>
-            <span class="rounded-full bg-muted" style="@Css.Square(13)"></span>
+            @foreach (var (runeId, i) in new[] { p.Keystone, p.SecondaryStyle }.Select((id, i) => (id, i)))
+            {
+                var src = DataDragon.RuneIcon(runeId);
+                if (src is null)
+                {
+                    <span class="rounded-full bg-muted" style="@Css.Square(13)"></span>
+                }
+                else
+                {
+                    <img src="@src" alt="" width="13" height="13" style="@Css.Square(13)" class="rounded-full @(i == 0 ? "bg-black/40" : "")" />
+                }
+            }
         </div>
         <div class="@NameColumn @(Side == "red" ? "text-right" : "")">
             <a href="/summoner/@Format.SummonerSlug(p.RiotIdGameName, p.RiotIdTagline)"

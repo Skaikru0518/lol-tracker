@@ -30,5 +30,15 @@ public record RiotParticipant(
     int Item5,
     int Item6,
     int Summoner1Id,
-    int Summoner2Id
-);
+    int Summoner2Id,
+    RiotPerks Perks
+)
+{
+    // Arena and some modes send fewer rune styles, so missing entries mean "no rune" rather than an error
+    public int Keystone => Perks?.Styles?.ElementAtOrDefault(0)?.Selections?.ElementAtOrDefault(0)?.Perk ?? 0;
+    public int SecondaryStyle => Perks?.Styles?.ElementAtOrDefault(1)?.Style ?? 0;
+}
+
+public record RiotPerks(List<RiotPerkStyle> Styles);
+public record RiotPerkStyle(int Style, List<RiotPerkSelection> Selections);
+public record RiotPerkSelection(int Perk);

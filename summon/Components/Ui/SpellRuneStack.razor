@@ -14,15 +14,26 @@
             <img src="@src" alt="@name" title="@name" width="@Size" height="@Size" style="@Css.Square(Size)" class="rounded" />
         }
     }
-    @* Runes are not loaded yet, so both rune slots show their empty state *@
-    <span class="rounded-full bg-muted" style="@Css.Square(Size)"></span>
-    <span class="rounded-full bg-muted" style="@Css.Square(Size)"></span>
+    @foreach (var runeId in new[] { Keystone, SecondaryStyle })
+    {
+        var src = DataDragon.RuneIcon(runeId);
+        if (src is null)
+        {
+            <span class="rounded-full bg-muted" style="@Css.Square(Size)"></span>
+        }
+        else
+        {
+            <img src="@src" alt="" width="@Size" height="@Size" style="@Css.Square(Size)" class="rounded-full bg-black/40 p-px" />
+        }
+    }
 </div>
 
 @code {
     [Parameter, EditorRequired] public required DataDragonData DataDragon { get; set; }
     [Parameter, EditorRequired] public int Spell1 { get; set; }
     [Parameter, EditorRequired] public int Spell2 { get; set; }
+    [Parameter] public int Keystone { get; set; }
+    [Parameter] public int SecondaryStyle { get; set; }
     [Parameter] public int Size { get; set; } = 18;
     // Replaces "grid" instead of being appended, since nothing merges conflicting classes here
     [Parameter] public string Display { get; set; } = "grid";

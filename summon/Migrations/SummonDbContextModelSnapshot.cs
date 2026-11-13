@@ -99,7 +99,13 @@ namespace summon.Migrations
                         .IsRequired()
                         .HasColumnType("integer[]");
 
+                    b.Property<int>("Keystone")
+                        .HasColumnType("integer");
+
                     b.Property<int>("Kills")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("SecondaryStyle")
                         .HasColumnType("integer");
 
                     b.Property<int>("Spell1")

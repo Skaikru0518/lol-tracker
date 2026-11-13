@@ -7,7 +7,7 @@ using summon.Riot;
 namespace summon.Accounts;
 
 public record MatchRow(string MatchId, string ChampionName, bool Win, int Kills, int Deaths, int Assists, int Cs, int QueueId, long GameCreation, int GameDuration,
-    int[] Items, int Spell1, int Spell2, int TeamKills, int ChampionLevel);
+    int[] Items, int Spell1, int Spell2, int TeamKills, int ChampionLevel, int Keystone, int SecondaryStyle);
 
 public class MatchService(SummonDbContext db, RiotClient riot)
 {
@@ -29,7 +29,7 @@ public class MatchService(SummonDbContext db, RiotClient riot)
             .Take(Count)
             // Teammates share the win flag, so it stands in for the team id we do not store
             .Select(p => new MatchRow(p.MatchId, p.ChampionName, p.Win, p.Kills, p.Deaths, p.Assists, p.Cs, p.Match.QueueId, p.Match.GameCreation, p.Match.GameDuration,
-                p.Items, p.Spell1, p.Spell2, p.Match.Participants.Where(o => o.Win == p.Win).Sum(o => o.Kills), p.ChampLevel))
+                p.Items, p.Spell1, p.Spell2, p.Match.Participants.Where(o => o.Win == p.Win).Sum(o => o.Kills), p.ChampLevel, p.Keystone, p.SecondaryStyle))
             .ToListAsync(ct);
     }
 
@@ -68,6 +68,8 @@ public class MatchService(SummonDbContext db, RiotClient riot)
                 Assists = p.Assists,
                 Cs = p.TotalMinionsKilled + p.NeutralMinionsKilled,
                 ChampLevel = p.ChampLevel,
+                Keystone = p.Keystone,
+                SecondaryStyle = p.SecondaryStyle,
                 Items = [p.Item0, p.Item1, p.Item2, p.Item3, p.Item4, p.Item5, p.Item6],
                 Spell1 = p.Summoner1Id,
                 Spell2 = p.Summoner2Id,

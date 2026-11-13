@@ -1,4 +1,4 @@
-﻿namespace summon.Data;
+namespace summon.Data;
 
 public class MatchParticipant
 {
@@ -14,6 +14,8 @@ public class MatchParticipant
     public int Spell1 { get; set; }
     public int Spell2 { get; set; }
     public int ChampLevel { get; set; }
+    public int Keystone { get; set; }
+    public int SecondaryStyle { get; set; }
 
     public Match Match { get; set; } = null!;
 }

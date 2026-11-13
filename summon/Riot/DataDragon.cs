@@ -5,7 +5,11 @@ namespace summon.Riot;
 
 public record SummonerSpellInfo(string Image, string Name);
 
-public record DataDragonData(string Version, IReadOnlyDictionary<int, SummonerSpellInfo> Spells, IReadOnlyDictionary<int, string> ChampionIds)
+public record DataDragonData(
+    string Version,
+    IReadOnlyDictionary<int, SummonerSpellInfo> Spells,
+    IReadOnlyDictionary<int, string> ChampionIds,
+    IReadOnlyDictionary<int, string> RuneIcons)
 {
     // Match data spells some champions differently from Data Dragon's file names
     private static readonly Dictionary<string, string> NameFixes = new() { ["FiddleSticks"] = "Fiddlesticks" };
@@ -24,6 +28,9 @@ public record DataDragonData(string Version, IReadOnlyDictionary<int, SummonerSp
         Spells.TryGetValue(spellId, out var spell) ? $"{DataDragon.Cdn}/{Version}/img/spell/{spell.Image}" : null;
 
     public string? SpellName(int spellId) => Spells.GetValueOrDefault(spellId)?.Name;
+
+    /// <summary>Icon of a rune or a rune tree; both share one id space.</summary>
+    public string? RuneIcon(int id) => RuneIcons.TryGetValue(id, out var icon) ? $"{DataDragon.Cdn}/img/{icon}" : null;
 }
 
 public class DataDragon(HttpClient http, IMemoryCache cache)
@@ -36,13 +43,20 @@ public class DataDragon(HttpClient http, IMemoryCache cache)
             entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(6);
             var versions = await http.GetFromJsonAsync<List<string>>("https://ddragon.leagueoflegends.com/api/versions.json", ct);
             var version = versions![0];
+
             var summoner = await http.GetFromJsonAsync<SummonerFile>($"{Cdn}/{version}/data/en_US/summoner.json", ct);
             var spells = summoner!.Data.Values.ToDictionary(spell => int.Parse(spell.Key), spell => new SummonerSpellInfo(spell.Image.Full, spell.Name));
 
             var champion = await http.GetFromJsonAsync<ChampionFile>($"{Cdn}/{version}/data/en_US/champion.json", ct);
             var championIds = champion!.Data.Values.ToDictionary(c => int.Parse(c.Key), c => c.Id);
 
-            return new DataDragonData(version, spells, championIds);
+            var trees = await http.GetFromJsonAsync<List<RuneTree>>($"{Cdn}/{version}/data/en_US/runesReforged.json", ct);
+            var runeIcons = trees!
+                .Select(tree => (tree.Id, tree.Icon))
+                .Concat(trees!.SelectMany(tree => tree.Slots).SelectMany(slot => slot.Runes).Select(rune => (rune.Id, rune.Icon)))
+                .ToDictionary(r => r.Id, r => r.Icon);
+
+            return new DataDragonData(version, spells, championIds, runeIcons);
         }))!;
 
     private record SummonerFile(Dictionary<string, SummonerSpell> Data);
@@ -50,6 +64,14 @@ public class DataDragon(HttpClient http, IMemoryCache cache)
     private record SummonerSpell(string Key, string Name, SpellImage Image);
 
     private record SpellImage(string Full);
+
     private record ChampionFile(Dictionary<string, ChampionEntry> Data);
+
     private record ChampionEntry(string Id, string Key);
+
+    private record RuneTree(int Id, string Icon, List<RuneSlot> Slots);
+
+    private record RuneSlot(List<RuneEntry> Runes);
+
+    private record RuneEntry(int Id, string Icon);
 }
