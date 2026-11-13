@@ -1,0 +1,131 @@
+@using System.Net
+@using summon.Accounts
+@using summon.Data
+@inject IServiceScopeFactory ScopeFactory
+
+@if (notFound)
+{
+    <div class="mx-auto max-w-7xl px-4 py-10 sm:px-6">
+        <h1 class="text-2xl font-bold">Summoner not found</h1>
+        <p class="mt-2 text-sm text-muted-foreground">No Riot ID matches "@Slug".</p>
+    </div>
+}
+else if (failed && account is null)
+{
+    @* shortcut: the original shows its error screen here; switch when that page exists *@
+    <div class="mx-auto max-w-7xl px-4 py-10 sm:px-6">
+        <h1 class="text-2xl font-bold">Riot could not be reached</h1>
+        <p class="mt-2 text-sm text-muted-foreground">Try again in a moment.</p>
+    </div>
+}
+else
+{
+    @if (account is not null)
+    {
+        <SummonerHero Account="account" Ranked="ranked" Summoner="summoner" DataDragon="dataDragon" SplashChampion="@splashChampion"
+                      Refreshing="refreshing" OnRefresh="RefreshAsync" />
+    }
+    <div class="mx-auto max-w-7xl px-4 sm:px-6">
+        <div class="py-4 lg:py-6">
+            <div class="grid gap-4 lg:grid-cols-[330px_minmax(0,1fr)]">
+                <div class="space-y-4">
+                    @foreach (var queueType in Ranks.QueueTypes)
+                    {
+                        if (ranked is null)
+                        {
+                            <Skeleton Class="h-36" />
+                        }
+                        else
+                        {
+                            <RankedPanel QueueType="@queueType" Entry="@ranked.FirstOrDefault(e => e.QueueType == queueType)" />
+                        }
+                    }
+                </div>
+                <div class="min-w-0 space-y-4">
+                    <MatchList Games="games" DataDragon="dataDragon" Puuid="@(account?.Puuid ?? "")" />
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public required string Slug { get; set; }
+
+    private Account? account;
+    private bool notFound;
+    private bool failed;
+    private bool refreshing;
+    private List<RankedEntry>? ranked;
+    private List<MatchRow>? games;
+    private DataDragonData? dataDragon;
+    private RiotSummoner? summoner;
+    private string? splashChampion;
+
+    protected override Task OnInitializedAsync() => LoadAsync();
+
+    private async Task RefreshAsync()
+    {
+        if (refreshing) return;
+        refreshing = true;
+        StateHasChanged();
+        try
+        {
+            await LoadAsync();
+        }
+        finally
+        {
+            refreshing = false;
+        }
+    }
+
+    // Fields are replaced as each piece arrives and never cleared, so a refresh keeps showing the old data instead of skeletons
+    private async Task LoadAsync()
+    {
+        var separator = Slug.LastIndexOf('-');
+        if (separator <= 0 || separator == Slug.Length - 1)
+        {
+            notFound = true;
+            return;
+        }
+
+        // This component lives as long as the circuit, so each load gets its own scope (and DbContext) like a request would
+        await using var scope = ScopeFactory.CreateAsyncScope();
+        var accounts = scope.ServiceProvider.GetRequiredService<AccountService>();
+        var rankedService = scope.ServiceProvider.GetRequiredService<RankedService>();
+        var matchService = scope.ServiceProvider.GetRequiredService<MatchService>();
+        var dataDragonService = scope.ServiceProvider.GetRequiredService<DataDragon>();
+
+        try
+        {
+            var loaded = await accounts.AccountAsync(Slug[..separator], Slug[(separator + 1)..]);
+            if (loaded is null)
+            {
+                notFound = true;
+                return;
+            }
+
+            account = loaded;
+            dataDragon = await dataDragonService.GetAsync();
+            summoner = await accounts.SummonerAsync(loaded);
+            var topChampionId = await accounts.TopChampionIdAsync(loaded);
+            splashChampion = topChampionId is { } id ? dataDragon.ChampionIds.GetValueOrDefault(id) : null;
+            StateHasChanged();
+
+            ranked = loaded.Platform is null ? [] : await rankedService.GetAsync(loaded) ?? [];
+            StateHasChanged();
+
+            games = await matchService.GetRecentAsync(loaded);
+            failed = false;
+        }
+        catch (HttpRequestException e) when (e.StatusCode == HttpStatusCode.NotFound && account is null)
+        {
+            notFound = true;
+        }
+        catch (HttpRequestException)
+        {
+            // An exception here would end the circuit; a failed refresh keeps the data already on screen
+            failed = true;
+        }
+    }
+}

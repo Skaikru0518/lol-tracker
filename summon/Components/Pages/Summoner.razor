@@ -1,96 +1,20 @@
 ﻿@page "/summoner/{Slug}"
-@attribute [StreamRendering]
-@using System.Net
-@using summon.Accounts
-@using summon.Data
-@inject AccountService Accounts
-@inject RankedService Ranked
-@inject MatchService Games
-@inject DataDragon DataDragon
 
-<PageTitle>@(account is null ? "Summoner" : $"{account.GameName}#{account.TagLine}") | Summon.gg</PageTitle>
+<PageTitle>@RiotId | Summon.gg</PageTitle>
 
-@if (notFound)
-{
-    <div class="mx-auto max-w-7xl px-4 py-10 sm:px-6">
-        <h1 class="text-2xl font-bold">Summoner not found</h1>
-        <p class="mt-2 text-sm text-muted-foreground">No Riot ID matches "@Slug".</p>
-    </div>
-}
-else
-{
-    @if (account is not null)
-    {
-        <SummonerHero Account="account" Ranked="ranked" Summoner="summoner" DataDragon="dataDragon" SplashChampion="@splashChampion"/>
-    }
-    <div class="mx-auto max-w-7xl px-4 sm:px-6">
-        <div class="py-4 lg:py-6">
-            <div class="grid gap-4 lg:grid-cols-[330px_minmax(0,1fr)]">
-                <div class="space-y-4">
-                    @foreach (var queueType in Ranks.QueueTypes)
-                    {
-                        if (ranked is null)
-                        {
-                            <Skeleton Class="h-36" />
-                        }
-                        else
-                        {
-                            <RankedPanel QueueType="@queueType" Entry="@ranked.FirstOrDefault(e => e.QueueType == queueType)" />
-                        }
-                    }
-                </div>
-                <div class="min-w-0 space-y-4">
-                    <MatchList Games="games" DataDragon="dataDragon" Puuid="@(account?.Puuid ?? "")" />
-                </div>
-            </div>
-        </div>
-    </div>
-}
+@* Interactive so the Update button can reload the data in place; no prerender, or every Riot call would run twice *@
+<SummonerProfile Slug="@Slug" @rendermode="@(new InteractiveServerRenderMode(prerender: false))" />
 
 @code {
     [Parameter] public required string Slug { get; set; }
 
-    private Account? account;
-    private bool notFound;
-    private List<RankedEntry>? ranked;
-    private List<MatchRow>? games;
-    private DataDragonData? dataDragon;
-    private RiotSummoner? summoner;
-    private string? splashChampion;
-
-    protected override async Task OnInitializedAsync()
+    // The interactive profile cannot set the static page title, so it comes from the URL
+    private string RiotId
     {
-        var separator = Slug.LastIndexOf('-');
-        if (separator <= 0 || separator == Slug.Length - 1)
+        get
         {
-            notFound = true;
-            return;
-        }
-
-        try
-        {
-            account = await Accounts.AccountAsync(Slug[..separator], Slug[(separator + 1)..]);
-            if (account is null)
-            {
-                notFound = true;
-                return;
-            }
-            // Each step streams to the browser, so the hero and panels appear while the match list still loads
-            dataDragon = await DataDragon.GetAsync();
-            summoner = await Accounts.SummonerAsync(account);
-            var topChampionId = await Accounts.TopChampionIdAsync(account);
-            splashChampion = topChampionId is { } id ? dataDragon.ChampionIds.GetValueOrDefault(id) : null;
-            StateHasChanged();
-
-            ranked = account.Platform is null ? [] : await Ranked.GetAsync(account) ?? [];
-            StateHasChanged();
-
-
-            games = await Games.GetRecentAsync(account);
-        }
-        catch (HttpRequestException e) when (e.StatusCode == HttpStatusCode.NotFound)
-        {
-            notFound = true;
+            var separator = Slug.LastIndexOf('-');
+            return separator > 0 ? $"{Slug[..separator]}#{Slug[(separator + 1)..]}" : "Summoner";
         }
     }
 }

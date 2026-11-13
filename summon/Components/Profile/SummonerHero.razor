@@ -15,7 +15,7 @@
             <h1 class="flex flex-wrap items-center gap-2 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
                 <span class="truncate">@Account.GameName</span>
                 <span class="text-base font-medium text-muted-foreground sm:text-lg">#@Account.TagLine</span>
-                <CopyRiotId RiotId="@($"{Account.GameName}#{Account.TagLine}")" @rendermode="InteractiveServer"/>
+                <CopyRiotId RiotId="@($"{Account.GameName}#{Account.TagLine}")" />
             </h1>
             <p class="text-sm text-muted-foreground">@PlatformLabel</p>
             <div class="mt-2 flex flex-wrap gap-1.5">
@@ -31,6 +31,9 @@
                 }
             </div>
         </div>
+        <div class="flex flex-wrap items-center gap-2">
+            <RefreshButton Refreshing="Refreshing" OnRefresh="OnRefresh" />
+        </div>
     </div>
 </HeroBanner>
 
@@ -40,6 +43,8 @@
     [Parameter] public RiotSummoner? Summoner { get; set; }
     [Parameter] public DataDragonData? DataDragon { get; set; }
     [Parameter] public string? SplashChampion { get; set; }
+    [Parameter] public bool Refreshing { get; set; }
+    [Parameter] public EventCallback OnRefresh { get; set; }
 
     private string PlatformLabel => Account.Platform switch
     {
