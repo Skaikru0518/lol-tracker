@@ -33,11 +33,6 @@
     </button>
 </form>
 
-@if (error is not null)
-{
-    @* shortcut: the original shows this as a toast; switch when toasts exist *@
-    <p class="text-sm text-loss">@error</p>
-}
 
 @code {
     [Parameter] public bool HeroSurface { get; set; }
@@ -76,7 +71,6 @@
     private string debounced = "";
     private bool focused;
     private bool locating;
-    private string? error;
     private DataDragonData? dataDragon;
 
     // Suggestions: one query per typing pause, cached per query for a minute; rows of an earlier query stay (dimmed) until the new ones arrive
@@ -182,7 +176,7 @@
     {
         if (SearchQuery.ParseRiotId(input) is not { } riotId)
         {
-            error = "Use format: GameName#TAG";
+            await ToastErrorAsync("Use format: GameName#TAG");
             return;
         }
         await GoAsync(riotId.GameName, riotId.TagLine, null);
@@ -195,7 +189,6 @@
     {
         focused = false;
         locating = true;
-        error = null;
         StateHasChanged();
         try
         {
@@ -209,7 +202,7 @@
         catch (Exception e)
         {
             Logger.LogError(e, "Summoner search failed for {GameName}#{TagLine}", gameName, tagLine);
-            error = "Search is unavailable right now. Try again in a moment.";
+            await ToastErrorAsync("Search is unavailable right now. Try again in a moment.");
         }
         finally
         {
@@ -228,6 +221,18 @@
         catch (JSException)
         {
             // Storage can be blocked; the search itself goes on
+        }
+    }
+
+    private async Task ToastErrorAsync(string message)
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("summonToast.error", message);
+        }
+        catch (JSException)
+        {
+            // Without the script there is no toast; the search simply did not go anywhere
         }
     }
 

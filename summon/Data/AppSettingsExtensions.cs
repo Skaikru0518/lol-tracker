@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Npgsql;
 
 namespace summon.Data;
@@ -16,4 +17,25 @@ public static class AppSettingsExtensions
             ON CONFLICT ("Key") DO UPDATE SET "Value" = excluded."Value", "UpdatedAt" = excluded."UpdatedAt"
             """,
             [new NpgsqlParameter("key", key), new NpgsqlParameter("value", value)], ct);
+}
+
+/// <summary>The site-wide maintenance switch the original reads on every page.</summary>
+public static class Maintenance
+{
+    public const string Key = "MAINTENANCE_MODE";
+
+    /// <summary>On when the setting is "true"; a missing row or an unreadable database also counts as maintenance, like the original.</summary>
+    public static async Task<bool> IsOnAsync(SummonDbContext db, ILogger logger, CancellationToken ct = default)
+    {
+        try
+        {
+            var value = await db.GetSettingAsync(Key, ct);
+            return value is null || value == "true";
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, "Reading {Key} failed", Key);
+            return true;
+        }
+    }
 }

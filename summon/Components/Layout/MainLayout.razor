@@ -1,9 +1,19 @@
 ﻿@inherits LayoutComponentBase
+@using summon.Data
 @inject DataDragon DataDragon
+@inject SummonDbContext Db
+@inject ILogger<MainLayout> Logger
 
 @* The default description and robots; a page with its own PageMeta replaces them *@
 <PageMeta />
 
+@* Nothing renders until the maintenance switch is read, so no page starts loading behind the maintenance screen *@
+@if (maintenance is true)
+{
+    <MaintenanceScreen />
+}
+else if (maintenance is false)
+{
 <header class="fixed inset-x-0 top-0 z-40 h-14 border-b bg-nav/90 backdrop-blur">
     <div class="mx-auto flex h-full max-w-7xl items-center gap-4 px-4 sm:px-6">
         <a href="/" class="shrink-0 text-lg">
@@ -33,12 +43,16 @@
         </p>
     </div>
 </footer>
+}
 
 @code {
     private string? version;
+    private bool? maintenance;
 
     protected override async Task OnInitializedAsync()
     {
+        maintenance = await Maintenance.IsOnAsync(Db, Logger);
+        if (maintenance is true) return;
         try
         {
             version = (await DataDragon.GetAsync()).Version;

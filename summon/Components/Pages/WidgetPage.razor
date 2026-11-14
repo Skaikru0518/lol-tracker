@@ -1,6 +1,9 @@
-@page "/widget/{Slug}"
+﻿@page "/widget/{Slug}"
 @layout WidgetLayout
+@using summon.Data
 @inject NavigationManager Navigation
+@inject SummonDbContext Db
+@inject ILogger<WidgetPage> Logger
 
 <PageTitle>Stream widget | Summon.gg</PageTitle>
 <HeadContent>
@@ -8,15 +11,21 @@
 </HeadContent>
 
 @* Interactive so it refreshes itself; no prerender, so the first frame on stream is already the real widget *@
-<LiveWidget Slug="@Slug" Options="options" @rendermode="@(new InteractiveServerRenderMode(prerender: false))" />
+@* During maintenance the widget simply disappears from the stream instead of showing a maintenance screen *@
+@if (maintenance is false)
+{
+    <LiveWidget Slug="@Slug" Options="options" @rendermode="@(new InteractiveServerRenderMode(prerender: false))" />
+}
 
 @code {
     [Parameter] public required string Slug { get; set; }
 
     private WidgetOptions options = WidgetLogic.Default;
+    private bool? maintenance;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
+        maintenance = await Maintenance.IsOnAsync(Db, Logger);
         var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(new Uri(Navigation.Uri).Query);
         options = WidgetLogic.ParseOptions(key => query.TryGetValue(key, out var values) ? values.FirstOrDefault() : null);
     }

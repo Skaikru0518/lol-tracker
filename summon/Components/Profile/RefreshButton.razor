@@ -1,4 +1,5 @@
-@implements IDisposable
+﻿@implements IDisposable
+@inject IJSRuntime JS
 
 <div class="flex items-center gap-2">
     <span class="font-mono text-xs tabular-nums text-muted-foreground">@(secondsLeft / 60):@((secondsLeft % 60).ToString("00"))</span>
@@ -65,6 +66,15 @@
     private async Task Refresh()
     {
         await OnRefresh.InvokeAsync();
+        // Only a click confirms; the five-minute automatic refresh stays quiet, like the original
+        try
+        {
+            await JS.InvokeVoidAsync("summonToast.success", "Data refreshed");
+        }
+        catch (JSException)
+        {
+            // Without the script there is no toast
+        }
         deadline = DateTime.UtcNow.AddSeconds(IntervalSeconds);
         cooldownUntil = DateTime.UtcNow.AddSeconds(CooldownSeconds);
         secondsLeft = IntervalSeconds;

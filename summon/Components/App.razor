@@ -35,11 +35,16 @@
 </head>
 <body class="min-h-full flex flex-col font-sans scroll-smooth">
     <Routes />
+    @* Blazor shows this when an interactive part crashes: the original's error screen over the page *@
+    <div id="blazor-error-ui" class="fixed inset-0 z-[60] overflow-auto bg-background" style="display: none">
+        <ErrorContent />
+    </div>
     <script src="@Assets["_framework/blazor.web.js"]"></script>
     <script src="@Assets["tooltip.js"]"></script>
     <script src="@Assets["marquee.js"]"></script>
     <script src="@Assets["widget.js"]"></script>
     <script src="@Assets["spotlight.js"]"></script>
+    <script src="@Assets["toast.js"]"></script>
 </body>
 </html>
 

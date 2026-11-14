@@ -1,0 +1,22 @@
+@* Full-page screen shown while MAINTENANCE_MODE is on *@
+<PageTitle>Summon.gg — League of Legends Summoner Tracker</PageTitle>
+<HeroBanner SplashUrl="@DataDragonData.ChampionSplash("Heimerdinger")" ObjectPosition="center 25%" Class="min-h-screen">
+    <div class="flex min-h-screen flex-col items-center justify-center gap-5 px-4 text-center">
+        <Logo Class="text-5xl sm:text-6xl" />
+        <span class="inline-flex items-center gap-2 rounded-full border border-gold/40 bg-gold/10 px-3 py-1 text-sm font-medium text-gold">
+            <span class="size-2 rounded-full bg-gold"></span>
+            Under maintenance
+        </span>
+        <p class="max-w-md text-base text-muted-foreground">Summon.gg is getting an upgrade. We&apos;ll be back shortly.</p>
+        <div class="flex flex-wrap justify-center gap-2">
+            @foreach (var feature in Features)
+            {
+                <Panel Class="px-3 py-2 text-sm text-foreground" @key="feature">@feature</Panel>
+            }
+        </div>
+    </div>
+</HeroBanner>
+
+@code {
+    private static readonly string[] Features = ["Ranked Stats", "Match History", "Champion Mastery"];
+}

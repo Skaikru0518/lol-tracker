@@ -1,0 +1,16 @@
+@* The original's route error screen: Try again loads the page again, Go home leaves it *@
+<ErrorScreen Title="Something went wrong" Description="The Riot API or our server did not respond. It usually works again in a moment.">
+    <div class="flex gap-2">
+        <button type="button" data-slot="button" class="@Primary" onclick="location.reload()">Try again</button>
+        <a href="/" data-slot="button" class="@Outline">Go home</a>
+    </div>
+</ErrorScreen>
+
+@code {
+    // The shadcn default and outline Button classes
+    private const string Base =
+        "group/button inline-flex shrink-0 items-center justify-center rounded-md border border-transparent bg-clip-padding text-xs/relaxed font-medium whitespace-nowrap transition-all outline-none select-none " +
+        "focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 active:translate-y-px h-7 gap-1 px-2 ";
+    private const string Primary = Base + "bg-primary text-primary-foreground hover:bg-primary/80";
+    private const string Outline = Base + "border-border hover:bg-input/50 hover:text-foreground dark:bg-input/30";
+}

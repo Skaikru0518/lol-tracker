@@ -73,7 +73,7 @@
         </div>
         <div class="flex min-w-0 gap-2">
             <code class="min-w-0 flex-1 truncate rounded-md border bg-secondary px-2.5 py-1.5 text-xs">@Url</code>
-            <button type="button" data-slot="button" class="@CopyButton" @onclick="CopyAsync">@(copied ? "Copied" : "Copy URL")</button>
+            <button type="button" data-slot="button" class="@CopyButton" @onclick="CopyAsync">Copy URL</button>
             <a href="@Url" target="_blank" rel="noreferrer" data-slot="button" class="@OpenButton">Open</a>
         </div>
         <p class="text-xs leading-relaxed text-muted-foreground">
@@ -110,7 +110,6 @@
     private (WidgetData Data, bool Sample)? preview;
     private DataDragonData? dataDragon;
     private bool failed;
-    private bool copied;
     // Real data per queue and record choice, kept for a minute like the original's query cache
     private readonly Dictionary<string, (WidgetData Data, DateTime At)> loaded = [];
 
@@ -188,11 +187,7 @@
         try
         {
             await JS.InvokeVoidAsync("navigator.clipboard.writeText", Url);
-            // shortcut: the original confirms with a toast; switch when toasts exist
-            copied = true;
-            StateHasChanged();
-            await Task.Delay(2000);
-            copied = false;
+            await JS.InvokeVoidAsync("summonToast.success", "Widget URL copied");
         }
         catch (JSException)
         {
