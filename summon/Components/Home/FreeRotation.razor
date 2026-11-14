@@ -1,0 +1,62 @@
+@using summon.Home
+@inject IServiceScopeFactory ScopeFactory
+@inject ILogger<FreeRotation> Logger
+
+@* This week's free champions as icons with their names on hover *@
+<Panel>
+    <PanelHeader Title="Free rotation" />
+    @if (failed)
+    {
+        <EmptyState Title="Rotation unavailable" Description="This week's free champions could not be loaded." />
+    }
+    else if (dataDragon is null)
+    {
+        <PanelBody Class="grid grid-cols-5 gap-2">
+            @for (var i = 0; i < 10; i++)
+            {
+                <Skeleton Class="aspect-square" />
+            }
+        </PanelBody>
+    }
+    else if (champions.Count == 0)
+    {
+        <EmptyState Title="No free champions listed" Description="Riot returned an empty rotation." />
+    }
+    else
+    {
+        <PanelBody Class="grid grid-cols-5 gap-2">
+            @foreach (var champion in champions)
+            {
+                <Tooltip Text="@dataDragon.ChampionName(champion)" @key="champion">
+                    <span class="cursor-pointer">
+                        <ChampionIcon DataDragon="dataDragon" ChampionName="@champion" Size="44" Class="w-full" />
+                    </span>
+                </Tooltip>
+            }
+        </PanelBody>
+    }
+</Panel>
+
+@code {
+    private bool failed;
+    private DataDragonData? dataDragon;
+    private List<string> champions = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            // Its own scope: the home sections load side by side and a DbContext runs one query at a time
+            await using var scope = ScopeFactory.CreateAsyncScope();
+            var ids = await scope.ServiceProvider.GetRequiredService<HomeService>().RotationAsync();
+            var loaded = await scope.ServiceProvider.GetRequiredService<DataDragon>().GetAsync();
+            champions = HomeFeeds.RotationChampions(ids, loaded);
+            dataDragon = loaded;
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e, "Free rotation failed");
+            failed = true;
+        }
+    }
+}

@@ -1,0 +1,77 @@
+@using summon.Accounts
+@using summon.Search
+@inject IServiceScopeFactory ScopeFactory
+@inject ILogger<RecentlySearched> Logger
+
+@* Last summoners anyone looked up, with profile icon and solo rank, linking to their profiles *@
+<Panel>
+    <PanelHeader Title="Recently searched">
+        <Actions><span class="text-xs text-muted-foreground">all users</span></Actions>
+    </PanelHeader>
+    @if (loading)
+    {
+        <div class="space-y-2 p-3">
+            @for (var i = 0; i < 5; i++)
+            {
+                <Skeleton Class="h-9" />
+            }
+        </div>
+    }
+    else if (failed)
+    {
+        <EmptyState Title="Couldn't load recent searches" Description="Try again in a moment." />
+    }
+    else if (recent.Count == 0)
+    {
+        <EmptyState Title="No searches yet" Description="Profiles show up here once someone looks them up." />
+    }
+    else
+    {
+        <ul class="divide-y divide-border/50">
+            @foreach (var r in recent)
+            {
+                <li @key="r.Puuid">
+                    <a href="/summoner/@Format.SummonerSlug(r.GameName, r.TagLine)" class="flex items-center gap-3 px-4 py-2 transition-colors hover:bg-accent/40">
+                        @if (dataDragon is not null && r.ProfileIconId is { } icon)
+                        {
+                            <img src="@dataDragon.ProfileIcon(icon)" alt="" width="28" height="28" class="size-7 rounded-md" />
+                        }
+                        else
+                        {
+                            <span class="size-7 rounded-md bg-muted"></span>
+                        }
+                        <span class="min-w-0 flex-1 truncate text-sm font-medium text-foreground">
+                            @r.GameName<span class="text-muted-foreground">#@r.TagLine</span>
+                            <span class="ml-1.5 text-3xs font-semibold text-muted-foreground">@(Platforms.ByHost(r.Platform)?.Label ?? r.Platform.ToUpperInvariant())</span>
+                        </span>
+                        <span class="text-xs font-medium" style="@(r.SoloTier is null ? null : $"color: {Ranks.Color(r.SoloTier)}")">@SearchQuery.RankLabel(r)</span>
+                    </a>
+                </li>
+            }
+        </ul>
+    }
+</Panel>
+
+@code {
+    private bool loading = true;
+    private bool failed;
+    private List<SearchSuggestion> recent = [];
+    private DataDragonData? dataDragon;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            // Its own scope: the home sections load side by side and a DbContext runs one query at a time
+            await using var scope = ScopeFactory.CreateAsyncScope();
+            recent = await scope.ServiceProvider.GetRequiredService<AccountService>().RecentAsync();
+            dataDragon = await scope.ServiceProvider.GetRequiredService<DataDragon>().GetAsync();
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e, "Recent searches failed");
+            failed = true;
+        }
+        loading = false;
+    }
+}

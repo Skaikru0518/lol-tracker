@@ -1,0 +1,678 @@
+[
+	{
+		"slug": "2026-10-13",
+		"title": "Performance Scores",
+		"date": "2026-10-13",
+		"summary": "Every ranked game now gets a 0–100 performance score with a grade, compared with players in the same role.",
+		"changes": [
+			{
+				"category": "feature",
+				"title": "Performance score",
+				"description": "Ranked games show a score on the match list. The match page has a Performance tab with grades for laning, farming, combat, teamfight, objectives and vision, the stats behind each, and how you did against your lane opponent."
+			}
+		]
+	},
+	{
+		"slug": "2026-10-11",
+		"title": "Milestones and Seasons",
+		"date": "2026-10-11",
+		"summary": "Achievements now come in three layers: permanent milestones with Bronze to Platinum tiers, a list for each ranked season, and the Current form from your latest games.",
+		"changes": [
+			{
+				"category": "feature",
+				"title": "Milestones",
+				"description": "Twenty-four all-time milestones such as Veteran, Pentakiller, Ward Keeper, Champion Pool and Peak Rank, each with four tiers, a progress bar, the date you reached each tier and how rare it is among tracked players."
+			},
+			{
+				"category": "feature",
+				"title": "Season achievements",
+				"description": "Sixteen achievements per ranked season, from Season Grinder and Hot Streak to Role Swap, Comeback Kid and Season Peak. Earned ones stay for the season, and past seasons are kept."
+			},
+			{
+				"category": "improvement",
+				"title": "Profile highlights",
+				"description": "The profile overview shows your three best milestones next to your current form."
+			},
+			{
+				"category": "feature",
+				"title": "Win rate by time",
+				"description": "The LP History tab has a heatmap of your ranked win rate by weekday and three-hour slot in Budapest time, with your best and worst slots, for the selected range."
+			}
+		]
+	},
+	{
+		"slug": "2026-10-10",
+		"title": "The Big Redesign",
+		"date": "2026-10-10",
+		"summary": "Summon.gg has a new look modelled on League of Graphs: a new profile with tabs, a full match page, Ranked 5s support, LP history and a cleaner home page.",
+		"changes": [
+			{
+				"category": "design",
+				"title": "New profile layout",
+				"description": "Profiles open on a champion splash hero with rank chips and tabs for Overview, Champions, LP History and Achievements. The overview pairs a stat column (ranked cards, roles, most played) with a compact match list that expands into a mirrored 5v5 scoreboard."
+			},
+			{
+				"category": "design",
+				"title": "Match detail page",
+				"description": "Every match has its own page: scoreboard with ranks, runes, badges and bans, player comparison bars, gold, kills and CS charts, and per-player tabs for overview, fighting, farming, objectives and vision."
+			},
+			{
+				"category": "feature",
+				"title": "Ranked 5s",
+				"description": "Ranked 5s ranks, LP history and games are tracked next to Solo and Flex, with their own rank card and filters."
+			},
+			{
+				"category": "feature",
+				"title": "LP history tab",
+				"description": "A season-long LP chart with one point per played day and a change table grouped into collapsible days."
+			},
+			{
+				"category": "feature",
+				"title": "Champions tab",
+				"description": "Per-champion stats from every stored game with mastery, plus a page per champion with its matches."
+			},
+			{
+				"category": "improvement",
+				"title": "More game modes",
+				"description": "ARAM Mayhem, Arena, URF variants, Brawl and other rotating modes are recognised and can be filtered."
+			},
+			{
+				"category": "improvement",
+				"title": "Large screens",
+				"description": "Text and icons scale up smoothly on 1440p and wider displays."
+			},
+			{
+				"category": "design",
+				"title": "Home, changelog and policy",
+				"description": "The home page shows recently searched summoners, the free rotation, the latest changes and the skins released this patch; the changelog and policy pages use the new style."
+			},
+			{
+				"category": "feature",
+				"title": "Search as you type",
+				"description": "The summoner search suggests stored summoners with their rank while you type, and offers a lookup for any full Riot ID it does not know yet."
+			},
+			{
+				"category": "improvement",
+				"title": "Ranked-only achievements",
+				"description": "Achievements and match badges now come from Ranked Solo, Flex and 5s games only, with remakes ignored. Ties no longer hand out a badge, 5s Enjoyer replaces Normal Enjoyer, and Objective Hunter counts dragons and barons."
+			}
+		]
+	},
+	{
+		"slug": "2026-04-07",
+		"title": "Match Cards Redesign",
+		"date": "2026-04-07",
+		"summary": "Complete match history card redesign with sectioned layout, LP tracking, new match badges, and refined achievement system.",
+		"changes": [
+			{
+				"category": "feature",
+				"title": "New Match Card Layout",
+				"description": "Match history cards redesigned with a sectioned layout — Victory/Defeat result block, champion identity, KDA, items, CS/min and damage stats, all separated by vertical dividers. Cleaner, more informative at a glance."
+			},
+			{
+				"category": "feature",
+				"title": "LP Change Tracking",
+				"description": "Ranked match cards now display LP gained or lost per match, calculated from LP history snapshots. Shows +/- values with color coding — green for gains, red for losses."
+			},
+			{
+				"category": "feature",
+				"title": "Badge Overflow",
+				"description": "When a player earns more than 2 badges in a match, the collapsed card shows the first 2 and a +X indicator. Expand the card to see all badges."
+			},
+			{
+				"category": "feature",
+				"title": "New Match Badges",
+				"description": "Added new per-match performance badges.",
+				"table": [
+					{
+						"name": "Quadrakill",
+						"requirement": "Got a quadrakill"
+					},
+					{
+						"name": "Solo Carry",
+						"requirement": "Most kills + fewest deaths on the team (5+ kills)"
+					},
+					{
+						"name": "Healer",
+						"requirement": "Most healing on teammates (10k+)"
+					},
+					{
+						"name": "Tower Destroyer",
+						"requirement": "Most turret kills (2+)"
+					},
+					{
+						"name": "Bad Luck",
+						"requirement": "Best performer on the losing team"
+					},
+					{
+						"name": "Honorable",
+						"requirement": "MVP of the losing team (5+ K+A)"
+					},
+					{
+						"name": "Soulless",
+						"requirement": "Picked Teemo"
+					},
+					{
+						"name": "Glass Cannon",
+						"requirement": "Most damage dealt AND most deaths"
+					},
+					{
+						"name": "AFK Farmer",
+						"requirement": "200+ CS but 0 kills and 0 assists"
+					}
+				]
+			},
+			{
+				"category": "improvement",
+				"title": "Achievement Tuning",
+				"description": "Refined achievement detection windows and thresholds for better balance.",
+				"table": [
+					{
+						"name": "Untouchable",
+						"requirement": "Now checks last 5 matches (was 10)"
+					},
+					{
+						"name": "CS Machine",
+						"requirement": "Average 8+ CS/min in 25+ min games (was single match)"
+					},
+					{
+						"name": "Damage Dealer",
+						"requirement": "Average 40k+ damage (was single match)"
+					},
+					{
+						"name": "Vision Pro",
+						"requirement": "Average 60+ vision score over last 10 (was 100+ single)"
+					},
+					{
+						"name": "Meatshield",
+						"requirement": "Renamed from Tank to avoid confusion with role"
+					},
+					{
+						"name": "One Trick",
+						"requirement": "Now checks last 20 matches (was 10)"
+					},
+					{
+						"name": "Diverse Player",
+						"requirement": "5+ champions (was 7)"
+					},
+					{
+						"name": "Objective Hunter",
+						"requirement": "Average 3+ dragon kills (was single match)"
+					},
+					{
+						"name": "Queue Enjoyers",
+						"requirement": "13+ games in last 25 (was 12)"
+					}
+				]
+			},
+			{
+				"category": "improvement",
+				"title": "Match Detail Header",
+				"description": "Queue name, average lobby rank, and game duration now displayed in a single row on the match detail page. Unranked placeholder shown while rank data loads."
+			},
+			{
+				"category": "improvement",
+				"title": "Stats Filtering",
+				"description": "Overview stats (last 50 games) now exclude ARAM and Arena matches for more relevant ranked/normal statistics."
+			},
+			{
+				"category": "feature",
+				"title": "Arena Match Support",
+				"description": "Full Arena (2v2v2v2v2v2v2v2) match support. Match cards show placement (1st-8th) with color coding — gold, silver, bronze for top 3, green for 4th, red for 5th-8th. Expanded dropdown shows all 8 teams in a placement leaderboard. Match detail page renders a dedicated Arena leaderboard instead of the standard team tables."
+			}
+		]
+	},
+	{
+		"slug": "2026-04-03",
+		"title": "Achievement System",
+		"date": "2026-04-03",
+		"summary": "Players now earn dynamic achievement badges based on their recent performance, and individual match badges highlight standout plays. Layout reworked with ranked in the header and reorganized sidebars.",
+		"changes": [
+			{
+				"category": "feature",
+				"title": "Dynamic Achievement Badges",
+				"description": "A new badge system that evaluates your recent matches and awards achievements in real-time. Badges are displayed on your profile between the header and match history. They update every time your profile loads, and a background cron job keeps them fresh."
+			},
+			{
+				"category": "feature",
+				"title": "Combat Achievements",
+				"description": "Achievements based on in-game combat performance (last 10 matches).",
+				"table": [
+					{
+						"name": "Pentakill",
+						"requirement": "Got a pentakill"
+					},
+					{
+						"name": "Untouchable",
+						"requirement": "0 deaths with 3+ K+A"
+					},
+					{
+						"name": "KDA God",
+						"requirement": "Average KDA of 5+"
+					},
+					{
+						"name": "First Blood Hunter",
+						"requirement": "First blood in 5+ matches"
+					},
+					{
+						"name": "Feeder",
+						"requirement": "Averaging 10+ deaths per game"
+					}
+				]
+			},
+			{
+				"category": "feature",
+				"title": "Mastery Achievements",
+				"description": "Achievements rewarding mechanical skill and game knowledge.",
+				"table": [
+					{
+						"name": "CS Machine",
+						"requirement": "Avg 8+ CS/min in 25+ min games (last 10)"
+					},
+					{
+						"name": "Vision Pro",
+						"requirement": "100+ vision score in a match (last 5)"
+					},
+					{
+						"name": "Damage Dealer",
+						"requirement": "Avg 40k+ damage to champions (last 10)"
+					},
+					{
+						"name": "Carry",
+						"requirement": "50%+ of team damage in a match (last 10)"
+					},
+					{
+						"name": "Tank",
+						"requirement": "50k+ damage taken in a match (last 10)"
+					},
+					{
+						"name": "Objective Hunter",
+						"requirement": "Avg 3+ dragon kills (last 10)"
+					}
+				]
+			},
+			{
+				"category": "feature",
+				"title": "Playstyle Achievements",
+				"description": "Achievements reflecting your playstyle and champion pool.",
+				"table": [
+					{
+						"name": "One Trick",
+						"requirement": "70%+ of last 10 on one champion"
+					},
+					{
+						"name": "Diverse Player",
+						"requirement": "5+ different champions in last 10"
+					},
+					{
+						"name": "On Fire",
+						"requirement": "Won all of last 5 matches"
+					},
+					{
+						"name": "Tilted",
+						"requirement": "Lost all of last 5 matches"
+					}
+				]
+			},
+			{
+				"category": "feature",
+				"title": "Role Achievements",
+				"description": "Awarded based on your most played role across last 50 matches (30%+ required).",
+				"table": [
+					{
+						"name": "Top Main",
+						"requirement": "Most played role is Top"
+					},
+					{
+						"name": "Jungle Main",
+						"requirement": "Most played role is Jungle"
+					},
+					{
+						"name": "Mid Main",
+						"requirement": "Most played role is Mid"
+					},
+					{
+						"name": "ADC Main",
+						"requirement": "Most played role is ADC"
+					},
+					{
+						"name": "Support Main",
+						"requirement": "Most played role is Support"
+					}
+				]
+			},
+			{
+				"category": "feature",
+				"title": "Queue Enjoyer Achievements",
+				"description": "Achievements based on your preferred queue type (last 25 matches).",
+				"table": [
+					{
+						"name": "Solo/Duo Enjoyer",
+						"requirement": "12+ Solo/Duo games"
+					},
+					{
+						"name": "Flex Enjoyer",
+						"requirement": "12+ Flex games"
+					},
+					{
+						"name": "Normal Enjoyer",
+						"requirement": "12+ non-ranked games"
+					}
+				]
+			},
+			{
+				"category": "feature",
+				"title": "Rank Achievements",
+				"description": "Based on your current ranked tier.",
+				"table": [
+					{
+						"name": "Diamond+",
+						"requirement": "Diamond rank or above"
+					},
+					{
+						"name": "Master+",
+						"requirement": "Master, Grandmaster, or Challenger"
+					},
+					{
+						"name": "Challenger",
+						"requirement": "Challenger rank"
+					}
+				]
+			},
+			{
+				"category": "feature",
+				"title": "Match Performance Badges",
+				"description": "Per-match badges awarded to standout players. Shown on collapsed match cards and in the expanded scoreboard next to each player.",
+				"table": [
+					{
+						"name": "MVP",
+						"requirement": "Most kills + assists on the winning team"
+					},
+					{
+						"name": "Damage King",
+						"requirement": "Most damage to champions"
+					},
+					{
+						"name": "Tank God",
+						"requirement": "Most damage taken"
+					},
+					{
+						"name": "Vision King",
+						"requirement": "Highest vision score"
+					},
+					{
+						"name": "CS King",
+						"requirement": "Most CS"
+					},
+					{
+						"name": "Gold Lead",
+						"requirement": "Most gold earned"
+					},
+					{
+						"name": "CC Machine",
+						"requirement": "Most crowd control time"
+					},
+					{
+						"name": "First Blood",
+						"requirement": "Got the first kill"
+					},
+					{
+						"name": "Pentakill",
+						"requirement": "Got a pentakill"
+					},
+					{
+						"name": "Quadrakill",
+						"requirement": "Got a quadrakill"
+					},
+					{
+						"name": "Unkillable",
+						"requirement": "0 deaths with 3+ K+A"
+					},
+					{
+						"name": "Solo Carry",
+						"requirement": "Most kills + fewest deaths on the team (5+ kills)"
+					},
+					{
+						"name": "Healer",
+						"requirement": "Most healing on teammates (5k+)"
+					},
+					{
+						"name": "Tower Destroyer",
+						"requirement": "Most turret kills (2+)"
+					},
+					{
+						"name": "Bad Luck",
+						"requirement": "Best performer on the losing team"
+					}
+				]
+			},
+			{
+				"category": "feature",
+				"title": "Expandable Match Cards",
+				"description": "Click any match card to expand a mini scoreboard showing all 10 players with champion, rank, summoner spells, runes, items, badges, KDA, CS/min, gold, and damage. A link at the bottom takes you to the full match detail page."
+			},
+			{
+				"category": "improvement",
+				"title": "Layout Rework",
+				"description": "Ranked cards moved to the profile header. Left sidebar now shows Stats overview and Champion Mastery. Right sidebar has LP History, Roles, and Recently Played."
+			},
+			{
+				"category": "improvement",
+				"title": "SEO & Policy Updates",
+				"description": "Added robots.ts and dynamic sitemap.ts for better search engine indexing. Updated privacy policy with free-to-use disclaimer and GitHub contact link. Improved metadata with more keywords and OG image."
+			}
+		]
+	},
+	{
+		"slug": "2026-04-02",
+		"title": "Filter & Polish",
+		"date": "2026-04-02",
+		"summary": "Match history now supports champion filtering alongside queue type filters. Plus UI refinements across the board.",
+		"changes": [
+			{
+				"category": "feature",
+				"title": "Champion Filter in Match History",
+				"description": "A new dropdown next to the queue filters lets you narrow matches by champion. It auto-detects which champions you played and shows the game count for each. Both filters combine — e.g. Ranked Solo + Jinx."
+			},
+			{
+				"category": "improvement",
+				"title": "New Select Dropdown",
+				"description": "Replaced the native dropdown with a custom select component for a consistent look — rounded corners, smooth animations, and a scrollable list that matches the rest of the UI."
+			},
+			{
+				"category": "fix",
+				"title": "Mastery List Links Removed",
+				"description": "Top Champions entries are no longer clickable links since the champion detail page isn't ready yet. Prevents navigating to a broken route."
+			}
+		]
+	},
+	{
+		"slug": "2026-03-24",
+		"title": "Speed & Smarts",
+		"date": "2026-03-24",
+		"summary": "Major performance upgrade — pages now load almost instantly thanks to stale-while-revalidate caching and batch queries. Plus automated LP tracking runs in the background every 5 minutes.",
+		"changes": [
+			{
+				"category": "feature",
+				"title": "Stale-While-Revalidate Caching",
+				"description": "All API routes now return cached data instantly from the database, even if slightly outdated. Fresh data is fetched from Riot in the background. Removed the Next.js fetch cache layer — Prisma DB is now the sole cache, simpler and more predictable."
+			},
+			{
+				"category": "feature",
+				"title": "Automated LP Tracking",
+				"description": "An external cron job pings our API every 5 minutes to check ranked data for all tracked summoners. LP snapshots are saved automatically whenever LP changes — no need to have the page open."
+			},
+			{
+				"category": "feature",
+				"title": "Dual LP History Charts",
+				"description": "The LP History section now shows separate charts for Solo/Duo and Flex queues. Shows \"Not enough data yet\" when there aren't enough snapshots. LP change indicator shows the difference between the last two snapshots."
+			},
+			{
+				"category": "feature",
+				"title": "Live Game — Avg Lobby Rank",
+				"description": "The live game page now shows the average lobby rank in the header and individual rank badges next to each player's champion icon."
+			},
+			{
+				"category": "feature",
+				"title": "Privacy & Data Policy",
+				"description": "Added a /policy page explaining what data we collect (all from Riot API, publicly available), how we store it, and what we don't collect. Linked from the footer."
+			},
+			{
+				"category": "improvement",
+				"title": "10x Faster Match Loading",
+				"description": "Match lookups went from 50 individual DB queries to a single batch query, and new matches are now fetched 10 at a time in parallel. First-time load dropped from ~20s to ~2s."
+			},
+			{
+				"category": "improvement",
+				"title": "Live Game Polish",
+				"description": "Champ Select (yellow) / In Game (green) status with pulsing dot. Timer no longer shows negative values. Mobile-friendly banner with evenly spaced status, queue type, and timer."
+			},
+			{
+				"category": "improvement",
+				"title": "Mobile Layout Fixes",
+				"description": "Match detail header reorganized for mobile — queue name top-left, duration top-right, avg rank centered below. Team table CS column hides on small screens. Fixed sidebar spacing issues."
+			},
+			{
+				"category": "improvement",
+				"title": "SEO & Metadata",
+				"description": "Open Graph, Twitter cards, keywords, author info, title templates, favicons (SVG + ICO), and Apple touch icon."
+			},
+			{
+				"category": "fix",
+				"title": "Ranked & Display Fixes",
+				"description": "Solo/Duo always appears above Flex. MonkeyKing displays as Wukong. Match timestamps now show granular times (5m ago, 10m ago) instead of just \"Just now\" for anything under an hour."
+			}
+		]
+	},
+	{
+		"slug": "2026-03-23",
+		"title": "Database, LP Tracking & Polish",
+		"date": "2026-03-23",
+		"summary": "Big backend upgrade today — all data is now cached in PostgreSQL for near-instant loading. Plus LP history tracking, player ranks in match details, auto-refresh, and a bunch of visual improvements.",
+		"changes": [
+			{
+				"category": "feature",
+				"title": "Prisma DB Cache Layer",
+				"description": "All Riot API responses are now cached in PostgreSQL via Prisma. Accounts (10min), summoner data (5min), ranked (2min), mastery (30min), and match data (forever). Second visits load almost instantly from the database."
+			},
+			{
+				"category": "feature",
+				"title": "LP History Tracking",
+				"description": "Every time your ranked data is fetched and LP has changed, we save a snapshot. Over time this builds up an LP history chart on the right sidebar. The more you use the app, the more detailed it gets."
+			},
+			{
+				"category": "feature",
+				"title": "Player Ranks in Match Details",
+				"description": "The match detail page now shows every player's ranked badge next to their name. Fetched via a batch API call, and the correct queue is shown — Solo rank for Solo games, Flex rank for Flex games. Unranked players get a dimmed badge."
+			},
+			{
+				"category": "feature",
+				"title": "Average Lobby Rank",
+				"description": "Match headers now display the average rank of all 10 players, calculated with a point system from Iron IV (1) to Challenger (31). Shows the rank emblem and colored text."
+			},
+			{
+				"category": "feature",
+				"title": "Auto-Refresh Timer",
+				"description": "The summoner page now auto-refreshes all data every 5 minutes with a visible countdown next to the summoner level. Manual refresh has a 3-minute cooldown so you don't accidentally spam the API."
+			},
+			{
+				"category": "feature",
+				"title": "Changelog Page",
+				"description": "You're looking at it! A blog-style changelog where we post updates about new features and improvements."
+			},
+			{
+				"category": "improvement",
+				"title": "Champion Name Fixes",
+				"description": "MonkeyKing now correctly displays as Wukong, and FiddleSticks as Fiddlesticks. Also fixed the FiddleSticks champion icon returning a 403 from Data Dragon."
+			},
+			{
+				"category": "improvement",
+				"title": "Unified Type System",
+				"description": "Refactored the entire codebase to use Zod validators as the single source of truth for all API types. No more duplicate interfaces or unknown types floating around."
+			},
+			{
+				"category": "design",
+				"title": "Dark/Light Theme Toggle",
+				"description": "Added a theme toggle in the navbar — switch between dark and light mode. Uses next-themes with system preference support."
+			},
+			{
+				"category": "design",
+				"title": "Improved Splash Loading",
+				"description": "The full-screen loader now uses createPortal to render outside the page transition wrapper — no more flickering on page navigation. The splash stays until all core data is loaded."
+			},
+			{
+				"category": "fix",
+				"title": "Rune & Spell Icon Sizes",
+				"description": "Fixed an issue where summoner spell and rune icons in the match detail table were inconsistently sized. Added fixed min-width/min-height to prevent flex compression."
+			},
+			{
+				"category": "fix",
+				"title": "Duplicate Key Warning",
+				"description": "Fixed React 'duplicate key' warnings in the team table (Fragment key) and match card team icons (bot players with same puuid)."
+			}
+		]
+	},
+	{
+		"slug": "2026-03-22",
+		"title": "Launch Day",
+		"date": "2026-03-22",
+		"summary": "Summon.gg is live! The first version includes summoner profiles, match history with detailed breakdowns, live game tracking, and a whole bunch of charts and analytics.",
+		"changes": [
+			{
+				"category": "feature",
+				"title": "Summoner Profiles",
+				"description": "Search any summoner by Riot ID and view their profile — ranked stats with emblem badges, top champion mastery with animated point counters, and a list of recently played teammates."
+			},
+			{
+				"category": "feature",
+				"title": "Match History",
+				"description": "Browse up to 50 recent matches with a three-section card layout showing champion, KDA, items, runes, summoner spells, and team compositions. Filter by queue type (Solo, Flex, ARAM, Normal) and load more as you scroll."
+			},
+			{
+				"category": "feature",
+				"title": "Match Detail Page",
+				"description": "Click any match to see the full breakdown — both team tables with expandable player stats, skill order grids, item build timelines, kill maps on Summoner's Rift, and ban displays. Every player name links to their profile."
+			},
+			{
+				"category": "feature",
+				"title": "Charts & Analytics",
+				"description": "Gold advantage over time, damage dealt per player, vision score comparison, kill timeline, CS & gold progression, and a team stats face-off — all powered by Recharts."
+			},
+			{
+				"category": "feature",
+				"title": "Objectives & Events Timeline",
+				"description": "Horizontal timeline bar showing dragon, baron, herald, and void grub takes with real icons. Expandable event log with kills, towers, and objectives — filterable by type."
+			},
+			{
+				"category": "feature",
+				"title": "Live Game Detection",
+				"description": "If a summoner is currently in a game, a banner shows up with team compositions, bans, game mode, and a real-time timer. Champ select shows a yellow pulsing indicator, in-game shows green. Click through to a dedicated live game page."
+			},
+			{
+				"category": "feature",
+				"title": "Champion Detail Page",
+				"description": "View champion-specific stats for any summoner — filtered match history, win rate, average KDA, and mastery data for that champion."
+			},
+			{
+				"category": "design",
+				"title": "Dark Theme with Aurora Background",
+				"description": "Custom dark theme with cyan and magenta accents. Animated aurora background (WebGL) with automatic fallback to a static CSS gradient for lower-end devices. GPU performance check runs on first load."
+			},
+			{
+				"category": "design",
+				"title": "Spotlight Search",
+				"description": "Click the search bar in the navbar to open a centered spotlight overlay — Mac Spotlight style. Escape to close, auto-focuses the input, locks background scroll."
+			},
+			{
+				"category": "design",
+				"title": "Branded Loading Experience",
+				"description": "Full-screen Summon.gg splash screen with pulsing dots while data loads. Shimmer skeleton animations for every component. Page transitions with framer-motion on every route change."
+			},
+			{
+				"category": "improvement",
+				"title": "Mobile Responsive",
+				"description": "Every page and component is optimized for mobile — match cards adapt, table columns hide on small screens, charts resize, grids collapse to single column."
+			}
+		]
+	}
+]

@@ -1,0 +1,37 @@
+@using summon.Changelog
+
+@* The two newest changelog entries with summary and category counts, linking to each entry *@
+<Panel>
+    <PanelHeader Title="What's new">
+        <Actions>
+            <a href="/changelog" class="text-xs font-medium text-primary hover:underline">Changelog &rarr;</a>
+        </Actions>
+    </PanelHeader>
+    @if (Entries.Count == 0)
+    {
+        <PanelBody Class="text-sm text-muted-foreground">No changes published yet.</PanelBody>
+    }
+    else
+    {
+        <ul class="divide-y divide-border/50">
+            @foreach (var entry in Entries)
+            {
+                <li class="space-y-1.5 px-4 py-3" @key="entry.Slug">
+                    <p class="text-xs text-muted-foreground">@Changelogs.FormatDate(entry.Date, longMonth: false)</p>
+                    <a href="/changelog/@entry.Slug" class="block font-semibold text-foreground hover:text-primary">@entry.Title</a>
+                    <p class="line-clamp-2 text-sm text-muted-foreground">@entry.Summary</p>
+                    <div class="flex flex-wrap gap-1.5 pt-0.5">
+                        @foreach (var (category, count) in Changelogs.CategoryCounts(entry))
+                        {
+                            <Chip Color="@Changelogs.Categories[category].Color">@Changelogs.CategoryLabel(category, count)</Chip>
+                        }
+                    </div>
+                </li>
+            }
+        </ul>
+    }
+</Panel>
+
+@code {
+    [Parameter, EditorRequired] public required IReadOnlyList<ChangelogEntry> Entries { get; set; }
+}

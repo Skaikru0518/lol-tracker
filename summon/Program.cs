@@ -8,6 +8,7 @@ using summon.Accounts;
 using summon.Scoring;
 using summon.Achievements;
 using summon.Live;
+using summon.Home;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -39,6 +40,7 @@ builder.Services.AddScoped<MatchService>();
 builder.Services.AddScoped<PerformanceService>();
 builder.Services.AddScoped<AchievementService>();
 builder.Services.AddScoped<LiveGameService>();
+builder.Services.AddHttpClient<HomeService>();
 builder.Services.AddHostedService<AchievementJob>();
 
 var app = builder.Build();

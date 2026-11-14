@@ -162,16 +162,9 @@ public class AchievementService(SummonDbContext db)
         }
     }
 
-    public Task<string?> GetSettingAsync(string key, CancellationToken ct = default) =>
-        db.AppSettings.Where(s => s.Key == key).Select(s => s.Value).FirstOrDefaultAsync(ct);
+    public Task<string?> GetSettingAsync(string key, CancellationToken ct = default) => db.GetSettingAsync(key, ct);
 
-    public Task SetSettingAsync(string key, string value, CancellationToken ct = default) =>
-        db.Database.ExecuteSqlRawAsync(
-            """
-            INSERT INTO "AppSettings" ("Key", "Value", "UpdatedAt") VALUES (@key, @value, now())
-            ON CONFLICT ("Key") DO UPDATE SET "Value" = excluded."Value", "UpdatedAt" = excluded."UpdatedAt"
-            """,
-            [new NpgsqlParameter("key", key), new NpgsqlParameter("value", value)], ct);
+    public Task SetSettingAsync(string key, string value, CancellationToken ct = default) => db.SetSettingAsync(key, value, ct);
 
     /// <summary>
     /// Badges of each match, per player. Stored ones are served as they are; eligible matches without any are

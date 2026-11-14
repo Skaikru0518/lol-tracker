@@ -29,6 +29,10 @@ public class RiotClient(HttpClient http)
         http.GetFromJsonAsync<List<RiotMastery>>(
             $"https://{platform}.api.riotgames.com/lol/champion-mastery/v4/champion-masteries/by-puuid/{Uri.EscapeDataString(puuid)}", ct);
 
+    /// <summary>Raw champion-v3 rotation; its shape changed over time, so the caller validates it.</summary>
+    public Task<string> GetChampionRotationJsonAsync(string platform, CancellationToken ct = default) =>
+        http.GetStringAsync($"https://{platform}.api.riotgames.com/lol/platform/v3/champion-rotations", ct);
+
     /// <summary>The game the player is in right now; null when they are not in one (Riot answers 404).</summary>
     public async Task<RiotLiveGame?> GetActiveGameAsync(string platform, string puuid, CancellationToken ct = default)
     {

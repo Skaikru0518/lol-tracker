@@ -1,0 +1,67 @@
+@using summon.Home
+@inject IServiceScopeFactory ScopeFactory
+@inject ILogger<NewSkinsPanel> Logger
+
+@* Skins released this patch as splash cards with their name and rarity; the original's NewSkins *@
+<Panel>
+    <PanelHeader Title="New skins">
+        <Actions>
+            @if (data is not null)
+            {
+                <span class="text-xs text-muted-foreground">Patch @data.Patch</span>
+            }
+        </Actions>
+    </PanelHeader>
+    @if (loading)
+    {
+        <div class="grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-4">
+            @for (var i = 0; i < 4; i++)
+            {
+                <Skeleton Class="aspect-video" />
+            }
+        </div>
+    }
+    else if (data is null || data.Skins.Count == 0)
+    {
+        <EmptyState Title="No new skins this patch" />
+    }
+    else
+    {
+        <ul class="grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-4">
+            @foreach (var skin in data.Skins)
+            {
+                <li class="group relative aspect-video overflow-hidden rounded-md border" @key="skin.Id">
+                    <img src="@skin.Splash" alt="@skin.Name" loading="lazy" class="size-full object-cover transition-transform duration-300 group-hover:scale-105" />
+                    <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-background/95 via-background/60 to-transparent px-3 pb-2 pt-6">
+                        <p class="truncate text-sm font-semibold text-foreground">@skin.Name</p>
+                        @if (HomeFeeds.RarityLabel(skin.Rarity) is { } rarity)
+                        {
+                            <p class="text-2xs text-gold">@rarity</p>
+                        }
+                    </div>
+                </li>
+            }
+        </ul>
+    }
+</Panel>
+
+@code {
+    private bool loading = true;
+    private NewSkins? data;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            // Its own scope: the home sections load side by side and a DbContext runs one query at a time
+            await using var scope = ScopeFactory.CreateAsyncScope();
+            data = await scope.ServiceProvider.GetRequiredService<HomeService>().NewSkinsAsync();
+        }
+        catch (Exception e)
+        {
+            // Shown as no new skins, as in the original
+            Logger.LogError(e, "New skins failed");
+        }
+        loading = false;
+    }
+}

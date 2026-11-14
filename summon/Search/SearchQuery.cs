@@ -76,10 +76,10 @@ public static class SearchQuery
     private const int MaxHistory = 10;
 
     /// <summary>
-    /// The stored search history (newest first, the original's localStorage format) with riotId moved to the front, capped at ten.
+    /// The stored search history, newest first, in the original's localStorage format; anything that is not a JSON array is no history.
     /// Entries saved before EUW support are plain "Name#TAG" strings, all from EUNE.
     /// </summary>
-    public static string AddToHistory(string? raw, string riotId, string platformKey)
+    public static List<(string RiotId, string Platform)> ParseHistory(string? raw)
     {
         var entries = new List<(string RiotId, string Platform)>();
         try
@@ -97,8 +97,15 @@ public static class SearchQuery
         }
         catch (JsonException)
         {
-            // Anything that is not a JSON array counts as no history, as in the original
+            return [];
         }
+        return entries;
+    }
+
+    /// <summary>The stored history with riotId moved to the front, capped at ten.</summary>
+    public static string AddToHistory(string? raw, string riotId, string platformKey)
+    {
+        var entries = ParseHistory(raw);
         entries.RemoveAll(e => e.RiotId == riotId);
         entries.Insert(0, (riotId, platformKey));
         return JsonSerializer.Serialize(entries.Take(MaxHistory).Select(e => new { riotId = e.RiotId, platform = e.Platform }));

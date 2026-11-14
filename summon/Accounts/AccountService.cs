@@ -166,35 +166,44 @@ public class AccountService(SummonDbContext db, RiotClient riot, IMemoryCache ca
     }
 
     private const int SuggestionLimit = 8;
+    private const int RecentLimit = 8;
+
+    // Accounts a profile was opened for; those without a server are placeholders from lobby ranks
+    private IQueryable<Account> Listed => db.Accounts.AsNoTracking().Where(a => a.GameName != "" && a.Platform != null);
 
     /// <summary>Stored summoners named exactly like the typed text first, then those whose name (and tag, if given) starts with it, with solo rank.</summary>
     public async Task<List<SearchSuggestion>> SuggestAsync(SearchTerms terms, CancellationToken ct = default)
     {
         var name = SearchQuery.LikeLiteral(terms.Name);
         var tag = terms.Tag is null ? null : SearchQuery.LikeLiteral(terms.Tag) + "%";
-        // ILIKE in both queries, so the exact name is escaped too; accounts without a server are placeholders from lobby ranks
-        async Task<List<SearchSuggestion>> Query(string pattern)
-        {
-            var rows = await db.Accounts.AsNoTracking()
-                .Where(a => a.GameName != "" && a.Platform != null && EF.Functions.ILike(a.GameName, pattern) && (tag == null || EF.Functions.ILike(a.TagLine, tag)))
-                .OrderByDescending(a => a.UpdatedAt)
-                .Take(SuggestionLimit)
-                .Select(a => new
-                {
-                    a.Puuid, a.GameName, a.TagLine, a.Platform,
-                    Solo = a.RankedEntries.Where(e => e.QueueType == "RANKED_SOLO_5x5").Select(e => new { e.Tier, e.Rank, e.LeaguePoints }).FirstOrDefault(),
-                })
-                .ToListAsync(ct);
-            return rows.Select(a => new SearchSuggestion(a.Puuid, a.GameName, a.TagLine, a.Platform!,
-                // shortcut: icons come only from summoners cached by recent profile views; store the summoner to show them always
-                cache.TryGetValue($"summoner:{a.Puuid}", out RiotSummoner? summoner) ? summoner?.ProfileIconId : null,
-                a.Solo?.Tier, a.Solo?.Rank, a.Solo?.LeaguePoints)).ToList();
-        }
+        // ILIKE in both queries, so the exact name is escaped too
+        Task<List<SearchSuggestion>> Query(string pattern) => ToSuggestionsAsync(
+            Listed.Where(a => EF.Functions.ILike(a.GameName, pattern) && (tag == null || EF.Functions.ILike(a.TagLine, tag)))
+                .OrderByDescending(a => a.UpdatedAt).Take(SuggestionLimit), ct);
 
         // One after the other: a DbContext runs one query at a time
         var exact = await Query(name);
         var prefix = await Query(name + "%");
         return SearchQuery.MergeExactFirst(exact, prefix, r => r.Puuid, SuggestionLimit);
+    }
+
+    /// <summary>The summoners anyone looked up most recently, for the home page.</summary>
+    public Task<List<SearchSuggestion>> RecentAsync(CancellationToken ct = default) =>
+        ToSuggestionsAsync(Listed.OrderByDescending(a => a.UpdatedAt).Take(RecentLimit), ct);
+
+    private async Task<List<SearchSuggestion>> ToSuggestionsAsync(IQueryable<Account> accounts, CancellationToken ct)
+    {
+        var rows = await accounts
+            .Select(a => new
+            {
+                a.Puuid, a.GameName, a.TagLine, a.Platform,
+                Solo = a.RankedEntries.Where(e => e.QueueType == "RANKED_SOLO_5x5").Select(e => new { e.Tier, e.Rank, e.LeaguePoints }).FirstOrDefault(),
+            })
+            .ToListAsync(ct);
+        return rows.Select(a => new SearchSuggestion(a.Puuid, a.GameName, a.TagLine, a.Platform!,
+            // shortcut: icons come only from summoners cached by recent profile views; store the summoner to show them always
+            cache.TryGetValue($"summoner:{a.Puuid}", out RiotSummoner? summoner) ? summoner?.ProfileIconId : null,
+            a.Solo?.Tier, a.Solo?.Rank, a.Solo?.LeaguePoints)).ToList();
     }
 
     private async Task<Account?> FetchAsync(string gameName, string tagLine, CancellationToken ct)
