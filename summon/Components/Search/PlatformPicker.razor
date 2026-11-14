@@ -1,0 +1,68 @@
+@* Server picker in the shadcn Select style: a trigger with the server's label and a list below it *@
+<div class="relative shrink-0">
+    <button type="button" data-slot="select-trigger" data-size="default" aria-label="Server" aria-haspopup="listbox" aria-expanded="@(open ? "true" : "false")"
+            class="@TriggerClass" @onclick="() => open = !open">
+        <span data-slot="select-value">@Platforms.ByKey(Value).Label</span>
+        @* Hugeicons "unfold-more" *@
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+             class="pointer-events-none size-3.5 text-muted-foreground" aria-hidden="true">
+            <path d="M18 14C18 14 13.5811 19 12 19C10.4188 19 6 14 6 14" />
+            <path d="M18 9.99996C18 9.99996 13.5811 5.00001 12 5C10.4188 4.99999 6 10 6 10" />
+        </svg>
+    </button>
+    @if (open)
+    {
+        @* Clicking anywhere else closes the list *@
+        <div class="fixed inset-0 z-40" @onclick="() => open = false"></div>
+        <div role="listbox" data-slot="select-content"
+             class="absolute left-0 top-full z-50 mt-1 w-full min-w-32 overflow-hidden rounded-lg bg-popover text-popover-foreground shadow-md ring-1 ring-foreground/10">
+            <div class="scroll-my-1 p-1">
+                @foreach (var platform in Platforms.All)
+                {
+                    var selected = platform.Key == Platforms.ByKey(Value).Key;
+                    <button type="button" role="option" aria-selected="@(selected ? "true" : "false")" data-slot="select-item" class="@ItemClass"
+                            @onclick="() => PickAsync(platform.Key)">
+                        <span class="pointer-events-none absolute right-2 flex items-center justify-center">
+                            @if (selected)
+                            {
+                                @* Hugeicons "tick-02" *@
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                     class="pointer-events-none size-3.5" aria-hidden="true">
+                                    <path d="M5 14L8.5 17.5L19 6.5" />
+                                </svg>
+                            }
+                        </span>
+                        <span>@platform.Label</span>
+                    </button>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public required string Value { get; set; }
+    [Parameter] public EventCallback<string> OnChange { get; set; }
+    [Parameter] public bool Compact { get; set; }
+    [Parameter] public string? Class { get; set; }
+
+    private bool open;
+
+    // The shadcn SelectTrigger classes followed by the picker's own, as the original passes them
+    private string TriggerClass =>
+        "flex w-fit items-center justify-between gap-1.5 rounded-md border border-input bg-input/20 px-2 py-1.5 text-xs/relaxed whitespace-nowrap transition-colors outline-none " +
+        "focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:opacity-50 data-[size=default]:h-7 data-[size=sm]:h-6 " +
+        "*:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-1.5 " +
+        "dark:bg-input/30 dark:hover:bg-input/50 shrink-0 bg-card font-semibold " +
+        (Compact ? "h-9 w-18 text-xs" : "h-12! w-20 text-sm sm:w-24") + (Class is null ? "" : " " + Class);
+
+    private const string ItemClass =
+        "relative flex min-h-7 w-full cursor-default items-center gap-2 rounded-md px-2 py-1 text-xs/relaxed outline-hidden select-none " +
+        "hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground";
+
+    private async Task PickAsync(string key)
+    {
+        open = false;
+        await OnChange.InvokeAsync(key);
+    }
+}

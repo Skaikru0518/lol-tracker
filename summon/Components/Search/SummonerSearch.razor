@@ -1,13 +1,35 @@
+@using summon.Accounts
+@using summon.Search
+@implements IDisposable
 @inject NavigationManager Navigation
+@inject IServiceScopeFactory ScopeFactory
+@inject IJSRuntime JS
+@inject ILogger<SummonerSearch> Logger
 
-<form class="flex w-full gap-2" @onsubmit="Search">
+@* Riot ID search box with a server picker and as-you-type suggestions; the picked server is tried first *@
+<form class="flex w-full gap-2" @onsubmit="SubmitAsync">
+    <PlatformPicker Value="@platform" OnChange="SetPlatformAsync" Compact="Compact" Class="@(HeroSurface ? Hero : null)" />
     <div class="relative flex-1">
         <SearchIcon Class="@IconClass" />
-        <input @bind="riotId" placeholder="GameName#TAG" data-slot="input" class="@InputClass" />
+        <input value="@input" @oninput="OnInput" @onfocus="() => focused = true" @onblur="() => focused = false"
+               placeholder="GameName#TAG" data-slot="input" class="@InputClass" />
+        @if (focused && SearchQuery.ParseTerms(input) is not null)
+        {
+            <div class="absolute inset-x-0 top-full z-50 mt-1 overflow-hidden rounded-md border bg-popover text-left shadow-lg">
+                <SearchSuggestions Input="@input" Results="Shown" Pending="Pending" Stale="Stale" IsError="isError" DataDragon="dataDragon" OnPick="PickAsync" />
+            </div>
+        }
     </div>
-    <button type="submit" data-slot="button" class="@ButtonClass">
-        <SearchIcon Class="size-4 sm:hidden" />
-        <span class="sr-only sm:not-sr-only">Search</span>
+    <button type="submit" data-slot="button" class="@ButtonClass" disabled="@locating">
+        @if (locating)
+        {
+            <LoaderIcon Class="size-4 animate-spin" />
+        }
+        else
+        {
+            <SearchIcon Class="size-4 sm:hidden" />
+            <span class="sr-only sm:not-sr-only">Search</span>
+        }
     </button>
 </form>
 
@@ -22,11 +44,15 @@
     // Smaller fields and a solid button, for boxes like the 404 page's
     [Parameter] public bool Compact { get; set; }
 
-    private string IconClass =>
-        "pointer-events-none absolute top-1/2 z-10 -translate-y-1/2 text-muted-foreground " + (Compact ? "left-2.5 size-3.5" : "left-3.5 size-4");
-
     // Over the hero splash the fields need their own blurred backdrop to stay readable
     private const string Hero = "bg-background/75 backdrop-blur-md border-primary/30 shadow-xl";
+    private const string PlatformKey = "summon-gg-platform";
+    private const string HistoryKey = "summon-gg-search-history";
+    private static readonly TimeSpan Debounce = TimeSpan.FromMilliseconds(500);
+    private static readonly TimeSpan ResultsMaxAge = TimeSpan.FromMinutes(1);
+
+    private string IconClass =>
+        "pointer-events-none absolute top-1/2 z-10 -translate-y-1/2 text-muted-foreground " + (Compact ? "left-2.5 size-3.5" : "left-3.5 size-4");
 
     // The shadcn Input and Button classes with this form's overrides already merged in
     private string InputClass =>
@@ -41,18 +67,168 @@
             ? "h-9 px-3 text-base font-semibold sm:px-4 border border-transparent bg-primary text-primary-foreground hover:bg-primary/80"
             : "h-12 px-3 text-base font-semibold sm:px-8 bg-primary/30 text-white/80 backdrop-blur-sm border border-primary/60 hover:bg-primary/40 hover:border-primary/80");
 
-    private string riotId = "";
+    private string platform = Platforms.DefaultKey;
+    private string input = "";
+    private string debounced = "";
+    private bool focused;
+    private bool locating;
     private string? error;
+    private DataDragonData? dataDragon;
 
-    private void Search()
+    // Suggestions: one query per typing pause, cached per query for a minute; rows of an earlier query stay (dimmed) until the new ones arrive
+    private readonly Dictionary<string, (List<SearchSuggestion> Rows, DateTime At)> cache = [];
+    private List<SearchSuggestion> results = [];
+    private string? resultsKey;
+    private bool fetching;
+    private bool isError;
+    private CancellationTokenSource? pendingSearch;
+
+    private static string Key(SearchTerms terms) => $"{terms.Name.ToLowerInvariant()}#{terms.Tag?.ToLowerInvariant()}";
+
+    private bool Typing => SearchQuery.ParseTerms(input) is not null && input.Trim() != debounced.Trim();
+    private bool Pending => Typing || fetching;
+    private bool Stale => Typing || (SearchQuery.ParseTerms(debounced) is { } terms && resultsKey != Key(terms));
+    private IReadOnlyList<SearchSuggestion> Shown => SearchQuery.ParseTerms(debounced) is null ? [] : results;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        var parts = riotId.Split('#', 2, StringSplitOptions.TrimEntries);
-        if (parts.Length != 2 || parts[0] == "" || parts[1] == "")
+        if (!firstRender) return;
+        try
+        {
+            var stored = await JS.InvokeAsync<string?>("localStorage.getItem", PlatformKey);
+            if (Platforms.All.Any(p => p.Key == stored))
+            {
+                platform = stored!;
+                StateHasChanged();
+            }
+        }
+        catch (JSException)
+        {
+            // Storage can be blocked; the default server stays
+        }
+    }
+
+    private async Task SetPlatformAsync(string key)
+    {
+        platform = key;
+        try
+        {
+            await JS.InvokeVoidAsync("localStorage.setItem", PlatformKey, key);
+        }
+        catch (JSException)
+        {
+            // Storage can be blocked; the pick still holds for this page
+        }
+    }
+
+    private void OnInput(ChangeEventArgs e)
+    {
+        input = e.Value?.ToString() ?? "";
+        focused = true;
+        pendingSearch?.Cancel();
+        pendingSearch = new CancellationTokenSource();
+        _ = SearchAfterPauseAsync(input, pendingSearch.Token);
+    }
+
+    private async Task SearchAfterPauseAsync(string text, CancellationToken ct)
+    {
+        try
+        {
+            await Task.Delay(Debounce, ct);
+            debounced = text;
+            if (SearchQuery.ParseTerms(text) is not { } terms)
+            {
+                await InvokeAsync(StateHasChanged);
+                return;
+            }
+
+            var key = Key(terms);
+            if (cache.TryGetValue(key, out var hit) && DateTime.UtcNow - hit.At < ResultsMaxAge)
+            {
+                (results, resultsKey, isError) = (hit.Rows, key, false);
+                await InvokeAsync(StateHasChanged);
+                return;
+            }
+
+            fetching = true;
+            await InvokeAsync(StateHasChanged);
+            await using var scope = ScopeFactory.CreateAsyncScope();
+            var rows = await scope.ServiceProvider.GetRequiredService<AccountService>().SuggestAsync(terms, ct);
+            dataDragon ??= await scope.ServiceProvider.GetRequiredService<DataDragon>().GetAsync(ct);
+            cache[key] = (rows, DateTime.UtcNow);
+            (results, resultsKey, isError) = (rows, key, false);
+        }
+        catch (OperationCanceledException)
+        {
+            // A newer keystroke took over
+            return;
+        }
+        catch (Exception e)
+        {
+            // An exception here would end the circuit; the list says search is unavailable
+            Logger.LogError(e, "Summoner suggestions failed");
+            isError = true;
+        }
+        fetching = false;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task SubmitAsync()
+    {
+        if (SearchQuery.ParseRiotId(input) is not { } riotId)
         {
             error = "Use format: GameName#TAG";
             return;
         }
+        await GoAsync(riotId.GameName, riotId.TagLine, null);
+    }
 
-        Navigation.NavigateTo($"/summoner/{Format.SummonerSlug(parts[0], parts[1])}");
+    private Task PickAsync((string GameName, string TagLine, string? Platform) pick) => GoAsync(pick.GameName, pick.TagLine, pick.Platform);
+
+    /// <summary>Finds the account's server (the given host, else the picker's first) and opens the profile.</summary>
+    private async Task GoAsync(string gameName, string tagLine, string? host)
+    {
+        focused = false;
+        locating = true;
+        error = null;
+        StateHasChanged();
+        try
+        {
+            await using var scope = ScopeFactory.CreateAsyncScope();
+            var found = await scope.ServiceProvider.GetRequiredService<AccountService>()
+                .LocateAsync(gameName, tagLine, host ?? Platforms.ByKey(platform).Host);
+            if (found is { } f) await AddHistoryAsync($"{gameName}#{tagLine}", Platforms.ByHost(f.Platform)!.Key);
+            // Unknown Riot IDs still navigate, so the profile shows its not-found page
+            Navigation.NavigateTo($"/summoner/{(found is { } hit ? Format.SummonerSlug(hit.Account.GameName, hit.Account.TagLine) : Format.SummonerSlug(gameName, tagLine))}");
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e, "Summoner search failed for {GameName}#{TagLine}", gameName, tagLine);
+            error = "Search is unavailable right now. Try again in a moment.";
+        }
+        finally
+        {
+            locating = false;
+        }
+    }
+
+    // The home page's search history reads this; same key and format as the original's localStorage entry
+    private async Task AddHistoryAsync(string riotId, string platformKey)
+    {
+        try
+        {
+            var raw = await JS.InvokeAsync<string?>("localStorage.getItem", HistoryKey);
+            await JS.InvokeVoidAsync("localStorage.setItem", HistoryKey, SearchQuery.AddToHistory(raw, riotId, platformKey));
+        }
+        catch (JSException)
+        {
+            // Storage can be blocked; the search itself goes on
+        }
+    }
+
+    public void Dispose()
+    {
+        pendingSearch?.Cancel();
+        pendingSearch?.Dispose();
     }
 }

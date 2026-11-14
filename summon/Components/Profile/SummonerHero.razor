@@ -46,11 +46,5 @@
     [Parameter] public bool Refreshing { get; set; }
     [Parameter] public EventCallback OnRefresh { get; set; }
 
-    private string PlatformLabel => Account.Platform switch
-    {
-        "eun1" => "EUNE",
-        "euw1" => "EUW",
-        null => "Unknown server",
-        var other => other.ToUpperInvariant()
-    };
+    private string PlatformLabel => Platforms.ByHost(Account.Platform)?.Label ?? Account.Platform?.ToUpperInvariant() ?? "Unknown server";
 }

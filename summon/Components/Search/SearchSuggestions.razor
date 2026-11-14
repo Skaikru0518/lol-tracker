@@ -1,0 +1,73 @@
+@using summon.Search
+
+@* Dropdown of stored summoners matching the typed text, a "Searching…" row while waiting, and a Riot lookup row for an unknown full Riot ID.
+   Mouse down is cancelled so the input keeps focus (and the list stays) until the click lands *@
+<ul class="max-h-80 overflow-y-auto py-1" @onmousedown:preventDefault>
+    @if (Pending)
+    {
+        <li class="flex items-center gap-2 px-3 py-1.5 text-xs text-muted-foreground">
+            <LoaderIcon Class="size-3.5 animate-spin" />
+            Searching…
+        </li>
+    }
+    @foreach (var r in Results)
+    {
+        <li @key="r.Puuid" class="@(Stale ? "pointer-events-none opacity-60" : "")">
+            <button type="button" @onclick="() => OnPick.InvokeAsync((r.GameName, r.TagLine, (string?)r.Platform))"
+                    class="flex w-full items-center gap-2.5 px-3 py-1.5 text-left transition-colors hover:bg-accent/50">
+                @if (DataDragon is not null && r.ProfileIconId is { } icon)
+                {
+                    <img src="@DataDragon.ProfileIcon(icon)" alt="" width="24" height="24" class="size-6 rounded" />
+                }
+                else
+                {
+                    <span class="size-6 rounded bg-muted"></span>
+                }
+                @* shortcut: long names are cut off; the original scrolls them (MarqueeText), port it with the widget *@
+                <span class="flex min-w-0 flex-1 text-sm text-foreground">
+                    <span class="truncate">@r.GameName<span class="text-muted-foreground">#@r.TagLine</span></span>
+                </span>
+                <span class="text-3xs font-semibold text-muted-foreground">@(Platforms.ByHost(r.Platform)?.Label ?? r.Platform.ToUpperInvariant())</span>
+                <span class="text-xs" style="@(r.SoloTier is null ? null : $"color: {Ranks.Color(r.SoloTier)}")">@SearchQuery.RankLabel(r)</span>
+            </button>
+        </li>
+    }
+    @if (lookup is not null)
+    {
+        <li>
+            <button type="button" @onclick="() => OnPick.InvokeAsync((lookup.GameName, lookup.TagLine, (string?)null))"
+                    class="flex w-full items-center gap-2.5 px-3 py-1.5 text-left text-sm text-primary transition-colors hover:bg-accent/50">
+                <SearchIcon Class="size-4" />
+                Look up @lookup.GameName#@lookup.TagLine
+            </button>
+        </li>
+    }
+    @if (status == SuggestionStatus.Error)
+    {
+        <li class="px-3 py-1.5 text-xs text-loss">Search is unavailable right now. Type the full Name#TAG and press Search.</li>
+    }
+    @if (status == SuggestionStatus.Empty)
+    {
+        <li class="px-3 py-1.5 text-xs text-muted-foreground">No stored summoner matches. Type the full Name#TAG.</li>
+    }
+</ul>
+
+@code {
+    [Parameter, EditorRequired] public required string Input { get; set; }
+    [Parameter, EditorRequired] public required IReadOnlyList<SearchSuggestion> Results { get; set; }
+    [Parameter] public bool Pending { get; set; }
+    [Parameter] public bool Stale { get; set; }
+    [Parameter] public bool IsError { get; set; }
+    [Parameter] public DataDragonData? DataDragon { get; set; }
+    // Name, tag and the row's server host; null host means the picker's server
+    [Parameter] public EventCallback<(string GameName, string TagLine, string? Platform)> OnPick { get; set; }
+
+    private RiotId? lookup;
+    private SuggestionStatus status;
+
+    protected override void OnParametersSet()
+    {
+        lookup = Pending ? null : SearchQuery.LookupCandidate(Input, Results);
+        status = SearchQuery.Status(Pending, IsError, Results.Count, lookup is not null);
+    }
+}
