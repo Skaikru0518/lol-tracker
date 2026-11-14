@@ -2,15 +2,31 @@
 @page "/summoner/{Slug}/{Tab}"
 @page "/summoner/{Slug}/{Tab}/{Champion}"
 
+@inject NavigationManager Navigation
+
 <PageTitle>@RiotId | Summon.gg</PageTitle>
 
 @* Interactive so the Update button can reload the data in place; no prerender, or every Riot call would run twice *@
-<SummonerProfile Slug="@Slug" Tab="@(Tab ?? "")" Champion="@Champion" @rendermode="@(new InteractiveServerRenderMode(prerender: false))" />
+@if (known)
+{
+    <SummonerProfile Slug="@Slug" Tab="@(Tab ?? "")" Champion="@Champion" @rendermode="@(new InteractiveServerRenderMode(prerender: false))" />
+}
 
 @code {
     [Parameter] public required string Slug { get; set; }
     [Parameter] public string? Tab { get; set; }
     [Parameter] public string? Champion { get; set; }
+
+    // Only these paths exist in the original; anything else under a profile is a 404 there too
+    private static readonly HashSet<string> Tabs = ["", "champions", "lp", "achievements", "live"];
+
+    private bool known;
+
+    protected override void OnInitialized()
+    {
+        known = Tabs.Contains(Tab ?? "") && (Champion is null || Tab == "champions");
+        if (!known) Navigation.NotFound();
+    }
 
     // The interactive profile cannot set the static page title, so it comes from the URL
     private string RiotId

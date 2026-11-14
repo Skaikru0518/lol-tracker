@@ -111,10 +111,11 @@ else
             }
             else
             {
-                @* shortcut: these tabs are ported in their own steps; until then they say so *@
-                <Panel>
-                    <EmptyState Title="Coming soon" Description="This tab is not ported to the C# version yet." />
-                </Panel>
+                @* The tab waits for the account: the original's loading placeholder until it arrives *@
+                <div class="grid gap-4 lg:grid-cols-[330px_1fr]">
+                    <Skeleton Class="h-96" />
+                    <Skeleton Class="h-96" />
+                </div>
             }
         </div>
     </div>
