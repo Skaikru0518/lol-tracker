@@ -1,8 +1,8 @@
 @using summon.Accounts
 
-<div class="border-b last:border-b-0">
+<div class="border-b last:border-b-0 @RowContainer">
     <button type="button" @onclick="Toggle" aria-expanded="@(open ? "true" : "false")"
-            class="flex w-full flex-wrap items-center gap-x-3 gap-y-2 bg-gradient-to-r to-transparent to-60% px-3 py-2.5 text-left transition-colors hover:bg-accent/40 sm:flex-nowrap sm:px-4 @Gradient">
+            class="flex w-full flex-wrap items-center gap-x-3 gap-y-2 bg-gradient-to-r to-transparent to-60% px-3 py-2.5 text-left transition-colors hover:bg-accent/40 sm:px-4 @SingleLine @Gradient">
         <div class="w-[4.75rem] shrink-0 leading-tight">
             @if (Arena)
             {
@@ -54,7 +54,7 @@
             }
         </div>
 
-        <div class="ml-auto flex basis-full flex-col items-start gap-1 sm:basis-auto sm:items-end">
+        <div class="ml-auto flex basis-full flex-col items-start gap-1 @ItemsColumn">
             <ItemSlots DataDragon="DataDragon" Items="Game.Items" Size="22" />
             @if (OwnBadges.Count > 0)
             {
@@ -63,7 +63,7 @@
         </div>
 
         @* Lucide "chevron-down" icon *@
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4 shrink-0 text-muted-foreground transition-transform @(open ? "rotate-180" : "")" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4 shrink-0 text-muted-foreground transition-transform @Chevron @(open ? "rotate-180" : "")" aria-hidden="true">
             <path d="m6 9 6 6 6-6" />
         </svg>
     </button>
@@ -94,6 +94,13 @@
 
     private bool open;
     private bool mounted;
+
+    // Container query classes live in C# strings: in markup Razor would read "@container" as code.
+    // The row stays on one line only where everything fits; narrower, the items wrap below and the chevron stays on the first line
+    private const string RowContainer = "@container";
+    private const string SingleLine = "@[44rem]:flex-nowrap";
+    private const string ItemsColumn = "order-last @[44rem]:order-none @[44rem]:basis-auto @[44rem]:items-end";
+    private const string Chevron = "ml-auto @[44rem]:ml-0";
 
     private bool Arena => Queues.IsArena(Game.QueueId);
     private int Placement => Game.Placement is > 0 and var placement ? placement : Game.Win ? 1 : 5;
