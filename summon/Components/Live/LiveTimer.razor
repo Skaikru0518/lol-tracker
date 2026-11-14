@@ -1,0 +1,14 @@
+@implements IDisposable
+@* Elapsed game time, re-rendered every second on its own so the page around it stays still *@
+@Format.Duration(LiveGames.ElapsedSeconds(GameStartTime, GameLength, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()))
+
+@code {
+    [Parameter] public long GameStartTime { get; set; }
+    [Parameter] public long GameLength { get; set; }
+
+    private Timer? timer;
+
+    protected override void OnInitialized() => timer = new Timer(_ => InvokeAsync(StateHasChanged), null, 1000, 1000);
+
+    public void Dispose() => timer?.Dispose();
+}

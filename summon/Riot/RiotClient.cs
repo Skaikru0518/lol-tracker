@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http.Json;
 
 namespace summon.Riot;
@@ -27,6 +28,16 @@ public class RiotClient(HttpClient http)
     public Task<List<RiotMastery>?> GetAllMasteriesAsync(string platform, string puuid, CancellationToken ct = default) =>
         http.GetFromJsonAsync<List<RiotMastery>>(
             $"https://{platform}.api.riotgames.com/lol/champion-mastery/v4/champion-masteries/by-puuid/{Uri.EscapeDataString(puuid)}", ct);
+
+    /// <summary>The game the player is in right now; null when they are not in one (Riot answers 404).</summary>
+    public async Task<RiotLiveGame?> GetActiveGameAsync(string platform, string puuid, CancellationToken ct = default)
+    {
+        using var response = await http.GetAsync(
+            $"https://{platform}.api.riotgames.com/lol/spectator/v5/active-games/by-summoner/{Uri.EscapeDataString(puuid)}", ct);
+        if (response.StatusCode == HttpStatusCode.NotFound) return null;
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<RiotLiveGame>(ct);
+    }
 
     public Task<List<RiotMastery>?> GetTopMasteriesAsync(string platform, string puuid, int count, CancellationToken ct = default) =>
         http.GetFromJsonAsync<List<RiotMastery>>(

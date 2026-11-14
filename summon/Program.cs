@@ -6,6 +6,7 @@ using summon.Riot;
 using summon.Accounts;
 using summon.Scoring;
 using summon.Achievements;
+using summon.Live;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -36,6 +37,7 @@ builder.Services.AddScoped<RankedService>();
 builder.Services.AddScoped<MatchService>();
 builder.Services.AddScoped<PerformanceService>();
 builder.Services.AddScoped<AchievementService>();
+builder.Services.AddScoped<LiveGameService>();
 builder.Services.AddHostedService<AchievementJob>();
 
 var app = builder.Build();

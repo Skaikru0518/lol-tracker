@@ -1,0 +1,72 @@
+@using summon.Accounts
+@using summon.Data
+@inject IServiceScopeFactory ScopeFactory
+@inject ILogger<LiveTab> Logger
+
+@* Live page: hero with timer and the mirrored 5v5, or an empty state with a link back when the player is not in a game *@
+@if (View == LiveView.Loading)
+{
+    <div class="space-y-4">
+        <Skeleton Class="h-36" />
+        <Skeleton Class="h-80" />
+    </div>
+}
+else if (View != LiveView.Live || Game is null)
+{
+    <Panel>
+        <EmptyState Title="@(View == LiveView.Error ? "Live game unavailable" : "Not in a game right now")"
+                    Description="@(View == LiveView.Error ? "Riot could not be reached. Try again in a minute." : $"{Account.GameName}#{Account.TagLine} is not playing at the moment.")">
+            <Action>
+                <a href="@BasePath" data-enhance-nav="false" @onclick="OnBack" @onclick:preventDefault class="text-sm font-medium text-primary hover:underline">
+                    &larr; Back to profile
+                </a>
+            </Action>
+        </EmptyState>
+    </Panel>
+}
+else
+{
+    <div class="space-y-4">
+        <LiveHero Game="Game" ChampionName="@ChampionName" PlayerLabel="@($"{Account.GameName}#{Account.TagLine}")" />
+        <LiveScoreboard Game="Game" DataDragon="DataDragon" Ranks="ranks" RanksLoading="ranks is null && !ranksFailed" RanksFailed="ranksFailed"
+                        HighlightPuuid="@Account.Puuid" />
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public required Account Account { get; set; }
+    [Parameter, EditorRequired] public required DataDragonData DataDragon { get; set; }
+    [Parameter, EditorRequired] public required string BasePath { get; set; }
+    [Parameter] public RiotLiveGame? Game { get; set; }
+    [Parameter] public LiveView View { get; set; }
+    // Switches back to the overview in place; the href stays for new-tab clicks
+    [Parameter] public EventCallback OnBack { get; set; }
+
+    private Dictionary<string, List<RankedEntry>>? ranks;
+    private bool ranksFailed;
+    private long? ranksGameId;
+
+    private string? ChampionName =>
+        Game?.Participants.FirstOrDefault(p => p.Puuid == Account.Puuid) is { } me ? DataDragon.ChampionIds.GetValueOrDefault(me.ChampionId) : null;
+
+    // The players' ranks load once per game; the minute refresh of the same game keeps them
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Game is null || Game.GameId == ranksGameId || Account.Platform is not { } platform) return;
+        ranksGameId = Game.GameId;
+        ranks = null;
+        ranksFailed = false;
+        try
+        {
+            // Runs inside the circuit, so it opens its own scope like the profile's loads do
+            await using var scope = ScopeFactory.CreateAsyncScope();
+            ranks = await scope.ServiceProvider.GetRequiredService<RankedService>().GetBatchAsync(platform, Game.Participants.Select(p => p.Puuid).ToList());
+        }
+        catch (Exception e) when (e is not OperationCanceledException)
+        {
+            // An exception here would end the circuit; the rows say the rank is unavailable instead
+            Logger.LogError(e, "Live ranks failed for game {GameId}", Game.GameId);
+            ranksFailed = true;
+        }
+    }
+}

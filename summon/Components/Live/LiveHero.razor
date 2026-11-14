@@ -1,0 +1,23 @@
+@* The player's champion splash with a pulsing LIVE timer (or champ select), the queue and the map *@
+<HeroBanner SplashUrl="@(ChampionName is null ? null : DataDragonData.ChampionSplash(ChampionName))" Class="rounded-lg border">
+    <div class="flex min-h-36 flex-col justify-end gap-1 p-5">
+        <p class="flex items-center gap-2 text-sm font-bold text-loss">
+            <LivePulse />
+            @(ChampSelect ? "CHAMP SELECT" : "LIVE")
+            @if (!ChampSelect)
+            {
+                <span class="font-mono tabular-nums text-foreground"><LiveTimer GameStartTime="Game.GameStartTime" GameLength="Game.GameLength" /></span>
+            }
+        </p>
+        <h2 class="text-2xl font-bold text-foreground">@Queues.Name(Game.GameQueueConfigId)</h2>
+        <p class="text-sm text-muted-foreground">@PlayerLabel · @LiveGames.MapName(Game.MapId)</p>
+    </div>
+</HeroBanner>
+
+@code {
+    [Parameter, EditorRequired] public required RiotLiveGame Game { get; set; }
+    [Parameter] public string? ChampionName { get; set; }
+    [Parameter, EditorRequired] public required string PlayerLabel { get; set; }
+
+    private bool ChampSelect => Game.GameStartTime <= 0;
+}

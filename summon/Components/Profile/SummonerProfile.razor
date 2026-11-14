@@ -3,6 +3,7 @@
 @using summon.Data
 @inject IServiceScopeFactory ScopeFactory
 @inject IJSRuntime JS
+@implements IDisposable
 
 @if (notFound)
 {
@@ -27,6 +28,10 @@ else
                       Refreshing="refreshing" OnRefresh="RefreshAsync" />
     }
     <div class="mx-auto max-w-7xl px-4 sm:px-6">
+        @if (live is not null && tab != "live")
+        {
+            <LiveBanner Game="live" BasePath="@BasePath" OnOpen="ShowLiveAsync" />
+        }
         <SummonerTabs BasePath="@BasePath" Active="@tab" OnSelect="t => { tab = t; champion = null; }" />
         <div class="py-4 lg:py-6">
             @if (tab == "")
@@ -99,6 +104,11 @@ else
             {
                 <AchievementsTab Puuid="@account.Puuid" LoadVersion="loadVersion" />
             }
+            else if (tab == "live" && account is not null && dataDragon is not null)
+            {
+                <LiveTab Account="account" DataDragon="dataDragon" BasePath="@BasePath" Game="live" View="LiveGames.View(live, liveLoaded, liveFailed)"
+                         OnBack="ShowOverviewAsync" />
+            }
             else
             {
                 @* shortcut: these tabs are ported in their own steps; until then they say so *@
@@ -152,6 +162,57 @@ else
     private Task ShowChampionAsync(string name) => NavigateAsync("champions", name);
 
     private Task ShowAchievementsAsync() => NavigateAsync("achievements", null);
+
+    private Task ShowLiveAsync() => NavigateAsync("live", null);
+
+    private Task ShowOverviewAsync() => NavigateAsync("", null);
+
+    // The live game the banner and the live tab share, checked once a minute like the original's query
+    private static readonly TimeSpan LiveRefresh = TimeSpan.FromMinutes(1);
+    private readonly CancellationTokenSource liveCts = new();
+    private RiotLiveGame? live;
+    private bool liveLoaded;
+    private bool liveFailed;
+    private bool livePolling;
+
+    private async Task PollLiveAsync(Account target, CancellationToken ct)
+    {
+        if (target.Platform is not { } platform)
+        {
+            liveLoaded = true;
+            return;
+        }
+        try
+        {
+            using var timer = new PeriodicTimer(LiveRefresh);
+            do
+            {
+                try
+                {
+                    await using var scope = ScopeFactory.CreateAsyncScope();
+                    live = await scope.ServiceProvider.GetRequiredService<LiveGameService>().GetAsync(platform, target.Puuid, ct);
+                    liveLoaded = true;
+                    liveFailed = false;
+                }
+                catch (Exception e) when (e is not OperationCanceledException)
+                {
+                    // The last known game stays on screen; the next tick tries again
+                    liveFailed = true;
+                }
+                await InvokeAsync(StateHasChanged);
+            } while (await timer.WaitForNextTickAsync(ct));
+        }
+        catch (OperationCanceledException)
+        {
+            // The profile was closed
+        }
+    }
+
+    public void Dispose()
+    {
+        liveCts.Cancel();
+        liveCts.Dispose();
+    }
 
     // Riot pages match ids 50 at a time; the overview holds the first page, "Load more" asks for the next ones
     private const int RiotPage = 50;
@@ -211,6 +272,11 @@ else
             }
 
             account = loaded;
+            if (!livePolling)
+            {
+                livePolling = true;
+                _ = PollLiveAsync(loaded, liveCts.Token);
+            }
             dataDragon = await dataDragonService.GetAsync();
             summoner = await accounts.SummonerAsync(loaded);
             var topChampionId = await accounts.TopChampionIdAsync(loaded);

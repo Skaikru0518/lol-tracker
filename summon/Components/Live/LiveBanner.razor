@@ -1,0 +1,21 @@
+@* One-line banner shown while the player is in a game; links to the live page, which hides it *@
+<a href="@($"{BasePath}/live")" data-enhance-nav="false" @onclick="OnOpen" @onclick:preventDefault
+   class="mt-4 flex items-center gap-3 rounded-lg border border-loss/30 bg-card px-4 py-2.5 text-sm transition-colors hover:border-loss/60">
+    <LivePulse />
+    <span class="font-bold text-loss">@(ChampSelect ? "CHAMP SELECT" : "LIVE")</span>
+    @if (!ChampSelect)
+    {
+        <span class="font-mono tabular-nums text-foreground"><LiveTimer GameStartTime="Game.GameStartTime" GameLength="Game.GameLength" /></span>
+    }
+    <span class="text-muted-foreground">@Queues.Name(Game.GameQueueConfigId)</span>
+    <span class="ml-auto font-medium text-primary">Watch live &rarr;</span>
+</a>
+
+@code {
+    [Parameter, EditorRequired] public required RiotLiveGame Game { get; set; }
+    [Parameter, EditorRequired] public required string BasePath { get; set; }
+    // Switches to the live tab in place; the href stays for new-tab clicks
+    [Parameter] public EventCallback OnOpen { get; set; }
+
+    private bool ChampSelect => Game.GameStartTime <= 0;
+}

@@ -1,0 +1,57 @@
+@using summon.Data
+@* Mirrored 5v5 of a live game with each team's average rank on top (above its own column on mobile) and the bans below *@
+<Panel>
+    <div class="hidden items-center justify-between border-b px-3 py-2 md:flex">
+        @TeamLabel("blue", avgBlue)
+        @TeamLabel("red", avgRed)
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2">
+        @Column("blue")
+        @Column("red")
+    </div>
+    <BansRow Blue="@Bans(100)" Red="@Bans(200)" DataDragon="DataDragon" />
+</Panel>
+
+@code {
+    [Parameter, EditorRequired] public required RiotLiveGame Game { get; set; }
+    [Parameter, EditorRequired] public required DataDragonData DataDragon { get; set; }
+    [Parameter] public Dictionary<string, List<RankedEntry>>? Ranks { get; set; }
+    [Parameter] public bool RanksLoading { get; set; }
+    [Parameter] public bool RanksFailed { get; set; }
+    [Parameter, EditorRequired] public required string HighlightPuuid { get; set; }
+
+    private List<LivePair> rows = [];
+    private (string Tier, string Rank)? avgBlue;
+    private (string Tier, string Rank)? avgRed;
+
+    protected override void OnParametersSet()
+    {
+        var (pairs, blue, red) = LiveGames.SplitTeams(Game.Participants);
+        rows = pairs;
+        avgBlue = LiveGames.TeamAvgRank(blue, Ranks, Game.GameQueueConfigId);
+        avgRed = LiveGames.TeamAvgRank(red, Ranks, Game.GameQueueConfigId);
+    }
+
+    private List<int> Bans(int teamId) => Game.BannedChampions.Where(b => b.TeamId == teamId && b.ChampionId > 0).Select(b => b.ChampionId).ToList();
+
+    private RenderFragment Column(string side) =>
+        @<div class="divide-y divide-border/50 @(side == "red" ? "border-t md:border-l md:border-t-0" : "")">
+            <div class="px-3 py-2 md:hidden">@TeamLabel(side, side == "blue" ? avgBlue : avgRed)</div>
+            @foreach (var (pair, i) in rows.Select((pair, i) => (pair, i)))
+            {
+                var p = side == "blue" ? pair.Blue : pair.Red;
+                <LiveRow @key="@($"{side}-{i}")" Participant="p" Side="@side" DataDragon="DataDragon"
+                         Rank="@(p is null ? null : LiveGames.PlayerRankSummary(Ranks?.GetValueOrDefault(p.Puuid), Game.GameQueueConfigId))"
+                         RanksLoading="RanksLoading" RanksFailed="RanksFailed" Highlighted="@(p is not null && p.Puuid == HighlightPuuid)" />
+            }
+        </div>;
+
+    private static RenderFragment TeamLabel(string side, (string Tier, string Rank)? avg) =>
+        @<span class="flex items-center gap-2 text-xs @(side == "red" ? "flex-row-reverse" : "")">
+            <span class="font-bold @(side == "blue" ? "text-team-blue" : "text-team-red")">@side.ToUpperInvariant()</span>
+            @if (avg is { } a)
+            {
+                <span class="text-muted-foreground">avg <span style="color: @summon.Riot.Ranks.Color(a.Tier)">@summon.Riot.Ranks.Label(a.Tier, a.Rank)</span></span>
+            }
+        </span>;
+}

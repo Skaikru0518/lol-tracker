@@ -1,0 +1,73 @@
+@* One live player: champion, spells, rune trees, name, rank emblem with tier, WR and games; the red side is mirrored *@
+@if (Participant is null)
+{
+    <div class="h-14"></div>
+}
+else
+{
+    var p = Participant;
+    var champion = DataDragon.ChampionIds.GetValueOrDefault(p.ChampionId);
+    var keystone = p.Perks.PerkIds.Count > 0 ? p.Perks.PerkIds[0] : 0;
+    var primary = DataDragon.RuneName(p.Perks.PerkStyle);
+    var secondary = DataDragon.RuneName(p.Perks.PerkSubStyle);
+    <div class="flex h-14 items-center gap-2.5 px-3 @(Red ? "flex-row-reverse" : "") @(Highlighted ? "bg-gold/10" : "")">
+        @if (champion is not null)
+        {
+            <ChampionIcon DataDragon="DataDragon" ChampionName="@champion" Size="36" />
+        }
+        else
+        {
+            <span class="size-9 rounded-md bg-muted"></span>
+        }
+        <div class="grid shrink-0 grid-cols-2 gap-0.5">
+            @Icon(DataDragon.SpellIcon(p.Spell1Id), DataDragon.SpellName(p.Spell1Id) ?? "Summoner spell")
+            @Icon(DataDragon.RuneIcon(keystone), DataDragon.RuneName(keystone) ?? "Keystone")
+            @Icon(DataDragon.SpellIcon(p.Spell2Id), DataDragon.SpellName(p.Spell2Id) ?? "Summoner spell")
+            @Icon(DataDragon.RuneIcon(p.Perks.PerkSubStyle), secondary ?? "Secondary tree")
+        </div>
+        <div class="min-w-0 flex-1 leading-tight @(Red ? "text-right" : "")">
+            <a href="/summoner/@LiveGames.Slug(p.RiotId)" class="block truncate text-sm font-semibold hover:text-primary @(Highlighted ? "text-gold" : "text-foreground")">
+                @p.RiotId
+            </a>
+            <p class="truncate text-2xs text-muted-foreground">@(primary ?? "—") · @(secondary ?? "—")</p>
+        </div>
+        @if (RanksLoading)
+        {
+            <Skeleton Class="h-8 w-24" />
+        }
+        else
+        {
+            <div class="flex w-28 shrink-0 items-center gap-2 @(Red ? "flex-row-reverse" : "")">
+                <RankEmblem Tier="@Rank?.Tier" Size="28" />
+                <div class="leading-tight @(Red ? "text-right" : "")">
+                    <p class="text-xs font-semibold" style="@(Rank is null ? null : $"color: {Ranks.Color(Rank.Tier)}")">
+                        @(Rank is not null ? Ranks.Label(Rank.Tier, Rank.Rank) : RanksFailed ? "Rank unavailable" : "Unranked")
+                    </p>
+                    @if (Rank is not null)
+                    {
+                        <p class="text-3xs text-muted-foreground">
+                            <span class="@(Rank.WinRate >= 50 ? "text-win" : "text-loss")">@Rank.WinRate%</span> · @(Rank.Games)G
+                        </p>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    [Parameter] public RiotLiveParticipant? Participant { get; set; }
+    [Parameter, EditorRequired] public required string Side { get; set; }
+    [Parameter, EditorRequired] public required DataDragonData DataDragon { get; set; }
+    [Parameter] public RankSummary? Rank { get; set; }
+    [Parameter] public bool RanksLoading { get; set; }
+    [Parameter] public bool RanksFailed { get; set; }
+    [Parameter] public bool Highlighted { get; set; }
+
+    private bool Red => Side == "red";
+
+    private static RenderFragment Icon(string? src, string alt) =>
+        src is null
+            ? @<span title="@alt" class="rounded bg-muted" style="@Css.Square(18)"></span>
+            : @<img src="@src" alt="@alt" title="@alt" style="@Css.Square(18)" class="rounded" />;
+}
