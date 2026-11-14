@@ -1,10 +1,19 @@
-@page "/summoner/{Slug}"
+﻿@page "/summoner/{Slug}"
 @page "/summoner/{Slug}/{Tab}"
 @page "/summoner/{Slug}/{Tab}/{Champion}"
 
+@using Microsoft.EntityFrameworkCore
+@using summon.Accounts
+@using summon.Data
 @inject NavigationManager Navigation
+@inject SummonDbContext Db
+@inject AccountService Accounts
 
-<PageTitle>@RiotId | Summon.gg</PageTitle>
+<PageTitle>@(meta?.Title ?? RiotId) | Summon.gg</PageTitle>
+@if (meta is not null)
+{
+    <PageMeta Description="@meta.Description" Canonical="@meta.Canonical" />
+}
 
 @* Interactive so the Update button can reload the data in place; no prerender, or every Riot call would run twice *@
 @if (known)
@@ -22,10 +31,44 @@
 
     private bool known;
 
-    protected override void OnInitialized()
+    private record ProfileMeta(string Title, string Description, string Canonical);
+
+    private ProfileMeta? meta;
+
+    protected override async Task OnInitializedAsync()
     {
         known = Tabs.Contains(Tab ?? "") && (Champion is null || Tab == "champions");
-        if (!known) Navigation.NotFound();
+        if (!known)
+        {
+            Navigation.NotFound();
+            return;
+        }
+        meta = await ProfileMetaAsync();
+    }
+
+    /// <summary>
+    /// The original's profile title and description ("Name#TAG — Gold II", level, server, solo record) and its canonical URL.
+    /// Read from stored data; the summoner (level) comes through the profile's own cache, so the profile reuses it.
+    /// </summary>
+    // shortcut: a Riot ID never opened before gets the plain title until its profile has loaded once; resolve it here if that matters
+    private async Task<ProfileMeta?> ProfileMetaAsync()
+    {
+        var separator = Slug.LastIndexOf('-');
+        if (separator <= 0) return null;
+        var (gameName, tagLine) = (Slug[..separator].ToLower(), Slug[(separator + 1)..].ToLower());
+        var account = await Db.Accounts.AsNoTracking().Include(a => a.RankedEntries)
+            .FirstOrDefaultAsync(a => a.GameName.ToLower() == gameName && a.TagLine.ToLower() == tagLine && a.Platform != null);
+        if (account is null || await Accounts.SummonerAsync(account) is not { } summoner) return null;
+
+        var riotId = $"{account.GameName}#{account.TagLine}";
+        var solo = account.RankedEntries.FirstOrDefault(e => e.QueueType == "RANKED_SOLO_5x5");
+        var rankLabel = solo is null ? "Unranked" : Ranks.Label(solo.Tier, solo.Rank);
+        var soloLine = solo is null ? "" : $" Ranked Solo: {rankLabel} {solo.LeaguePoints} LP, {solo.Wins}W {solo.Losses}L.";
+        var server = Platforms.ByHost(account.Platform)?.Label ?? account.Platform!.ToUpperInvariant();
+        return new ProfileMeta(
+            $"{riotId} — {rankLabel}",
+            $"{riotId} ({server}) — Level {summoner.SummonerLevel}.{soloLine} Match history, LP history and champion stats on Summon.gg.",
+            $"/summoner/{Format.SummonerSlug(account.GameName, account.TagLine)}");
     }
 
     // The interactive profile cannot set the static page title, so it comes from the URL

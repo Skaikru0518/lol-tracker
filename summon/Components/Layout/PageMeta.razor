@@ -1,0 +1,27 @@
+@inject IConfiguration Configuration
+
+@* The head tags a page may change: description, canonical URL and robots. The layout renders the defaults; a page that
+   renders its own replaces them, since the last HeadContent rendered wins *@
+<HeadContent>
+    <meta name="description" content="@(Description ?? SiteInfo.Description)" />
+    @if (Canonical is not null)
+    {
+        <link rel="canonical" href="@($"{SiteInfo.Url(Configuration)}{Canonical}")" />
+    }
+    @if (NoIndex)
+    {
+        <meta name="robots" content="noindex" />
+    }
+    else
+    {
+        <meta name="robots" content="index, follow" />
+        <meta name="googlebot" content="index, follow, max-video-preview:-1, max-image-preview:large, max-snippet:-1" />
+    }
+</HeadContent>
+
+@code {
+    [Parameter] public string? Description { get; set; }
+    // A site-relative path such as "/" or "/summoner/Name-TAG"
+    [Parameter] public string? Canonical { get; set; }
+    [Parameter] public bool NoIndex { get; set; }
+}

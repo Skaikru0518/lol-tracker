@@ -1,0 +1,101 @@
+@page "/policy"
+
+<PageTitle>Summon.gg — League of Legends Summoner Tracker</PageTitle>
+
+@* Privacy and data policy: sticky table of contents with readable-width text panels *@
+<div class="mx-auto max-w-5xl px-4 py-10">
+    <h1 class="text-3xl font-bold tracking-tight text-foreground">Privacy &amp; Data Policy</h1>
+    <p class="mt-1 text-muted-foreground">Last updated: @Updated</p>
+    <div class="mt-8 grid gap-8 lg:grid-cols-[13rem_minmax(0,1fr)]">
+        <aside>
+            @* Section links; sticky beside the text from lg, a plain list above it on small screens *@
+            <nav aria-label="Policy sections" class="lg:sticky lg:top-20">
+                <p class="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">On this page</p>
+                <ul class="space-y-1.5 text-sm">
+                    @foreach (var (id, title, _) in Sections)
+                    {
+                        @* The full path: with <base href="/"> a bare #fragment would point at the home page *@
+                        <li @key="id"><a href="/policy#@id" class="text-muted-foreground transition-colors hover:text-primary">@title</a></li>
+                    }
+                </ul>
+            </nav>
+        </aside>
+        <div class="space-y-4">
+            @foreach (var (id, title, body) in Sections)
+            {
+                <Panel Id="@id" Class="scroll-mt-20" @key="id">
+                    <PanelHeader Title="@title" />
+                    <PanelBody Class="max-w-prose space-y-3 text-sm leading-relaxed text-foreground/90 [&_ul]:space-y-1.5">@body</PanelBody>
+                </Panel>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private const string Updated = "October 10, 2026";
+
+    // Policy text by section, in reading order; ids are the anchors the table of contents links to
+    private static readonly (string Id, string Title, RenderFragment Body)[] Sections =
+    [
+        ("what-is-summon-gg", "What is Summon.gg?", @<p>
+            Summon.gg is a free-to-use League of Legends stat tracker.
+            We&apos;re not a company and we don&apos;t sell anything.
+            There may be occasional downtime, slower response times during peak usage,
+            or service interruptions. We do our best to keep things running smoothly,
+            but we can&apos;t guarantee 100% uptime. Use the site as-is, with no warranties.
+            As the site grows, we plan to migrate to a custom domain and more stable hosting.
+        </p>),
+        ("what-data-do-we-collect", "What data do we collect?", @<text>
+            <p class="mb-3">
+                All data displayed on Summon.gg comes directly from the <span class="font-semibold">Riot Games API</span>. This is publicly available data
+                that Riot makes accessible to any registered developer. We collect and cache:
+            </p>
+            <ul class="list-disc space-y-2 pl-6">
+                <li><span class="font-medium">Account info</span> — Riot ID (game name + tag), PUUID</li>
+                <li><span class="font-medium">Summoner data</span> — profile icon, summoner level</li>
+                <li><span class="font-medium">Ranked stats</span> — tier, rank, LP, wins, losses</li>
+                <li><span class="font-medium">Match history</span> — match details, participants, timeline data</li>
+                <li><span class="font-medium">Champion mastery</span> — mastery level and points per champion</li>
+                <li><span class="font-medium">Live game</span> — current game info (if in a game)</li>
+                <li><span class="font-medium">LP history</span> — snapshots of ranked LP over time (tracked automatically)</li>
+            </ul>
+        </text>),
+        ("how-do-we-store-it", "How do we store it?", @<p>
+            We cache Riot API responses in a PostgreSQL database to make the site faster.
+            This means if you search for a summoner, their data gets saved so the next visit loads instantly
+            instead of waiting for the Riot API. Match data is stored permanently (finished matches never change),
+            while other data (ranked, summoner info) is refreshed periodically.
+        </p>),
+        ("what-we-dont-collect", "What we DON'T collect", @<text>
+            <ul class="list-disc space-y-2 pl-6">
+                <li>No personal information (email, password, real name, IP address)</li>
+                <li>No cookies for tracking</li>
+                <li>No third-party trackers — we only use basic, anonymous page view analytics</li>
+                <li>No login or account system</li>
+                <li>No payment information</li>
+            </ul>
+            <p class="mt-3">We literally just read publicly available League of Legends data. That&apos;s it.</p>
+        </text>),
+        ("local-storage", "Local storage", @<text>
+            <p>
+                We use your browser&apos;s localStorage to save your recent search history
+                (last 10 summoner names you searched). This stays on your device and is never sent to our servers.
+                You can clear it at any time.
+            </p>
+            <p>
+                While you type in the search box, the text is sent to our server to suggest summoners we already have
+                stored. It is only used to answer that request and is not saved.
+            </p>
+        </text>),
+        ("riot-games", "Riot Games", @<p>
+            Summon.gg isn&apos;t endorsed by Riot Games and doesn&apos;t reflect the views or opinions
+            of Riot Games or anyone officially involved in producing or managing Riot Games properties.
+            Riot Games, and all associated properties are trademarks or registered trademarks of Riot Games, Inc.
+        </p>),
+        ("questions", "Questions?", @<p>
+            If you have any questions about this policy or want your data removed,
+            reach out on <a href="https://github.com/Skaikru0518" target="_blank" rel="noopener noreferrer" class="font-semibold text-primary hover:underline">GitHub — Skaikru0518</a>. Happy to help.
+        </p>),
+    ];
+}

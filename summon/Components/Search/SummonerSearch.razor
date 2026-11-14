@@ -11,7 +11,7 @@
     <PlatformPicker Value="@platform" OnChange="SetPlatformAsync" Compact="Compact" Class="@(HeroSurface ? Hero : null)" />
     <div class="relative flex-1">
         <SearchIcon Class="@IconClass" />
-        <input value="@input" @oninput="OnInput" @onfocus="() => focused = true" @onblur="() => focused = false"
+        <input @ref="inputRef" value="@input" @oninput="OnInput" @onfocus="() => focused = true" @onblur="() => focused = false"
                placeholder="GameName#TAG" data-slot="input" class="@InputClass" />
         @if (focused && SearchQuery.ParseTerms(input) is not null)
         {
@@ -43,6 +43,10 @@
     [Parameter] public bool HeroSurface { get; set; }
     // Smaller fields and a solid button, for boxes like the 404 page's
     [Parameter] public bool Compact { get; set; }
+    // Focus the field when it appears, for the navbar's search overlay
+    [Parameter] public bool AutoFocus { get; set; }
+
+    private ElementReference inputRef;
 
     // Over the hero splash the fields need their own blurred backdrop to stay readable
     private const string Hero = "bg-background/75 backdrop-blur-md border-primary/30 shadow-xl";
@@ -93,6 +97,7 @@
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender) return;
+        if (AutoFocus) await inputRef.FocusAsync();
         try
         {
             var stored = await JS.InvokeAsync<string?>("localStorage.getItem", PlatformKey);

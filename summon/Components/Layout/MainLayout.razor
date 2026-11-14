@@ -1,12 +1,15 @@
 ﻿@inherits LayoutComponentBase
 @inject DataDragon DataDragon
 
+@* The default description and robots; a page with its own PageMeta replaces them *@
+<PageMeta />
+
 <header class="fixed inset-x-0 top-0 z-40 h-14 border-b bg-nav/90 backdrop-blur">
     <div class="mx-auto flex h-full max-w-7xl items-center gap-4 px-4 sm:px-6">
         <a href="/" class="shrink-0 text-lg">
             <Logo />
         </a>
-        <div class="flex-1"></div>
+        <NavSearch @rendermode="InteractiveServer" />
     </div>
 </header>
 
@@ -19,6 +22,8 @@
         <div class="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
             <span class="font-medium text-foreground">Summon.gg</span>
             <span>Patch @(version ?? "...")</span>
+            <a href="/changelog" class="hover:text-foreground">Changelog</a>
+            <a href="/policy" class="hover:text-foreground">Policy</a>
             <span>&copy; @DateTime.Now.Year</span>
         </div>
         <p class="text-center">

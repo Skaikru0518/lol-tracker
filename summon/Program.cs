@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using summon;
 using summon.Data;
@@ -73,6 +73,8 @@ app.Use(async (context, next) =>
 app.UseAntiforgery();
 
 app.MapStaticAssets();
+app.MapGet("/robots.txt", (IConfiguration configuration) => Results.Text(SiteInfo.Robots(SiteInfo.Url(configuration)), "text/plain"));
+app.MapGet("/sitemap.xml", (IConfiguration configuration) => Results.Text(SiteInfo.Sitemap(SiteInfo.Url(configuration), DateTime.UtcNow), "application/xml"));
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 

@@ -1,9 +1,29 @@
-﻿<!DOCTYPE html>
+﻿@inject IConfiguration Configuration
+<!DOCTYPE html>
 <html lang="en" class="dark h-full antialiased">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <base href="/" />
+    @* The original's root metadata: what link previews and search engines read on every page *@
+    <meta name="keywords" content="League of Legends,LoL,summoner,tracker,match history,ranked,stats,op.gg,u.gg,LP tracker,live game,champion mastery,KDA,league tracker,summoner lookup,LoL stats" />
+    <meta name="author" content="Skaikru0518" />
+    <meta name="creator" content="Skaikru0518" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:site_name" content="Summon.gg" />
+    <meta property="og:title" content="@SiteInfo.Title" />
+    <meta property="og:description" content="Track any League of Legends summoner — ranked stats, LP history, match history, champion mastery, live game detection, and achievement badges." />
+    <meta property="og:url" content="@SiteUrl" />
+    <meta property="og:image" content="@($"{SiteUrl}/icon.ico")" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="@SiteInfo.Title" />
+    <meta name="twitter:description" content="Track any LoL summoner — ranked stats, LP history, match history, live game detection, and achievement badges." />
+    <meta name="twitter:image" content="@($"{SiteUrl}/icon.ico")" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/icon.ico" sizes="any" />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="apple-touch-icon" href="/apple-icon.png" sizes="180x180" type="image/png" />
     <ResourcePreloader />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -19,5 +39,10 @@
     <script src="@Assets["tooltip.js"]"></script>
     <script src="@Assets["marquee.js"]"></script>
     <script src="@Assets["widget.js"]"></script>
+    <script src="@Assets["spotlight.js"]"></script>
 </body>
 </html>
+
+@code {
+    private string SiteUrl => SiteInfo.Url(Configuration);
+}

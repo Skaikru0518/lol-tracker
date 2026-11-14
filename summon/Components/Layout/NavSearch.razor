@@ -1,0 +1,115 @@
+@implements IAsyncDisposable
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+
+@* The navbar's search trigger (not on the home page, which has its own search) and the full-screen search overlay it opens *@
+@if (isHome)
+{
+    <div class="flex-1"></div>
+}
+else
+{
+    <button type="button" @onclick="Open"
+            class="mx-auto flex h-9 w-full max-w-md items-center gap-2 rounded-lg border bg-card px-3 text-sm text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground">
+        <SearchIcon Class="size-3.5" />
+        <span>Search summoner...</span>
+        <kbd class="ml-auto hidden rounded border px-1.5 py-0.5 text-3xs sm:inline">/</kbd>
+    </button>
+}
+
+@if (open)
+{
+    @* A popover in the top layer: inside the header, whose backdrop blur makes it the containing block, a fixed overlay would only cover the header *@
+    <div popover="manual" @ref="overlay" @onclick="Close"
+         class="inset-0 m-0 size-full max-h-none max-w-none items-start justify-center border-0 bg-background/80 px-4 pb-0 pt-[18vh] text-foreground backdrop-blur-sm open:flex">
+        <div class="w-full max-w-2xl" @onclick:stopPropagation>
+            <Panel Class="flex flex-col gap-3 overflow-visible p-4 shadow-xl">
+                <SummonerSearch AutoFocus="true" />
+                <SearchHistory />
+                <p class="text-center text-xs text-muted-foreground">
+                    Press <kbd class="rounded border px-1.5 py-0.5 text-3xs">Esc</kbd> to close
+                </p>
+            </Panel>
+        </div>
+    </div>
+}
+
+@code {
+    private bool open;
+    private bool isHome;
+    private DotNetObjectReference<NavSearch>? self;
+    private ElementReference overlay;
+    private bool shown;
+
+    protected override void OnInitialized()
+    {
+        isHome = IsHome(Navigation.Uri);
+        // Navigating away closes the overlay, so Back never reopens it
+        Navigation.LocationChanged += OnLocationChanged;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            self = DotNetObjectReference.Create(this);
+            await JS.InvokeVoidAsync("summonSpotlight.listen", self);
+        }
+        if (open && !shown)
+        {
+            shown = true;
+            await JS.InvokeVoidAsync("summonSpotlight.show", overlay);
+        }
+        else if (!open) shown = false;
+    }
+
+    private bool IsHome(string uri) => Navigation.ToBaseRelativePath(uri).Split('?', '#')[0] == "";
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e) => _ = InvokeAsync(async () =>
+    {
+        isHome = IsHome(e.Location);
+        await SetOpenAsync(false);
+        StateHasChanged();
+    });
+
+    private Task Open() => SetOpenAsync(true);
+
+    // The "/" shortcut does nothing on the home page, where the hero search is the search
+    [JSInvokable]
+    public Task OpenFromKey() => isHome ? Task.CompletedTask : InvokeAsync(async () =>
+    {
+        await SetOpenAsync(true);
+        StateHasChanged();
+    });
+
+    [JSInvokable]
+    public Task Close() => InvokeAsync(async () =>
+    {
+        await SetOpenAsync(false);
+        StateHasChanged();
+    });
+
+    private async Task SetOpenAsync(bool value)
+    {
+        if (open == value) return;
+        open = value;
+        await JS.InvokeVoidAsync("summonSpotlight.lockScroll", value);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        Navigation.LocationChanged -= OnLocationChanged;
+        self?.Dispose();
+        if (open)
+        {
+            try
+            {
+                await JS.InvokeVoidAsync("summonSpotlight.lockScroll", false);
+            }
+            catch (JSDisconnectedException)
+            {
+                // The page is already gone
+            }
+        }
+    }
+}
