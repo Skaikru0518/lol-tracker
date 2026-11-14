@@ -35,6 +35,9 @@ export function MatchList({
 	runeData,
 	lpHistories,
 	rankedEntries,
+	hasMore = false,
+	loadingMore = false,
+	onLoadMore,
 }: {
 	matches?: Match[];
 	puuid: string;
@@ -43,6 +46,10 @@ export function MatchList({
 	runeData?: RuneMaps;
 	lpHistories?: LpHistories;
 	rankedEntries?: RankedEntry[];
+	/** More games exist beyond `matches`; the button asks for them once the loaded ones are all shown. */
+	hasMore?: boolean;
+	loadingMore?: boolean;
+	onLoadMore?: () => void;
 }) {
 	const [queue, setQueue] = useState<QueueFilter>("all");
 	const [visible, setVisible] = useState(PAGE_SIZE);
@@ -135,10 +142,18 @@ export function MatchList({
 							/>
 						);
 					})}
-					{visible < filtered.length && (
+					{(visible < filtered.length || (hasMore && onLoadMore)) && (
 						<div className="p-3">
-							<Button variant="outline" className="w-full" onClick={() => setVisible((v) => v + PAGE_SIZE)}>
-								Load more
+							<Button
+								variant="outline"
+								className="w-full"
+								disabled={loadingMore}
+								onClick={() => {
+									if (visible >= filtered.length) onLoadMore?.();
+									setVisible((v) => v + PAGE_SIZE);
+								}}
+							>
+								{loadingMore ? "Loading…" : "Load more"}
 							</Button>
 						</div>
 					)}

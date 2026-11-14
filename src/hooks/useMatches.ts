@@ -1,7 +1,7 @@
 import { Match } from "@/lib/validators/match";
 import { useQuery } from "@tanstack/react-query";
 
-async function fetchMatches(
+export async function fetchMatches(
 	puuid: string,
 	count: number = 20,
 	championId?: number,

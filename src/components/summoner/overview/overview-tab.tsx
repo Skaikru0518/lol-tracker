@@ -1,11 +1,13 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { useSummonerContext } from "@/components/summoner/shell/summoner-provider";
 import { MatchList } from "@/components/summoner/matches/match-list";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRankedLpHistories } from "@/hooks/useRankedLpHistories";
-import { useMatches } from "@/hooks/useMatches";
+import { fetchMatches, useMatches } from "@/hooks/useMatches";
+import { MORE_MATCHES_PAGE, nextMatchStart } from "@/lib/summoner/matches/more-matches";
 import { useRanked } from "@/hooks/useRanked";
 import { useMmrEstimates } from "@/hooks/useMmrEstimates";
 import { RANKED_QUEUE_TYPES } from "@/lib/game/ranked-queues";
@@ -24,11 +26,32 @@ const INITIAL_MATCH_COUNT = 20;
 const REMAINING_MATCH_COUNT = 30;
 
 /** First 20 matches for a fast paint, then the next 30 by offset; `settled` once both are stored. */
-export function useOverviewMatches(puuid: string): { matches?: Match[]; isLoading: boolean; settled: boolean } {
+export function useOverviewMatches(puuid: string): { matches?: Match[]; isLoading: boolean; settled: boolean; restCount: number } {
 	const { data: firstPage, isLoading, isError: firstFailed } = useMatches(puuid, INITIAL_MATCH_COUNT);
 	const { data: rest, isFetched: restFetched } = useMatches(firstPage ? puuid : undefined, REMAINING_MATCH_COUNT, undefined, INITIAL_MATCH_COUNT);
 	const matches = useMemo(() => (firstPage ? [...firstPage, ...(rest ?? [])] : undefined), [firstPage, rest]);
-	return { matches, isLoading, settled: overviewSettled({ isError: firstFailed }, { isFetched: restFetched }) };
+	return { matches, isLoading, settled: overviewSettled({ isError: firstFailed }, { isFetched: restFetched }), restCount: rest?.length ?? 0 };
+}
+
+/** Older games past the first 50, 50 per page, fetched only when the list asks for them. */
+function useMoreMatches(puuid: string, restCount: number) {
+	const [requested, setRequested] = useState(false);
+	const query = useInfiniteQuery({
+		queryKey: ["matches", puuid, "more"],
+		queryFn: ({ pageParam }) => fetchMatches(puuid, MORE_MATCHES_PAGE, undefined, pageParam) as Promise<Match[]>,
+		initialPageParam: INITIAL_MATCH_COUNT + REMAINING_MATCH_COUNT,
+		getNextPageParam: (lastPage, _pages, lastStart) => nextMatchStart(lastPage.length, lastStart),
+		staleTime: 1000 * 60 * 5,
+		enabled: requested,
+	});
+	const more = useMemo(() => query.data?.pages.flat() ?? [], [query.data]);
+	return {
+		more,
+		// An empty second page means the player has no more than the games already shown
+		hasMore: requested ? query.hasNextPage : restCount > 0,
+		loadingMore: query.isFetching,
+		loadMore: () => (requested ? void query.fetchNextPage() : setRequested(true)),
+	};
 }
 
 /** Overview tab: stat column on the left, match list on the right. */
@@ -36,7 +59,9 @@ export function OverviewTab() {
 	const { puuid, basePath, version } = useSummonerContext();
 	const { data: ranked } = useRanked(puuid);
 	const { data: runeData } = useRunes();
-	const { matches, isLoading, settled } = useOverviewMatches(puuid);
+	const { matches, isLoading, settled, restCount } = useOverviewMatches(puuid);
+	const { more, hasMore, loadingMore, loadMore } = useMoreMatches(puuid, restCount);
+	const listMatches = useMemo(() => (matches ? [...matches, ...more] : undefined), [matches, more]);
 	// Read stored Rift games only after the Riot fetch has saved the newest ones
 	const { data: riftMatches } = useRiftMatches(settled ? puuid : undefined, matches?.[0]?.metadata.matchId);
 	const lpHistories = useRankedLpHistories(puuid);
@@ -65,13 +90,16 @@ export function OverviewTab() {
 				<div className="min-w-0 space-y-4">
 					<RecentPerformancePanel puuid={puuid} version={version} newestMatchId={settled ? matches?.[0]?.metadata.matchId : undefined} />
 					<MatchList
-						matches={matches}
+						matches={listMatches}
 						puuid={puuid}
 						version={version}
 						isLoading={isLoading}
 						runeData={runeData}
 						lpHistories={lpHistories}
 						rankedEntries={ranked}
+						hasMore={settled && hasMore}
+						loadingMore={loadingMore}
+						onLoadMore={loadMore}
 					/>
 				</div>
 			</div>
