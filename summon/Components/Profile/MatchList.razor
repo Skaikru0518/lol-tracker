@@ -6,6 +6,9 @@
             <h2 class="text-sm font-semibold text-foreground">Recent games</h2>
             <PerformanceHelp />
         </div>
+        <div class="sm:ml-auto sm:w-auto">
+            <MatchFilters Queue="@queue" OnQueueChange="SetQueue" />
+        </div>
     </div>
 
     @if (Games is null || DataDragon is null)
@@ -17,38 +20,49 @@
             }
         </div>
     }
-    else if (Games.Count == 0)
-    {
-        <EmptyState Title="No matches found" />
-    }
     else
     {
-        @foreach (var game in Games.Take(visible))
+        var filtered = Filtered;
+        if(filtered.Count == 0)
         {
-            <RecentGame Game="game" Puuid="@Puuid" DataDragon="DataDragon" LpChange="@(LpChanges?.TryGetValue(game.MatchId, out var lp) == true ? lp : null)"
-                        Performance="@Performance?.GetValueOrDefault(game.MatchId)" PerformanceLoading="Performance is null"
-                        Match="@Matches?.GetValueOrDefault(game.MatchId)" @key="game.MatchId" />
+            <EmptyState Title="@(Games.Count > 0 ? "No games for this filter" : "No matches found")" />
         }
-        @if (visible < Games.Count)
+        else
         {
-            <div class="p-3">
-                <button type="button" data-slot="button" class="@LoadMoreClass" @onclick="() => visible += PageSize">Load more</button>
-            </div>
+            @foreach(var game in filtered.Take(visible))
+            {
+                <RecentGame Game="game" Puuid="@Puuid" DataDragon="DataDragon" LpChange="@(LpChanges?.TryGetValue(game.MatchId, out var lp) == true ? lp : null)"
+                            Performance="@Performance?.GetValueOrDefault(game.MatchId)" PerformanceLoading="Performance is null"
+                            Match="@Matches?.GetValueOrDefault(game.MatchId)" @key="game.MatchId" />
+            }
+            @if(visible < filtered.Count)
+            {
+                <div class="p-3">
+                    <button type="button" data-slot="button" class="@LoadMoreClass" @onclick="() => visible += PageSize">Load more</button>
+                </div>
+            }
         }
     }
-</Panel>
+    </Panel>
 
 @code {
-    [Parameter] public List<MatchRow>? Games { get; set; }
-    [Parameter] public DataDragonData? DataDragon { get; set; }
-    [Parameter, EditorRequired] public required string Puuid { get; set; }
-    [Parameter] public IReadOnlyDictionary<string, int>? LpChanges { get; set; }
-    // Null while the scores are being calculated, so eligible rows show a skeleton instead of the "no score" mark
-    [Parameter] public IReadOnlyDictionary<string, PerformanceScore>? Performance { get; set; }
-    // The profile already holds these match documents, so opening a row needs no database read
-    [Parameter] public IReadOnlyDictionary<string, RiotMatch>? Matches { get; set; }
+        [Parameter] public List<MatchRow>? Games { get; set; }
+        [Parameter] public DataDragonData? DataDragon { get; set; }
+        [Parameter, EditorRequired] public required string Puuid { get; set; }
+        [Parameter] public IReadOnlyDictionary<string, int>? LpChanges { get; set; }
+        // Null while the scores are being calculated, so eligible rows show a skeleton instead of the "no score" mark
+        [Parameter] public IReadOnlyDictionary<string, PerformanceScore>? Performance { get; set; }
+        // The profile already holds these match documents, so opening a row needs no database read
+        [Parameter] public IReadOnlyDictionary<string, RiotMatch>? Matches { get; set; }
 
     private const int PageSize = 20;
+    private string queue = "all";
+    private List<MatchRow> Filtered => queue == "all" ? Games! : Games!.Where(g => Queues.Selection(queue).Ids.Contains(g.QueueId)).ToList();
+    private void SetQueue(string value)
+    {
+        queue = value;
+        visible = PageSize;
+    }
 
     // The shadcn Button classes for variant "outline", default size, with "w-full"
     private const string LoadMoreClass =
