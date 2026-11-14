@@ -68,7 +68,8 @@ else
                     {
                         <Skeleton Class="h-64" />
                     }
-                    <MatchList Games="games" DataDragon="dataDragon" Puuid="@(account?.Puuid ?? "")" LpChanges="lpChanges" Performance="performance" Matches="matchesById" />
+                    <MatchList Games="games" DataDragon="dataDragon" Puuid="@(account?.Puuid ?? "")" LpChanges="lpChanges" Performance="performance" Matches="matchesById"
+                               HasMore="hasMore" LoadingMore="loadingMore" OnLoadMore="LoadMoreAsync" />
                 </div>
             </div>
         </div>
@@ -95,6 +96,12 @@ else
     private int loadVersion;
     private Dictionary<string, PerformanceScore>? performance;
     private RecentSummary? recentSummary;
+
+    // Riot pages match ids 50 at a time; the overview holds the first page, "Load more" asks for the next ones
+    private const int RiotPage = 50;
+    private int nextStart = RiotPage;
+    private bool hasMore;
+    private bool loadingMore;
 
     protected override Task OnInitializedAsync() => LoadAsync();
 
@@ -155,6 +162,9 @@ else
 
             games = await matchService.GetRecentAsync(loaded);
             lpChanges = LpEstimate.ForRows(games, lpHistory);
+            // A load starts over from the first page, so pages added earlier by "Load more" are dropped
+            nextStart = RiotPage;
+            hasMore = games.Count >= RiotPage;
             StateHasChanged();
 
             var stored = await matchService.GetProfileMatchesAsync(loaded.Puuid);
@@ -176,6 +186,42 @@ else
         {
             // An exception here would end the circuit; a failed refresh keeps the data already on screen
             failed = true;
+        }
+    }
+
+    /// <summary>The next 50 games after the ones shown, with their scores, LP changes and documents for the expanded rows.</summary>
+    private async Task LoadMoreAsync()
+    {
+        if (loadingMore || refreshing || account is null || games is null) return;
+        loadingMore = true;
+        StateHasChanged();
+        try
+        {
+            await using var scope = ScopeFactory.CreateAsyncScope();
+            var matchService = scope.ServiceProvider.GetRequiredService<MatchService>();
+            var performanceService = scope.ServiceProvider.GetRequiredService<PerformanceService>();
+
+            // Null means Riot could not be reached: nothing changes and the button stays for another try
+            if (await matchService.GetPageAsync(account, nextStart) is not { } page) return;
+            // A page with games that failed to download is asked for again on the next click, so the list has no gaps
+            if (page.Complete) nextStart += RiotPage;
+            hasMore = page.HasMore || !page.Complete;
+
+            var shown = games.Select(g => g.MatchId).ToHashSet();
+            var added = page.Rows.Where(r => !shown.Contains(r.MatchId)).ToList();
+            if (added.Count == 0) return;
+
+            // Sorted, because a retried page can bring games older than the newest ones of that page shown before
+            games = [.. games.Concat(added).OrderByDescending(g => g.GameCreation)];
+            lpChanges = LpEstimate.ForRows(games, lpHistory ?? []);
+            var documents = await matchService.GetDocumentsAsync(account.Puuid, added.Select(r => r.MatchId).ToArray());
+            matchesById = new Dictionary<string, RiotMatch>((matchesById ?? []).Concat(documents));
+            var scores = await performanceService.ScoreAsync(documents.Values, account.Puuid);
+            performance = new Dictionary<string, PerformanceScore>((performance ?? []).Concat(scores));
+        }
+        finally
+        {
+            loadingMore = false;
         }
     }
 }

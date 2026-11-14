@@ -1,4 +1,4 @@
-﻿using System.Net.Http.Json;
+using System.Net.Http.Json;
 
 namespace summon.Riot;
 
@@ -15,9 +15,9 @@ public class RiotClient(HttpClient http)
         http.GetFromJsonAsync<List<RiotLeagueEntry>>(
             $"https://{platform}.api.riotgames.com/lol/league/v4/entries/by-puuid/{Uri.EscapeDataString(puuid)}", ct);
 
-    public Task<List<string>?> GetMatchIdsAsync(string puuid, int count, CancellationToken ct = default) =>
+    public Task<List<string>?> GetMatchIdsAsync(string puuid, int count, int start = 0, CancellationToken ct = default) =>
         http.GetFromJsonAsync<List<string>>(
-            $"{Europe}/lol/match/v5/matches/by-puuid/{Uri.EscapeDataString(puuid)}/ids?count={count}", ct);
+            $"{Europe}/lol/match/v5/matches/by-puuid/{Uri.EscapeDataString(puuid)}/ids?start={start}&count={count}", ct);
 
     public Task<string> GetMatchJsonAsync(string matchId, CancellationToken ct = default) =>
         http.GetStringAsync($"{Europe}/lol/match/v5/matches/{Uri.EscapeDataString(matchId)}", ct);

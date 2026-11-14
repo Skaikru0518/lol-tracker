@@ -35,10 +35,12 @@
                             Performance="@Performance?.GetValueOrDefault(game.MatchId)" PerformanceLoading="Performance is null"
                             Match="@Matches?.GetValueOrDefault(game.MatchId)" @key="game.MatchId" />
             }
-            @if(visible < filtered.Count)
+            @if (visible < filtered.Count || HasMore)
             {
                 <div class="p-3">
-                    <button type="button" data-slot="button" class="@LoadMoreClass" @onclick="() => visible += PageSize">Load more</button>
+                    <button type="button" data-slot="button" class="@LoadMoreClass" disabled="@LoadingMore" @onclick="ShowMoreAsync">
+                        @(LoadingMore ? "Loading…" : "Load more")
+                    </button>
                 </div>
             }
         }
@@ -54,10 +56,23 @@
         [Parameter] public IReadOnlyDictionary<string, PerformanceScore>? Performance { get; set; }
         // The profile already holds these match documents, so opening a row needs no database read
         [Parameter] public IReadOnlyDictionary<string, RiotMatch>? Matches { get; set; }
+        // Whether Riot may have older games than the loaded ones
+        [Parameter] public bool HasMore { get; set; }
+        [Parameter] public bool LoadingMore { get; set; }
+        [Parameter] public EventCallback OnLoadMore { get; set; }
 
     private const int PageSize = 20;
     private string queue = "all";
     private List<MatchRow> Filtered => queue == "all" ? Games! : Games!.Where(g => Queues.Selection(queue).Ids.Contains(g.QueueId)).ToList();
+    // Past the loaded games the profile fetches the next page from Riot first, then the list shows 20 more
+    private async Task ShowMoreAsync()
+    {
+        // Counted from what is on screen, so a short filtered list grows by 20 rows, not by the gap visible already had
+        var shown = Math.Min(visible, Filtered.Count);
+        if (shown == Filtered.Count && HasMore) await OnLoadMore.InvokeAsync();
+        visible = shown + PageSize;
+    }
+
     private void SetQueue(string value)
     {
         queue = value;

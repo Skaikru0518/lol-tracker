@@ -15,6 +15,9 @@ public record ProfileMatches(List<RiotMatch> Recent, List<RiotMatch> Rift, List<
 /// <summary>Per-champion totals over a player's stored games, remakes excluded.</summary>
 public record ChampionStat(string ChampionName, int Games, int Wins, double WinRate, double Kda);
 
+/// <summary>One "Load more" page of games; HasMore is false once Riot returned a short page, Complete false when some games failed to download.</summary>
+public record MatchPage(List<MatchRow> Rows, bool HasMore, bool Complete);
+
 public class MatchService(SummonDbContext db, RiotClient riot)
 {
     // The overview loads 50 games like the original: the list pages through them, the side panels read all of them
@@ -28,13 +31,40 @@ public class MatchService(SummonDbContext db, RiotClient riot)
         List<string> ids;
         try
         {
-            ids = await riot.GetMatchIdsAsync(account.Puuid, Count, ct) ?? [];
+            ids = await riot.GetMatchIdsAsync(account.Puuid, Count, ct: ct) ?? [];
         }
         catch (HttpRequestException)
         {
             // Riot down or rate limited: show the games already stored instead of failing the whole profile
             ids = [];
         }
+
+        await StoreMissingAsync(ids, ct);
+        return await ToRows(db.MatchParticipants.Where(p => p.Puuid == account.Puuid)).Take(Count).ToListAsync(ct);
+    }
+
+    /// <summary>The 50 games after <paramref name="start"/>, for "Load more" past the overview's first 50; null when Riot could not be reached.</summary>
+    public async Task<MatchPage?> GetPageAsync(Account account, int start, CancellationToken ct = default)
+    {
+        List<string> ids;
+        try
+        {
+            ids = await riot.GetMatchIdsAsync(account.Puuid, Count, start, ct) ?? [];
+        }
+        catch (HttpRequestException)
+        {
+            return null;
+        }
+
+        var failed = await StoreMissingAsync(ids, ct);
+        var rows = await ToRows(db.MatchParticipants.Where(p => p.Puuid == account.Puuid && ids.Contains(p.MatchId))).ToListAsync(ct);
+        return new MatchPage(rows, ids.Count == Count, failed == 0);
+    }
+
+    /// <summary>Downloads and stores the matches among <paramref name="ids"/> that are not stored yet, five at a time; returns how many failed.</summary>
+    private async Task<int> StoreMissingAsync(List<string> ids, CancellationToken ct)
+    {
+        var failed = 0;
         var known = await db.Matches.Where(m => ids.Contains(m.MatchId)).Select(m => m.MatchId).ToListAsync(ct);
 
         foreach (var batch in ids.Except(known).Chunk(FetchBatch))
@@ -53,20 +83,22 @@ public class MatchService(SummonDbContext db, RiotClient riot)
                 }
             }));
             foreach (var (id, json) in fetched)
-                if (json is not null) db.Matches.Add(ToEntity(id, json));
+            {
+                if (json is null) failed++;
+                else db.Matches.Add(ToEntity(id, json));
+            }
         }
 
         await db.SaveChangesAsync(ct);
-
-        return await db.MatchParticipants
-            .Where(p => p.Puuid == account.Puuid)
-            .OrderByDescending(p => p.Match.GameCreation)
-            .Take(Count)
-            // Teammates share the win flag, so it stands in for the team id we do not store
-            .Select(p => new MatchRow(p.MatchId, p.ChampionName, p.Win, p.Kills, p.Deaths, p.Assists, p.Cs, p.Match.QueueId, p.Match.GameCreation, p.Match.GameDuration,
-                p.Items, p.Spell1, p.Spell2, p.Match.Participants.Where(o => o.Win == p.Win).Sum(o => o.Kills), p.ChampLevel, p.Keystone, p.SecondaryStyle, p.Placement))
-            .ToListAsync(ct);
+        return failed;
     }
+
+    /// <summary>Match rows for the given participant rows, newest first.</summary>
+    private static IQueryable<MatchRow> ToRows(IQueryable<MatchParticipant> participants) => participants
+        .OrderByDescending(p => p.Match.GameCreation)
+        // Teammates share the win flag, so it stands in for the team id we do not store
+        .Select(p => new MatchRow(p.MatchId, p.ChampionName, p.Win, p.Kills, p.Deaths, p.Assists, p.Cs, p.Match.QueueId, p.Match.GameCreation, p.Match.GameDuration,
+            p.Items, p.Spell1, p.Spell2, p.Match.Participants.Where(o => o.Win == p.Win).Sum(o => o.Kills), p.ChampLevel, p.Keystone, p.SecondaryStyle, p.Placement));
 
     /// <summary>
     /// The stored matches the overview reads: the newest 50, the newest 50 on Summoner's Rift and the newest 30 scorable ranked games.
@@ -91,6 +123,10 @@ public class MatchService(SummonDbContext db, RiotClient riot)
         List<RiotMatch> Pick(List<string> list) => list.Where(byId.ContainsKey).Select(id => byId[id]).ToList();
         return new ProfileMatches(Pick(recent), Pick(rift), Pick(ranked));
     }
+
+    /// <summary>Match documents by id, trimmed like the overview's, for the games "Load more" adds.</summary>
+    public Task<Dictionary<string, RiotMatch>> GetDocumentsAsync(string puuid, string[] ids, CancellationToken ct = default) =>
+        MatchProjection.ByIdsAsync(db, ids, puuid, [], ct);
 
     public async Task<List<ChampionStat>> GetChampionStatsAsync(string puuid, string queueFilter, CancellationToken ct = default)
     {
