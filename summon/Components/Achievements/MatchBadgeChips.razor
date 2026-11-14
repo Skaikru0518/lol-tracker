@@ -1,0 +1,19 @@
+@* Badge chips with tooltips; Max shows that many plus a +X chip; the original's MatchBadges *@
+<div class="flex flex-wrap items-center gap-1">
+    @foreach (var id in BadgeIds.Take(Max ?? BadgeIds.Count))
+    {
+        if (MatchBadges.Get(id) is not { } def) continue;
+        <Tooltip Text="@def.Description" @key="id">
+            <Chip Color="@def.Color" Class="cursor-pointer">@def.Name</Chip>
+        </Tooltip>
+    }
+    @if (BadgeIds.Count - (Max ?? BadgeIds.Count) is > 0 and var overflow)
+    {
+        <Chip Color="">+@overflow</Chip>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public required IReadOnlyList<string> BadgeIds { get; set; }
+    [Parameter] public int? Max { get; set; }
+}

@@ -9,6 +9,11 @@ namespace summon.Data
         public DbSet<Match> Matches => Set<Match>();
         public DbSet<MatchParticipant> MatchParticipants => Set<MatchParticipant>();
         public DbSet<LpSnapshot> LpSnapshots => Set<LpSnapshot>();
+        public DbSet<PlayerAchievement> PlayerAchievements => Set<PlayerAchievement>();
+        public DbSet<AchievementProgress> AchievementProgress => Set<AchievementProgress>();
+        public DbSet<MatchBadge> MatchBadges => Set<MatchBadge>();
+        public DbSet<AppSetting> AppSettings => Set<AppSetting>();
+        public DbSet<ChampionMastery> ChampionMasteries => Set<ChampionMastery>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -30,6 +35,9 @@ namespace summon.Data
                 match.Property(m => m.Data).HasColumnType("jsonb");
                 // Baselines read the recent ranked games across all players
                 match.HasIndex(m => new { m.QueueId, m.GameCreation });
+                // The achievement job looks for players with games stored since its last run
+                match.Property(m => m.CreatedAt).HasDefaultValueSql("now()");
+                match.HasIndex(m => m.CreatedAt);
             });
 
             modelBuilder.Entity<MatchParticipant>(participant =>
@@ -45,6 +53,19 @@ namespace summon.Data
                 snapshot.HasIndex(s => new { s.Puuid, s.QueueType, s.CreatedAt });
                 snapshot.HasOne(s => s.Account).WithMany().HasForeignKey(s => s.Puuid);
             });
+
+            modelBuilder.Entity<PlayerAchievement>().HasKey(a => new { a.Puuid, a.AchievementId });
+
+            modelBuilder.Entity<AchievementProgress>(progress =>
+            {
+                progress.HasKey(p => new { p.Puuid, p.AchievementId, p.Scope });
+                // Rarity counts the rows of each achievement, scope and tier
+                progress.HasIndex(p => new { p.AchievementId, p.Scope, p.Tier });
+            });
+
+            modelBuilder.Entity<MatchBadge>().HasKey(b => new { b.MatchId, b.Puuid, b.BadgeId });
+            modelBuilder.Entity<AppSetting>().HasKey(s => s.Key);
+            modelBuilder.Entity<ChampionMastery>().HasKey(m => new { m.Puuid, m.ChampionId });
         }
 
     }

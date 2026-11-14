@@ -1,0 +1,26 @@
+@inject IServiceScopeFactory ScopeFactory
+
+@* Milestones, the season's achievements and the Current form, from one payload *@
+<div class="space-y-4">
+    <MilestoneSection Progress="@(payload?.Progress ?? [])" Rarity="payload?.Rarity" />
+    <SeasonSection Progress="@(payload?.Progress ?? [])" Rarity="payload?.Rarity" />
+    <FormSection Form="@(payload?.Form ?? [])" />
+</div>
+
+@code {
+    [Parameter, EditorRequired] public required string Puuid { get; set; }
+    // Bumped by the profile after each load, so a refresh also reloads the payload
+    [Parameter] public int LoadVersion { get; set; }
+
+    private AchievementPayload? payload;
+    private int loadedVersion = -1;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (LoadVersion == loadedVersion) return;
+        loadedVersion = LoadVersion;
+        // Runs inside the circuit, so it opens its own scope like the profile's loads do
+        await using var scope = ScopeFactory.CreateAsyncScope();
+        payload = await scope.ServiceProvider.GetRequiredService<AchievementService>().LoadPayloadAsync(Puuid);
+    }
+}

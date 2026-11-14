@@ -54,6 +54,7 @@ else
             <p class="text-3xs text-muted-foreground">@(p.TotalMinionsKilled + p.NeutralMinionsKilled) CS · @Format.Thousands(p.GoldEarned)</p>
         </div>
         <ItemSlots DataDragon="DataDragon" Items="@(new[] { p.Item0, p.Item1, p.Item2, p.Item3, p.Item4, p.Item5, p.Item6 })" Size="17" Display="@ItemsDisplay" ShowNames="true" />
+        <BadgeStack BadgeIds="BadgeIds" Side="@Side" Class="@BadgesDisplay" />
     </div>
 }
 
@@ -64,8 +65,10 @@ else
     [Parameter] public bool Highlighted { get; set; }
     [Parameter] public RankedEntry? Rank { get; set; }
     [Parameter] public bool RanksLoading { get; set; }
+    [Parameter] public IReadOnlyList<string> BadgeIds { get; set; } = [];
 
     // Container query classes live in C# strings: in markup Razor would read "@sm" as code
     private const string NameColumn = "w-24 min-w-0 leading-tight @sm:w-28";
     private const string ItemsDisplay = "hidden @sm:flex";
+    private const string BadgesDisplay = "hidden @[34rem]:flex";
 }

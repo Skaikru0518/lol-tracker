@@ -49,7 +49,13 @@ public record RiotParticipant(
     RiotPerks Perks,
     int? PlayerSubteamId,
     int? SubteamPlacement,
-    int? Placement
+    int? Placement,
+    // Read by achievements and match badges
+    int PentaKills,
+    int QuadraKills,
+    bool FirstBloodKill,
+    int TimeCCingOthers,
+    int TotalHealsOnTeammates
 )
 {
     // Arena and some modes send fewer rune styles, so missing entries mean "no rune" rather than an error

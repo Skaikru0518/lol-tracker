@@ -1,0 +1,82 @@
+@using summon.Accounts
+@using summon.Data
+@inject IServiceScopeFactory ScopeFactory
+@inject ILogger<AchievementPreview> Logger
+
+@* The three best milestones, then earned Current form chips, above the Overview columns *@
+@if (payload is not null && (top.Count > 0 || earned.Count > 0))
+{
+    var formShown = earned.Take(Math.Max(0, PreviewCount - top.Count)).ToList();
+    var hidden = earned.Count - formShown.Count;
+    <div class="mb-4 flex flex-wrap items-center gap-1.5">
+        @foreach (var row in top)
+        {
+            if (Milestones.Get(row.AchievementId) is not { } def) continue;
+            <Tooltip Text="@def.Description" @key="row.AchievementId">
+                <Chip Color="@Tiers.Color(row.Tier, def.Thresholds.Length)" Class="h-6 px-2 text-xs">@def.Name · @Display.TierLabel(def, row.Tier)</Chip>
+            </Tooltip>
+        }
+        @foreach (var a in formShown)
+        {
+            <Tooltip Text="@a.Description" @key="a.Id">
+                <Chip Color="@a.Color" Class="h-6 px-2 text-xs">@a.Name</Chip>
+            </Tooltip>
+        }
+        <a href="@($"{BasePath}/achievements")" data-enhance-nav="false" @onclick="OnShowAll" @onclick:preventDefault
+           class="ml-1 text-xs font-medium text-primary hover:underline">@(hidden > 0 ? $"+{hidden} more" : "See all") &rarr;</a>
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public required Account Account { get; set; }
+    [Parameter, EditorRequired] public required string BasePath { get; set; }
+    // Switches to the Achievements tab in place; the href stays for new-tab clicks
+    [Parameter] public EventCallback OnShowAll { get; set; }
+    // Bumped by the profile after each load; detection waits for it, so it sees the games that load just stored
+    [Parameter] public int LoadVersion { get; set; }
+
+    private const int PreviewCount = 6;
+
+    private AchievementPayload? payload;
+    private List<AchievementProgress> top = [];
+    private List<AchievementDef> earned = [];
+    private int loadedVersion = -1;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (LoadVersion == loadedVersion) return;
+        loadedVersion = LoadVersion;
+
+        try
+        {
+            // Runs inside the circuit, so it opens its own scope like the profile's loads do
+            await using var scope = ScopeFactory.CreateAsyncScope();
+            var achievements = scope.ServiceProvider.GetRequiredService<AchievementService>();
+            if (payload is null)
+            {
+                // The saved achievements show at once; the detected ones replace them when detection is done
+                Show(await achievements.LoadPayloadAsync(Account.Puuid));
+                StateHasChanged();
+            }
+            if (LoadVersion == 0) return;
+
+            // Stores the masteries the mastery milestones read; cached, so it asks Riot at most every 30 minutes
+            await scope.ServiceProvider.GetRequiredService<AccountService>().AllMasteriesAsync(Account);
+            await achievements.RefreshAsync(Account.Puuid);
+            Show(await achievements.LoadPayloadAsync(Account.Puuid));
+        }
+        catch (Exception e) when (e is not OperationCanceledException)
+        {
+            // An exception here would end the circuit; whatever was saved stays on screen
+            Logger.LogError(e, "Achievement detection failed for {Puuid}", Account.Puuid);
+        }
+    }
+
+    private void Show(AchievementPayload loaded)
+    {
+        payload = loaded;
+        top = Display.TopMilestones(loaded.Progress, loaded.Rarity);
+        var earnedIds = loaded.Form.Select(f => f.AchievementId).ToHashSet();
+        earned = FormAchievements.All.Where(a => earnedIds.Contains(a.Id)).ToList();
+    }
+}

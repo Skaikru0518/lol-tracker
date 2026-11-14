@@ -1,0 +1,46 @@
+@* Up to three compact badge chips stacked in a column; beyond that two chips and a +N chip listing the rest on hover *@
+@if (column.Shown.Count > 0)
+{
+    <div class="flex-col justify-center gap-px @(Side == "red" ? "items-end" : "items-start") @Class">
+        @foreach (var id in column.Shown)
+        {
+            if (MatchBadges.Get(id) is not { } def) continue;
+            <Tooltip Text="@def.Description" @key="id">
+                <Chip Color="@def.Color" Class="@Compact">@def.Name</Chip>
+            </Tooltip>
+        }
+        @if (rest.Count > 0)
+        {
+            <Tooltip>
+                <Content>
+                    <ul class="space-y-1">
+                        @foreach (var def in rest)
+                        {
+                            <li><span class="font-semibold" style="color: @def.Color">@def.Name</span> · @def.Description</li>
+                        }
+                    </ul>
+                </Content>
+                <ChildContent>
+                    <Chip Color="" Class="@Compact">+@rest.Count</Chip>
+                </ChildContent>
+            </Tooltip>
+        }
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public required IReadOnlyList<string> BadgeIds { get; set; }
+    [Parameter, EditorRequired] public required string Side { get; set; }
+    [Parameter] public string? Class { get; set; }
+
+    private const string Compact = "h-3.5 cursor-pointer px-1 leading-none";
+
+    private (List<string> Shown, List<string> Overflow) column = ([], []);
+    private List<MatchBadgeDef> rest = [];
+
+    protected override void OnParametersSet()
+    {
+        column = MatchBadges.Column(BadgeIds);
+        rest = column.Overflow.Select(MatchBadges.Get).OfType<MatchBadgeDef>().ToList();
+    }
+}

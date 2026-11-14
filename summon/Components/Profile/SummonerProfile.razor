@@ -31,6 +31,10 @@ else
         <div class="py-4 lg:py-6">
             @if (tab == "")
             {
+                @if (account is not null)
+                {
+                    <AchievementPreview Account="account" BasePath="@BasePath" LoadVersion="loadVersion" OnShowAll="ShowAchievementsAsync" />
+                }
                 <div class="grid gap-4 lg:grid-cols-[330px_minmax(0,1fr)]">
                     <div class="space-y-4">
                         @foreach (var queueType in Ranks.QueueTypes)
@@ -91,6 +95,10 @@ else
             {
                 <LpHistoryTab Puuid="@account.Puuid" LoadVersion="loadVersion" />
             }
+            else if (tab == "achievements" && account is not null)
+            {
+                <AchievementsTab Puuid="@account.Puuid" LoadVersion="loadVersion" />
+            }
             else
             {
                 @* shortcut: these tabs are ported in their own steps; until then they say so *@
@@ -142,6 +150,8 @@ else
     private Task ShowChampionsAsync() => NavigateAsync("champions", null);
 
     private Task ShowChampionAsync(string name) => NavigateAsync("champions", name);
+
+    private Task ShowAchievementsAsync() => NavigateAsync("achievements", null);
 
     // Riot pages match ids 50 at a time; the overview holds the first page, "Load more" asks for the next ones
     private const int RiotPage = 50;

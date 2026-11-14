@@ -56,6 +56,10 @@
 
         <div class="ml-auto flex basis-full flex-col items-start gap-1 sm:basis-auto sm:items-end">
             <ItemSlots DataDragon="DataDragon" Items="Game.Items" Size="22" />
+            @if (OwnBadges.Count > 0)
+            {
+                <MatchBadgeChips BadgeIds="OwnBadges" Max="2" />
+            }
         </div>
 
         @* Lucide "chevron-down" icon *@
@@ -69,7 +73,7 @@
         @* Grid rows between 0fr and 1fr animate to the content's own height: a keyframe on first show, a transition after *@
         <div class="grid transition-all duration-[180ms] @(open ? "animate-expand grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0")">
             <div class="overflow-hidden" inert="@(!open)">
-                <MatchRowExpanded MatchId="@Game.MatchId" Puuid="@Puuid" DataDragon="DataDragon" Match="Match" />
+                <MatchRowExpanded MatchId="@Game.MatchId" Puuid="@Puuid" DataDragon="DataDragon" Match="Match" Badges="Badges" />
             </div>
         </div>
     }
@@ -83,6 +87,10 @@
     [Parameter] public PerformanceScore? Performance { get; set; }
     [Parameter] public bool PerformanceLoading { get; set; }
     [Parameter] public RiotMatch? Match { get; set; }
+    // Every player's badges in this match; the row shows the player's own, the scoreboard everyone's
+    [Parameter] public List<BadgeAssignment>? Badges { get; set; }
+
+    private List<string> OwnBadges => Badges?.Where(b => b.Puuid == Puuid).Select(b => b.BadgeId).ToList() ?? [];
 
     private bool open;
     private bool mounted;

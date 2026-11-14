@@ -9,7 +9,7 @@
             {
                 var p = i < blue.Count ? blue[i] : null;
                 <ScoreboardRow Participant="p" Side="blue" DataDragon="DataDragon" Highlighted="@(p is not null && p.Puuid == HighlightPuuid)"
-                               Rank="@RankOf(p)" RanksLoading="RanksLoading" />
+                               Rank="@RankOf(p)" RanksLoading="RanksLoading" BadgeIds="@BadgesOf(p)" />
             }
         </div>
         <div class="@RedColumn">
@@ -17,7 +17,7 @@
             {
                 var p = i < red.Count ? red[i] : null;
                 <ScoreboardRow Participant="p" Side="red" DataDragon="DataDragon" Highlighted="@(p is not null && p.Puuid == HighlightPuuid)"
-                               Rank="@RankOf(p)" RanksLoading="RanksLoading" />
+                               Rank="@RankOf(p)" RanksLoading="RanksLoading" BadgeIds="@BadgesOf(p)" />
             }
         </div>
     </div>
@@ -31,6 +31,10 @@
     [Parameter] public RenderFragment? Footer { get; set; }
     [Parameter] public IReadOnlyDictionary<string, List<summon.Data.RankedEntry>>? Ranks { get; set; }
     [Parameter] public bool RanksLoading { get; set; }
+    [Parameter] public List<BadgeAssignment>? Badges { get; set; }
+
+    private List<string> BadgesOf(RiotParticipant? p) =>
+        p is null || Badges is null ? [] : Badges.Where(b => b.Puuid == p.Puuid).Select(b => b.BadgeId).ToList();
 
     // Ranks shown for the match's own ranked queue, Solo/Duo for everything else
     private summon.Data.RankedEntry? RankOf(RiotParticipant? p)

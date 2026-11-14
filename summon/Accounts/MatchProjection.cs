@@ -17,8 +17,6 @@ public static class MatchProjection
         .Select(p => JsonNamingPolicy.CamelCase.ConvertName(p.Name!))
         .ToArray();
 
-    private static readonly int[] RankedQueues = [420, 440, 710];
-
     // Participant order is kept (WITH ORDINALITY); for matches listed in @ownOnly only the player's own participant is kept.
     // SqlQueryRaw runs the SQL through string.Format, so the JSON path's braces are doubled.
     private const string Column = """
@@ -47,7 +45,21 @@ public static class MatchProjection
             SELECT "MatchId", {Column} AS "Data" FROM "Matches"
             WHERE "QueueId" = ANY(@queues) AND "GameDuration" >= 300 AND "GameCreation" >= @since
             """,
-            [new NpgsqlParameter("queues", RankedQueues), new NpgsqlParameter("since", sinceMs), new NpgsqlParameter("puuid", ""), new NpgsqlParameter("ownOnly", Array.Empty<string>())], ct);
+            [new NpgsqlParameter("queues", Achievements.Eligibility.QueueIds), new NpgsqlParameter("since", sinceMs), new NpgsqlParameter("puuid", ""), new NpgsqlParameter("ownOnly", Array.Empty<string>())], ct);
+
+    /// <summary>The player's newest eligible ranked games, newest first, for Current form detection.</summary>
+    public static async Task<List<RiotMatch>> RecentEligibleAsync(SummonDbContext db, string puuid, int limit, CancellationToken ct) =>
+        (await LoadAsync(db,
+            $"""
+            SELECT "MatchId", {Column} AS "Data" FROM "Matches"
+            WHERE "MatchId" IN (SELECT "MatchId" FROM "MatchParticipants" WHERE "Puuid" = @puuid)
+                AND "QueueId" = ANY(@queues) AND "GameDuration" >= @minSeconds
+            ORDER BY "GameCreation" DESC LIMIT @limit
+            """,
+            [
+                new NpgsqlParameter("puuid", puuid), new NpgsqlParameter("ownOnly", Array.Empty<string>()), new NpgsqlParameter("queues", Achievements.Eligibility.QueueIds),
+                new NpgsqlParameter("minSeconds", Achievements.Eligibility.MinGameSeconds), new NpgsqlParameter("limit", limit),
+            ], ct)).Values.OrderByDescending(m => m.Info.GameCreation).ToList();
 
     private static async Task<Dictionary<string, RiotMatch>> LoadAsync(SummonDbContext db, string sql, NpgsqlParameter[] parameters, CancellationToken ct)
     {

@@ -1,0 +1,25 @@
+@* Rolling Current form achievements from the last ranked games; these come and go *@
+<Panel>
+    <PanelHeader Title="Current form">
+        <Actions>
+            <span class="text-xs text-muted-foreground">@FormAchievements.EarnedCount(Form.Select(f => f.AchievementId)) of @FormAchievements.All.Length active</span>
+        </Actions>
+    </PanelHeader>
+    <div class="grid gap-2 p-3 sm:grid-cols-2 lg:grid-cols-3">
+        @foreach (var a in FormAchievements.All)
+        {
+            var earned = Form.Any(f => f.AchievementId == a.Id);
+            <div class="flex items-start gap-3 rounded-md border p-3 @(earned ? "" : "opacity-50 grayscale")" @key="a.Id">
+                <img src="/achi/@(a.Icon).svg" alt="" width="32" height="32" class="size-8 shrink-0" />
+                <div class="min-w-0">
+                    <p class="text-sm font-semibold" style="@(earned ? $"color: {a.Color}" : null)">@a.Name</p>
+                    <p class="text-xs text-muted-foreground">@a.Description</p>
+                </div>
+            </div>
+        }
+    </div>
+</Panel>
+
+@code {
+    [Parameter, EditorRequired] public required List<FormRow> Form { get; set; }
+}

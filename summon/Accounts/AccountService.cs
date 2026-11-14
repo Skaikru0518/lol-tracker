@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
+using Npgsql;
 using summon.Data;
 using summon.Riot;
 
@@ -75,6 +76,7 @@ public class AccountService(SummonDbContext db, RiotClient riot, IMemoryCache ca
         try
         {
             var masteries = (await riot.GetAllMasteriesAsync(account.Platform, account.Puuid, ct) ?? []).OrderByDescending(m => m.ChampionPoints).ToList();
+            await SaveMasteriesAsync(account.Puuid, masteries, ct);
             cache.Set($"masteries:{account.Puuid}", masteries, TimeSpan.FromMinutes(30));
             return masteries;
         }
@@ -83,6 +85,22 @@ public class AccountService(SummonDbContext db, RiotClient riot, IMemoryCache ca
             return [];
         }
     }
+
+    // One upsert statement, so two loads of the same profile at once cannot collide on the key
+    private Task SaveMasteriesAsync(string puuid, List<RiotMastery> masteries, CancellationToken ct) =>
+        masteries.Count == 0 ? Task.CompletedTask : db.Database.ExecuteSqlRawAsync(
+            """
+            INSERT INTO "ChampionMasteries" ("Puuid", "ChampionId", "ChampionLevel", "ChampionPoints", "UpdatedAt")
+            SELECT @puuid, u.id, u.level, u.points, now() FROM unnest(@ids, @levels, @points) AS u(id, level, points)
+            ON CONFLICT ("Puuid", "ChampionId") DO UPDATE
+            SET "ChampionLevel" = excluded."ChampionLevel", "ChampionPoints" = excluded."ChampionPoints", "UpdatedAt" = excluded."UpdatedAt"
+            """,
+            [
+                new NpgsqlParameter("puuid", puuid),
+                new NpgsqlParameter("ids", masteries.Select(m => m.ChampionId).ToArray()),
+                new NpgsqlParameter("levels", masteries.Select(m => m.ChampionLevel).ToArray()),
+                new NpgsqlParameter("points", masteries.Select(m => m.ChampionPoints).ToArray()),
+            ], ct);
 
     private async Task<Account?> FetchAsync(string gameName, string tagLine, CancellationToken ct)
     {

@@ -1,0 +1,9 @@
+@* Thin progress bar in a given color *@
+<div class="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+    <div class="h-full rounded-full" style="width: @(Percent)%; background-color: @Color"></div>
+</div>
+
+@code {
+    [Parameter] public int Percent { get; set; }
+    [Parameter, EditorRequired] public required string Color { get; set; }
+}

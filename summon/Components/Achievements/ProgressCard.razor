@@ -1,0 +1,59 @@
+@using System.Globalization
+@using summon.Data
+
+@* One milestone or seasonal achievement: tier frame, progress to the next tier, rarity, reached dates and an optional note *@
+@if (Row?.ReachedAt is { Length: > 0 } reached)
+{
+    <Tooltip Class="w-full">
+        <Content>
+            <div>
+                @for (var i = 0; i < reached.Length; i++)
+                {
+                    <p>@Display.TierLabel(Def, i + 1): @reached[i].ToLocalTime().ToString("d", CultureInfo.CurrentCulture)</p>
+                }
+            </div>
+        </Content>
+        <ChildContent>@Card</ChildContent>
+    </Tooltip>
+}
+else
+{
+    @Card
+}
+
+@code {
+    [Parameter, EditorRequired] public required ProgressDef Def { get; set; }
+    [Parameter] public AchievementProgress? Row { get; set; }
+    [Parameter] public Rarity? Rarity { get; set; }
+    [Parameter, EditorRequired] public required string Scope { get; set; }
+    [Parameter] public string? Note { get; set; }
+
+    private RenderFragment Card => __builder =>
+    {
+        var view = Display.View(Def, Row);
+        var color = Tiers.Color(view.Tier, Def.Thresholds.Length);
+        var rarityLabel = Display.RarityText(Rarity, Def.Id, Scope, view.Tier);
+        <div class="flex w-full items-start gap-3 rounded-md border p-3">
+            <TierFrame Icon="@Def.Icon" Tier="view.Tier" MaxTier="Def.Thresholds.Length" />
+            <div class="min-w-0 flex-1 space-y-1.5">
+                <div class="flex items-baseline justify-between gap-2">
+                    <p class="truncate text-sm font-semibold text-foreground">@Def.Name</p>
+                    <span class="shrink-0 text-xs font-semibold" style="color: @color">@(view.TierName ?? "Locked")</span>
+                </div>
+                <p class="text-xs text-muted-foreground">@Def.Description</p>
+                <ProgressBar Percent="view.Percent" Color="@color" />
+                <div class="flex justify-between gap-2 text-2xs text-muted-foreground">
+                    <span>@(view.Next is not null ? $"{view.Current} / {view.Next}" : view.Current)</span>
+                    @if (rarityLabel is not null)
+                    {
+                        <span>@rarityLabel</span>
+                    }
+                </div>
+                @if (Note is not null)
+                {
+                    <p class="text-2xs text-muted-foreground">@Note</p>
+                }
+            </div>
+        </div>
+    };
+}

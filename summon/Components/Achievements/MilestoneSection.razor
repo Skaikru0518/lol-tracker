@@ -1,0 +1,26 @@
+@using summon.Data
+
+@* All-time milestones with tiers, progress and rarity *@
+<Panel>
+    <PanelHeader Title="Milestones">
+        <Actions>
+            <span class="text-xs text-muted-foreground">@Milestones.All.Count(m => rows.GetValueOrDefault(m.Id)?.Tier > 0) of @Milestones.All.Length unlocked</span>
+        </Actions>
+    </PanelHeader>
+    <div class="grid gap-2 p-3 sm:grid-cols-2 lg:grid-cols-3">
+        @foreach (var def in Milestones.All)
+        {
+            <ProgressCard Def="def" Row="@rows.GetValueOrDefault(def.Id)" Rarity="Rarity" Scope="@Scopes.AllTime" @key="def.Id" />
+        }
+    </div>
+</Panel>
+
+@code {
+    [Parameter, EditorRequired] public required List<AchievementProgress> Progress { get; set; }
+    [Parameter] public Rarity? Rarity { get; set; }
+
+    private Dictionary<string, AchievementProgress> rows = [];
+
+    protected override void OnParametersSet() =>
+        rows = Progress.Where(p => p.Scope == Scopes.AllTime).ToDictionary(p => p.AchievementId);
+}

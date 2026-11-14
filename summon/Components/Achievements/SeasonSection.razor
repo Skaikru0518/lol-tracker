@@ -1,0 +1,52 @@
+@using summon.Data
+
+@* Seasonal achievements of the selected season; closed seasons show what was earned then *@
+<Panel>
+    <PanelHeader Title="Season">
+        <Actions>
+            @if (options.Count > 1)
+            {
+                <div class="flex gap-1.5">
+                    @foreach (var option in options)
+                    {
+                        <button type="button" @onclick="() => seasonId = option.Id"
+                                class="h-7 rounded-md border px-2.5 text-xs font-medium transition-colors @(option.Id == seasonId ? "border-primary/50 bg-primary/15 text-foreground" : "text-muted-foreground hover:text-foreground")">
+                            @option.Label
+                        </button>
+                    }
+                </div>
+            }
+            else
+            {
+                <span class="text-xs text-muted-foreground">@options[0].Label</span>
+            }
+        </Actions>
+    </PanelHeader>
+    @{
+        var rows = Progress.Where(p => p.Scope == seasonId).ToDictionary(p => p.AchievementId);
+        var closed = seasonId != options[0].Id;
+        var defs = closed ? Seasonal.All.Where(d => rows.ContainsKey(d.Id)) : Seasonal.All;
+    }
+    <div class="grid gap-2 p-3 sm:grid-cols-2 lg:grid-cols-3">
+        @foreach (var def in defs)
+        {
+            <ProgressCard Def="def" Row="@rows.GetValueOrDefault(def.Id)" Rarity="@(closed ? null : Rarity)" Scope="@seasonId" @key="def.Id"
+                          Note="@(def.Id == "iron-will" ? Display.IronWillNote(rows.GetValueOrDefault("iron-will"), rows.GetValueOrDefault("season-winner")) : null)" />
+        }
+    </div>
+</Panel>
+
+@code {
+    [Parameter, EditorRequired] public required List<AchievementProgress> Progress { get; set; }
+    [Parameter] public Rarity? Rarity { get; set; }
+
+    private List<Season> options = [];
+    private string? seasonId;
+
+    protected override void OnParametersSet()
+    {
+        options = Display.SeasonOptions(Progress, DateTime.UtcNow);
+        // The current season is picked first and the pick is kept across reloads, like the original's useState
+        seasonId ??= options[0].Id;
+    }
+}

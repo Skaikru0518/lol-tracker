@@ -1,0 +1,13 @@
+@* Achievement icon framed in its tier color; locked icons are grey *@
+<div class="flex size-11 shrink-0 items-center justify-center rounded-lg border-2 @(Tier == 0 ? "grayscale opacity-60" : "")"
+     style="border-color: @Color; background-color: @(Color)1a">
+    <img src="/achi/@(Icon).svg" alt="" width="32" height="32" class="size-8" />
+</div>
+
+@code {
+    [Parameter, EditorRequired] public required string Icon { get; set; }
+    [Parameter] public int Tier { get; set; }
+    [Parameter] public int MaxTier { get; set; }
+
+    private string Color => Tiers.Color(Tier, MaxTier);
+}

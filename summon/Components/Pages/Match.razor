@@ -1,10 +1,11 @@
-﻿@page "/match/{MatchId}"
+@page "/match/{MatchId}"
 @attribute [StreamRendering]
 @using summon.Accounts
 @using summon.Data
 @inject MatchService Games
 @inject RankedService RankedService
 @inject DataDragon DataDragon
+@inject AchievementService Achievements
 
 <PageTitle>Match | Summon.gg</PageTitle>
 
@@ -40,7 +41,7 @@ else
             }
             else
             {
-                <MirroredScoreboard Match="match" DataDragon="dataDragon" HighlightPuuid="@Puuid" Ranks="ranks" RanksLoading="ranks is null" />
+                <MirroredScoreboard Match="match" DataDragon="dataDragon" HighlightPuuid="@Puuid" Ranks="ranks" RanksLoading="ranks is null" Badges="@badges?.GetValueOrDefault(MatchId)" />
             }
         </Panel>
     </div>
@@ -53,6 +54,7 @@ else
     private RiotMatch? match;
     private DataDragonData? dataDragon;
     private Dictionary<string, List<RankedEntry>>? ranks;
+    private Dictionary<string, List<BadgeAssignment>>? badges;
     private bool notFound;
 
     protected override async Task OnInitializedAsync()
@@ -71,6 +73,7 @@ else
 
         if (Queues.IsArena(match.Info.QueueId)) return;
 
+        badges = await Achievements.GetBadgesAsync([MatchId]);
         // The page streams the scoreboard first; the ranks fill in once Riot answers
         StateHasChanged();
         try

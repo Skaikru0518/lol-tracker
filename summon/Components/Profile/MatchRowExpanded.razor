@@ -20,7 +20,7 @@
     }
     else
     {
-        <MirroredScoreboard Match="match" DataDragon="DataDragon" HighlightPuuid="@Puuid" Footer="FullMatch" Ranks="ranks" RanksLoading="ranks is null" />
+        <MirroredScoreboard Match="match" DataDragon="DataDragon" HighlightPuuid="@Puuid" Footer="FullMatch" Ranks="ranks" RanksLoading="ranks is null" Badges="Badges" />
     }
 </div>
 
@@ -30,6 +30,7 @@
     [Parameter, EditorRequired] public required DataDragonData DataDragon { get; set; }
     // Passed when the profile already has the match document; otherwise it is read from the database
     [Parameter] public RiotMatch? Match { get; set; }
+    [Parameter] public List<BadgeAssignment>? Badges { get; set; }
 
     private RiotMatch? match;
     private Dictionary<string, List<RankedEntry>>? ranks;

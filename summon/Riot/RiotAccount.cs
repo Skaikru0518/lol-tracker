@@ -4,5 +4,5 @@ namespace summon.Riot
     public record RiotActiveRegion(string Puuid, string Game, string Region);
     public record RiotLeagueEntry(string QueueType, string Tier, string Rank, int LeaguePoints, int Wins, int Losses);
     public record RiotSummoner(int ProfileIconId, long SummonerLevel);
-    public record RiotMastery(int ChampionId, int ChampionPoints);
+    public record RiotMastery(int ChampionId, int ChampionLevel, int ChampionPoints);
 }

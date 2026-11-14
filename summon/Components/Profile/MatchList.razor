@@ -1,4 +1,6 @@
 @using summon.Accounts
+@inject IServiceScopeFactory ScopeFactory
+@inject ILogger<MatchList> Logger
 
 <Panel>
     <div class="flex flex-col gap-2 border-b px-4 py-2.5 sm:flex-row sm:items-center">
@@ -33,7 +35,7 @@
             {
                 <RecentGame Game="game" Puuid="@Puuid" DataDragon="DataDragon" LpChange="@(LpChanges?.TryGetValue(game.MatchId, out var lp) == true ? lp : null)"
                             Performance="@Performance?.GetValueOrDefault(game.MatchId)" PerformanceLoading="Performance is null"
-                            Match="@Matches?.GetValueOrDefault(game.MatchId)" @key="game.MatchId" />
+                            Match="@Matches?.GetValueOrDefault(game.MatchId)" Badges="@badges.GetValueOrDefault(game.MatchId)" @key="game.MatchId" />
             }
             @if (visible < filtered.Count || HasMore)
             {
@@ -86,4 +88,25 @@
         "disabled:pointer-events-none disabled:opacity-50 hover:bg-input/50 hover:text-foreground dark:bg-input/30";
 
     private int visible = PageSize;
+
+    // Badges of every loaded match, all players; filled for new games as they arrive
+    private readonly Dictionary<string, List<BadgeAssignment>> badges = [];
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var missing = Games?.Select(g => g.MatchId).Where(id => !badges.ContainsKey(id)).ToList();
+        if (missing is not { Count: > 0 }) return;
+        try
+        {
+            // Runs inside the circuit, so it opens its own scope like the profile's loads do
+            await using var scope = ScopeFactory.CreateAsyncScope();
+            foreach (var (id, list) in await scope.ServiceProvider.GetRequiredService<AchievementService>().GetBadgesAsync(missing))
+                badges[id] = list;
+        }
+        catch (Exception e) when (e is not OperationCanceledException)
+        {
+            // Badges are decoration; an exception here would end the circuit, so the rows show without them
+            Logger.LogError(e, "Loading match badges failed");
+        }
+    }
 }

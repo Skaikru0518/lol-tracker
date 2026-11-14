@@ -48,6 +48,76 @@ namespace summon.Migrations
                     b.ToTable("Accounts");
                 });
 
+            modelBuilder.Entity("summon.Data.AchievementProgress", b =>
+                {
+                    b.Property<string>("Puuid")
+                        .HasColumnType("text");
+
+                    b.Property<string>("AchievementId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Scope")
+                        .HasColumnType("text");
+
+                    b.PrimitiveCollection<DateTime[]>("ReachedAt")
+                        .IsRequired()
+                        .HasColumnType("timestamp with time zone[]");
+
+                    b.Property<int>("Tier")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Value")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Puuid", "AchievementId", "Scope");
+
+                    b.HasIndex("AchievementId", "Scope", "Tier");
+
+                    b.ToTable("AchievementProgress");
+                });
+
+            modelBuilder.Entity("summon.Data.AppSetting", b =>
+                {
+                    b.Property<string>("Key")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Key");
+
+                    b.ToTable("AppSettings");
+                });
+
+            modelBuilder.Entity("summon.Data.ChampionMastery", b =>
+                {
+                    b.Property<string>("Puuid")
+                        .HasColumnType("text");
+
+                    b.Property<int>("ChampionId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ChampionLevel")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ChampionPoints")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Puuid", "ChampionId");
+
+                    b.ToTable("ChampionMasteries");
+                });
+
             modelBuilder.Entity("summon.Data.LpSnapshot", b =>
                 {
                     b.Property<int>("Id")
@@ -96,6 +166,11 @@ namespace summon.Migrations
                     b.Property<string>("MatchId")
                         .HasColumnType("text");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("now()");
+
                     b.Property<string>("Data")
                         .IsRequired()
                         .HasColumnType("jsonb");
@@ -111,9 +186,27 @@ namespace summon.Migrations
 
                     b.HasKey("MatchId");
 
+                    b.HasIndex("CreatedAt");
+
                     b.HasIndex("QueueId", "GameCreation");
 
                     b.ToTable("Matches");
+                });
+
+            modelBuilder.Entity("summon.Data.MatchBadge", b =>
+                {
+                    b.Property<string>("MatchId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Puuid")
+                        .HasColumnType("text");
+
+                    b.Property<string>("BadgeId")
+                        .HasColumnType("text");
+
+                    b.HasKey("MatchId", "Puuid", "BadgeId");
+
+                    b.ToTable("MatchBadges");
                 });
 
             modelBuilder.Entity("summon.Data.MatchParticipant", b =>
@@ -170,6 +263,22 @@ namespace summon.Migrations
                     b.HasIndex("Puuid");
 
                     b.ToTable("MatchParticipants");
+                });
+
+            modelBuilder.Entity("summon.Data.PlayerAchievement", b =>
+                {
+                    b.Property<string>("Puuid")
+                        .HasColumnType("text");
+
+                    b.Property<string>("AchievementId")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("EarnedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Puuid", "AchievementId");
+
+                    b.ToTable("PlayerAchievements");
                 });
 
             modelBuilder.Entity("summon.Data.RankedEntry", b =>
