@@ -121,3 +121,22 @@
     scrollbar-width: thin;
     scrollbar-color: var(--color-scrollbar) transparent;
 }
+
+/* Tooltip arrow: tooltip.js sets the side it opened on and where along that edge the trigger's centre is */
+.tip[data-side="top"] > .tip-arrow {
+    top: 100%;
+    left: var(--tip-arrow);
+    translate: -50% -50%;
+}
+
+.tip[data-side="bottom"] > .tip-arrow {
+    bottom: 100%;
+    left: var(--tip-arrow);
+    translate: -50% 50%;
+}
+
+.tip[data-side="right"] > .tip-arrow {
+    right: 100%;
+    top: var(--tip-arrow);
+    translate: 50% -50%;
+}

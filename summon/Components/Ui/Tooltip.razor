@@ -1,8 +1,9 @@
-@* Hover tooltip in the shadcn style; CSS only, so it needs no interactivity and shows after the same 200 ms delay *@
-<span class="group/tip relative inline-flex @Class">
+@* Hover tooltip in the shadcn style. wwwroot/tooltip.js opens the body as a popover after the same 200 ms delay:
+   in the top layer no panel clips it, and closed it takes no room, so it never widens the page *@
+<span class="relative inline-flex @Class" data-tip="@Side">
     @ChildContent
-    <span role="tooltip"
-          class="pointer-events-none invisible absolute z-50 inline-flex w-max max-w-xs items-center gap-1.5 rounded-md bg-foreground px-3 py-1.5 text-xs text-background opacity-0 transition-opacity group-hover/tip:visible group-hover/tip:opacity-100 group-hover/tip:delay-200 dark:bg-secondary dark:text-foreground @(Side == "right" ? "left-full top-1/2 ml-2 -translate-y-1/2" : "bottom-full left-1/2 mb-2 -translate-x-1/2")">
+    <span role="tooltip" popover="manual"
+          class="tip pointer-events-none inset-auto m-0 w-max max-w-xs items-center gap-1.5 overflow-visible rounded-md border-0 bg-foreground px-3 py-1.5 text-xs text-background transition-opacity open:inline-flex starting:open:opacity-0 dark:bg-secondary dark:text-foreground">
         @if (Content is not null)
         {
             @Content
@@ -11,7 +12,7 @@
         {
             @Text
         }
-        <span class="absolute size-2.5 rotate-45 rounded-[2px] bg-foreground dark:bg-secondary @(Side == "right" ? "right-full top-1/2 translate-x-1/2 -translate-y-1/2" : "left-1/2 top-full -translate-x-1/2 -translate-y-1/2")"></span>
+        <span class="tip-arrow absolute size-2.5 rotate-45 rounded-[2px] bg-foreground dark:bg-secondary"></span>
     </span>
 </span>
 
@@ -21,6 +22,6 @@
     [Parameter] public RenderFragment? Content { get; set; }
     [Parameter, EditorRequired] public required RenderFragment ChildContent { get; set; }
     [Parameter] public string? Class { get; set; }
-    // "top" (default) or "right"; right keeps tall tooltips inside panels that clip what sticks out above them
+    // "top" (default) or "right"; either flips when the viewport has no room on that side
     [Parameter] public string Side { get; set; } = "top";
 }
