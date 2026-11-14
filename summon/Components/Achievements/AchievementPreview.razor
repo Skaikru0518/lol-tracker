@@ -1,6 +1,8 @@
 @using summon.Accounts
 @using summon.Data
 @inject IServiceScopeFactory ScopeFactory
+@inject IpRateLimiter Limiter
+@inject ClientIp Client
 @inject ILogger<AchievementPreview> Logger
 
 @* The three best milestones, then earned Current form chips, above the Overview columns *@
@@ -58,7 +60,8 @@
                 Show(await achievements.LoadPayloadAsync(Account.Puuid));
                 StateHasChanged();
             }
-            if (LoadVersion == 0) return;
+            // Too many detections from this IP: the saved achievements stay, like the original's 429
+            if (LoadVersion == 0 || Limiter.Limited("achievements", Client)) return;
 
             // Stores the masteries the mastery milestones read; cached, so it asks Riot at most every 30 minutes
             await scope.ServiceProvider.GetRequiredService<AccountService>().AllMasteriesAsync(Account);

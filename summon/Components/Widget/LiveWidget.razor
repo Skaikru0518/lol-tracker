@@ -1,5 +1,7 @@
 @implements IDisposable
 @inject IServiceScopeFactory ScopeFactory
+@inject IpRateLimiter Limiter
+@inject ClientIp Client
 @inject IJSRuntime JS
 @inject ILogger<LiveWidget> Logger
 
@@ -61,6 +63,8 @@ else if (data is not null)
 
     private async Task LoadAsync(CancellationToken ct)
     {
+        // Too many widget requests from this IP: this refresh is skipped and the last data stays, like the original's 429
+        if (Limiter.Limited("widget", Client)) return;
         try
         {
             await using var scope = ScopeFactory.CreateAsyncScope();

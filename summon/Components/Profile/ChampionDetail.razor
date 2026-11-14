@@ -1,6 +1,8 @@
 @using summon.Accounts
 @using summon.Data
 @inject IServiceScopeFactory ScopeFactory
+@inject IpRateLimiter Limiter
+@inject ClientIp Client
 
 @if (championKey is null)
 {
@@ -76,7 +78,8 @@ else
         var matchService = scope.ServiceProvider.GetRequiredService<MatchService>();
 
         // Stored games only (Riot cannot filter by champion); the list pages through them 20 at a time
-        games = await matchService.GetChampionRowsAsync(Account.Puuid, championKey);
+        // Too many match requests from this IP: no games, like the original's 429
+        games = Limiter.Limited("matches", Client) ? [] : await matchService.GetChampionRowsAsync(Account.Puuid, championKey);
         killParticipation = games.Count == 0 ? null
             : (int)Math.Floor(games.Average(g => (double)Format.Percent(g.Kills + g.Assists, g.TeamKills)) + 0.5);
         stat = (await matchService.GetChampionStatsAsync(Account.Puuid, "all")).FirstOrDefault(s => s.ChampionId == championId);

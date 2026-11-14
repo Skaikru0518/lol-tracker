@@ -2,6 +2,8 @@
 @using summon.Accounts
 @using summon.Data
 @inject IServiceScopeFactory ScopeFactory
+@inject IpRateLimiter Limiter
+@inject ClientIp Client
 @inject IJSRuntime JS
 @implements IDisposable
 
@@ -290,7 +292,8 @@ else
             lpHistory = await rankedService.GetLpHistoryAsync(loaded.Puuid);
             StateHasChanged();
 
-            games = await matchService.GetRecentAsync(loaded);
+            // Too many match requests from this IP: an empty list ("No matches found"), like the original's 429
+            games = Limiter.Limited("matches", Client) ? [] : await matchService.GetRecentAsync(loaded);
             lpChanges = LpEstimate.ForRows(games, lpHistory);
             // A load starts over from the first page, so pages added earlier by "Load more" are dropped
             nextStart = RiotPage;
@@ -332,7 +335,7 @@ else
             var performanceService = scope.ServiceProvider.GetRequiredService<PerformanceService>();
 
             // Null means Riot could not be reached: nothing changes and the button stays for another try
-            if (await matchService.GetPageAsync(account, nextStart) is not { } page) return;
+            if (Limiter.Limited("matches", Client) || await matchService.GetPageAsync(account, nextStart) is not { } page) return;
             // A page with games that failed to download is asked for again on the next click, so the list has no gaps
             if (page.Complete) nextStart += RiotPage;
             hasMore = page.HasMore || !page.Complete;

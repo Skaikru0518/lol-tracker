@@ -6,6 +6,8 @@
 @inject RankedService RankedService
 @inject DataDragon DataDragon
 @inject AchievementService Achievements
+@inject IpRateLimiter Limiter
+@inject ClientIp Client
 
 <PageTitle>Match | Summon.gg</PageTitle>
 
@@ -80,6 +82,11 @@ else
         badges = await Achievements.GetBadgesAsync([MatchId]);
         // The page streams the scoreboard first; the ranks fill in once Riot answers
         StateHasChanged();
+        if (Limiter.Limited("ranked-batch", Client))
+        {
+            ranks = [];
+            return;
+        }
         try
         {
             ranks = await RankedService.GetBatchAsync(Queues.PlatformOf(MatchId), match.Info.Participants.Select(p => p.Puuid).Distinct().ToList());

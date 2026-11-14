@@ -1,6 +1,8 @@
 @using summon.Accounts
 @using summon.Data
 @inject IServiceScopeFactory ScopeFactory
+@inject IpRateLimiter Limiter
+@inject ClientIp Client
 
 <div class="border-t">
     @if (failed)
@@ -51,6 +53,11 @@
             // The scoreboard shows first, then the ranks fill in, like the original fetching them on open
             StateHasChanged();
             var puuids = match.Info.Participants.Select(p => p.Puuid).Distinct().ToList();
+            if (Limiter.Limited("ranked-batch", Client))
+            {
+                ranks = [];
+                return;
+            }
             ranks = await scope.ServiceProvider.GetRequiredService<RankedService>().GetBatchAsync(Queues.PlatformOf(MatchId), puuids);
         }
         catch (HttpRequestException)

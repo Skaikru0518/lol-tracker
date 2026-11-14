@@ -1,4 +1,6 @@
 @inject IServiceScopeFactory ScopeFactory
+@inject IpRateLimiter Limiter
+@inject ClientIp Client
 @inject IJSRuntime JS
 @inject NavigationManager Navigation
 @inject ILogger<WidgetGenerator> Logger
@@ -131,6 +133,11 @@
         if (loaded.TryGetValue(key, out var hit) && DateTime.UtcNow - hit.At < TimeSpan.FromMinutes(1))
         {
             preview = WidgetLogic.WithSampleSession(hit.Data);
+            return;
+        }
+        if (Limiter.Limited("widget", Client))
+        {
+            failed = true;
             return;
         }
         try

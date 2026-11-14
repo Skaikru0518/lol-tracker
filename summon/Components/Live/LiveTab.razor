@@ -1,6 +1,8 @@
 @using summon.Accounts
 @using summon.Data
 @inject IServiceScopeFactory ScopeFactory
+@inject IpRateLimiter Limiter
+@inject ClientIp Client
 @inject ILogger<LiveTab> Logger
 
 @* Live page: hero with timer and the mirrored 5v5, or an empty state with a link back when the player is not in a game *@
@@ -56,6 +58,11 @@ else
         ranksGameId = Game.GameId;
         ranks = null;
         ranksFailed = false;
+        if (Limiter.Limited("ranked-batch", Client))
+        {
+            ranksFailed = true;
+            return;
+        }
         try
         {
             // Runs inside the circuit, so it opens its own scope like the profile's loads do

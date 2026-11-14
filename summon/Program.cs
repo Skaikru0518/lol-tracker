@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using summon;
 using summon.Data;
@@ -11,6 +11,7 @@ using summon.Live;
 using summon.Home;
 using summon.Widget;
 using summon.MatchPage;
+using summon.Security;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -45,6 +46,11 @@ builder.Services.AddScoped<LiveGameService>();
 builder.Services.AddHttpClient<HomeService>();
 builder.Services.AddScoped<WidgetDataService>();
 builder.Services.AddHttpClient<MatchPageService>();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddSingleton<IpRateLimiter>();
+// Per request, or per circuit for interactive parts: read from the request that opened it
+builder.Services.AddScoped<ClientIp>();
 builder.Services.AddHostedService<AchievementJob>();
 
 var app = builder.Build();
