@@ -28,51 +28,15 @@ namespace summon.Accounts
                 return stored;
             }
 
-            foreach(var f in fetched)
-            {
-                var entry = stored.Find(e => e.QueueType == f.QueueType);
-                if(entry is null)
-                {
-                    entry = new RankedEntry { Puuid = account.Puuid, QueueType = f.QueueType, Tier = f.Tier, Rank = f.Rank};
-                    db.RankedEntries.Add(entry);
-                    stored.Add(entry);
-                }
-
-                entry.Tier = f.Tier;
-                entry.Rank = f.Rank;
-                entry.LeaguePoints = f.LeaguePoints;
-                entry.Wins = f.Wins;
-                entry.Losses = f.Losses;
-                entry.UpdatedAt = now;
-
-                // A snapshot only when the rank moved, so consecutive snapshots bracket the games that moved it
-                var last = await db.LpSnapshots
-                    .Where(s => s.Puuid == account.Puuid && s.QueueType == f.QueueType)
-                    .OrderByDescending(s => s.CreatedAt)
-                    .FirstOrDefaultAsync(ct);
-                if (last is null || last.Tier != f.Tier || last.Rank != f.Rank || last.Lp != f.LeaguePoints)
-                {
-                    db.LpSnapshots.Add(new LpSnapshot
-                    {
-                        Puuid = account.Puuid,
-                        QueueType = f.QueueType,
-                        Tier = f.Tier,
-                        Rank = f.Rank,
-                        Lp = f.LeaguePoints,
-                        Wins = f.Wins,
-                        Losses = f.Losses,
-                        CreatedAt = now,
-                    });
-                }
-            }
-
+            Save(account.Puuid, stored, fetched, await LatestSnapshotsAsync([account.Puuid], ct), now);
             await db.SaveChangesAsync(ct);
             return stored;
         }
 
         /// <summary>
         /// Ranked entries for several players (a scoreboard), DB first with the same two-minute freshness; the rest come
-        /// from Riot five at a time. Players we have never seen get a placeholder account row, like the original.
+        /// from Riot five at a time and are saved like a profile's own, LP snapshots included. Players we have never seen
+        /// get a placeholder account row, and stale entries are served when Riot fails, like the original.
         /// </summary>
         public async Task<Dictionary<string, List<RankedEntry>>> GetBatchAsync(string platform, IReadOnlyCollection<string> puuids, CancellationToken ct = default)
         {
@@ -81,21 +45,15 @@ namespace summon.Accounts
                 .GroupBy(e => e.Puuid)
                 .ToDictionary(g => g.Key, g => g.ToList());
 
-            var result = new Dictionary<string, List<RankedEntry>>();
-            var missing = new List<string>();
-            foreach (var puuid in puuids)
-            {
-                if (stored.TryGetValue(puuid, out var entries) && entries.All(e => now - e.UpdatedAt < MaxAge)) result[puuid] = entries;
-                else missing.Add(puuid);
-            }
+            var result = puuids.ToDictionary(puuid => puuid, puuid => stored.GetValueOrDefault(puuid) ?? []);
+            var missing = puuids.Where(puuid => !stored.TryGetValue(puuid, out var entries) || entries.Any(e => now - e.UpdatedAt >= MaxAge)).ToList();
+            if (missing.Count == 0) return result;
 
-            // One query for which players already have an account row, instead of one lookup each
-            var known = (await db.Accounts.Where(a => missing.Contains(a.Puuid)).Select(a => a.Puuid).ToListAsync(ct)).ToHashSet();
-
+            var fetched = new List<(string Puuid, List<RiotLeagueEntry> Entries)>();
             foreach (var batch in missing.Chunk(5))
             {
                 // Riot calls run in parallel; the DbContext is not thread safe, so the writes happen one by one afterwards
-                var fetched = await Task.WhenAll(batch.Select(async puuid =>
+                var results = await Task.WhenAll(batch.Select(async puuid =>
                 {
                     try
                     {
@@ -106,37 +64,20 @@ namespace summon.Accounts
                         return (Puuid: puuid, Entries: (List<RiotLeagueEntry>?)null);
                     }
                 }));
+                fetched.AddRange(results.Where(r => r.Entries is not null).Select(r => (r.Puuid, r.Entries!)));
+            }
+            if (fetched.Count == 0) return result;
 
-                foreach (var (puuid, entries) in fetched)
-                {
-                    if (entries is null)
-                    {
-                        result[puuid] = stored.GetValueOrDefault(puuid) ?? [];
-                        continue;
-                    }
+            // One query each for known accounts and latest snapshots, instead of one lookup per player
+            var fetchedPuuids = fetched.Select(f => f.Puuid).ToList();
+            var known = (await db.Accounts.Where(a => fetchedPuuids.Contains(a.Puuid)).Select(a => a.Puuid).ToListAsync(ct)).ToHashSet();
+            var latest = await LatestSnapshotsAsync(fetchedPuuids, ct);
 
-                    if (!known.Contains(puuid))
-                        db.Accounts.Add(new Account { Puuid = puuid, GameName = "", TagLine = "", Platform = platform, UpdatedAt = now });
-
-                    var rows = stored.GetValueOrDefault(puuid) ?? [];
-                    foreach (var f in entries)
-                    {
-                        var entry = rows.Find(e => e.QueueType == f.QueueType);
-                        if (entry is null)
-                        {
-                            entry = new RankedEntry { Puuid = puuid, QueueType = f.QueueType, Tier = f.Tier, Rank = f.Rank };
-                            db.RankedEntries.Add(entry);
-                            rows.Add(entry);
-                        }
-                        entry.Tier = f.Tier;
-                        entry.Rank = f.Rank;
-                        entry.LeaguePoints = f.LeaguePoints;
-                        entry.Wins = f.Wins;
-                        entry.Losses = f.Losses;
-                        entry.UpdatedAt = now;
-                    }
-                    result[puuid] = rows;
-                }
+            foreach (var (puuid, entries) in fetched)
+            {
+                if (!known.Contains(puuid))
+                    db.Accounts.Add(new Account { Puuid = puuid, GameName = "", TagLine = "", Platform = platform, UpdatedAt = now });
+                Save(puuid, result[puuid], entries, latest, now);
             }
 
             await db.SaveChangesAsync(ct);
@@ -158,6 +99,55 @@ namespace summon.Accounts
             return Ranks.QueueTypes.ToDictionary(
                 queueType => queueType,
                 queueType => snapshots.Where(s => s.QueueType == queueType).OrderBy(s => s.CreatedAt).ToList());
+        }
+
+        /// <summary>The newest snapshot of each (player, queue), in one query.</summary>
+        private async Task<Dictionary<(string Puuid, string QueueType), LpSnapshot>> LatestSnapshotsAsync(IReadOnlyCollection<string> puuids, CancellationToken ct) =>
+            (await db.LpSnapshots.AsNoTracking()
+                .Where(s => puuids.Contains(s.Puuid))
+                .GroupBy(s => new { s.Puuid, s.QueueType })
+                .Select(g => g.OrderByDescending(s => s.CreatedAt).First())
+                .ToListAsync(ct))
+            .ToDictionary(s => (s.Puuid, s.QueueType));
+
+        /// <summary>Upserts a player's entries into <paramref name="rows"/> and records an LP snapshot for each queue whose rank moved.</summary>
+        private void Save(string puuid, List<RankedEntry> rows, IEnumerable<RiotLeagueEntry> fetched,
+            IReadOnlyDictionary<(string Puuid, string QueueType), LpSnapshot> latest, DateTime now)
+        {
+            foreach (var f in fetched)
+            {
+                var entry = rows.Find(e => e.QueueType == f.QueueType);
+                if (entry is null)
+                {
+                    entry = new RankedEntry { Puuid = puuid, QueueType = f.QueueType, Tier = f.Tier, Rank = f.Rank };
+                    db.RankedEntries.Add(entry);
+                    rows.Add(entry);
+                }
+
+                entry.Tier = f.Tier;
+                entry.Rank = f.Rank;
+                entry.LeaguePoints = f.LeaguePoints;
+                entry.Wins = f.Wins;
+                entry.Losses = f.Losses;
+                entry.UpdatedAt = now;
+
+                // A snapshot only when the rank moved, so consecutive snapshots bracket the games that moved it
+                var last = latest.GetValueOrDefault((puuid, f.QueueType));
+                if (last is null || last.Tier != f.Tier || last.Rank != f.Rank || last.Lp != f.LeaguePoints)
+                {
+                    db.LpSnapshots.Add(new LpSnapshot
+                    {
+                        Puuid = puuid,
+                        QueueType = f.QueueType,
+                        Tier = f.Tier,
+                        Rank = f.Rank,
+                        Lp = f.LeaguePoints,
+                        Wins = f.Wins,
+                        Losses = f.Losses,
+                        CreatedAt = now,
+                    });
+                }
+            }
         }
     }
 }

@@ -51,18 +51,20 @@
     [Parameter] public string? Role { get; set; }
 
     private RenderFragment? Breakdown => Categories is null ? null :
-        @<span class="block text-left">
-            <span class="block font-semibold">Performance score @Score · @Grade</span>
-            @if (Role is not null)
-            {
-                <span class="block text-3xs opacity-70">@Weights.RoleLabels.GetValueOrDefault(Role, Role), weighted by role</span>
-            }
-            <span class="mt-1.5 grid grid-cols-2 gap-x-4 gap-y-0.5">
+        @<span class="grid gap-1.5 text-left">
+            <span class="block">
+                <span class="block text-sm font-semibold">Performance score @Score · @Grade</span>
+                @if (Role is not null)
+                {
+                    <span class="block opacity-60">@Weights.RoleLabels.GetValueOrDefault(Role, Role), weighted by role</span>
+                }
+            </span>
+            <span class="grid grid-cols-2 gap-x-5 gap-y-0.5">
                 @foreach (var c in Categories)
                 {
-                    <span class="flex items-center justify-between gap-3">
-                        <span class="opacity-80">@Weights.CategoryLabels[c.Id]</span>
-                        <span class="font-bold" style="color: @Grades.Colors[c.Grade]">@c.Score</span>
+                    <span class="flex justify-between gap-3">
+                        <span>@Weights.CategoryLabels[c.Id]</span>
+                        <span class="font-semibold tabular-nums" style="color: @Grades.Colors[c.Grade]">@c.Score</span>
                     </span>
                 }
             </span>

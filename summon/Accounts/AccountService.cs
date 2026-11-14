@@ -12,7 +12,9 @@ public class AccountService(SummonDbContext db, RiotClient riot, IMemoryCache ca
 
     public async Task<Account?> AccountAsync(string gameName, string tagLine, CancellationToken ct = default)
     {
-        var account = await db.Accounts.FirstOrDefaultAsync(a => a.GameName == gameName && a.TagLine == tagLine, ct) ?? await FetchAsync(gameName, tagLine, ct);
+        // Riot IDs are case-insensitive; an exact match missed every differently cased URL and went to Riot each time
+        var account = await db.Accounts.FirstOrDefaultAsync(a => a.GameName.ToLower() == gameName.ToLower() && a.TagLine.ToLower() == tagLine.ToLower(), ct)
+            ?? await FetchAsync(gameName, tagLine, ct);
         if (account is null) return null;
 
         if(account.Platform is null)

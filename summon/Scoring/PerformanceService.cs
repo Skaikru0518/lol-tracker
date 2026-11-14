@@ -1,6 +1,5 @@
-using System.Text.Json;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
+using summon.Accounts;
 using summon.Data;
 using summon.Riot;
 
@@ -26,7 +25,6 @@ public class PerformanceService(SummonDbContext db, IMemoryCache cache)
 {
     private const int WindowDays = 60;
     private const int TopChampions = 3;
-    private static readonly int[] EligibleQueues = [420, 440, 710];
 
     /// <summary>
     /// Role baselines from the last 60 days of stored ranked games, kept for 10 minutes.
@@ -37,11 +35,7 @@ public class PerformanceService(SummonDbContext db, IMemoryCache cache)
         {
             entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10);
             var since = DateTimeOffset.UtcNow.AddDays(-WindowDays).ToUnixTimeMilliseconds();
-            var json = await db.Matches
-                .Where(m => EligibleQueues.Contains(m.QueueId) && m.GameDuration >= 300 && m.GameCreation >= since)
-                .Select(m => m.Data)
-                .ToListAsync(ct);
-            return ScoreEngine.BuildBaselines(json.Select(j => JsonSerializer.Deserialize<RiotMatch>(j, JsonSerializerOptions.Web)!));
+            return ScoreEngine.BuildBaselines((await MatchProjection.RankedSinceAsync(db, since, ct)).Values);
         }))!;
 
     /// <summary>The player's score in each match, by match id; matches without one are left out.</summary>

@@ -83,10 +83,10 @@ public class MatchService(SummonDbContext db, RiotClient riot)
         var recent = games.Take(Count).Select(g => g.MatchId).ToList();
         var rift = games.Where(g => Queues.RiftIds.Contains(g.QueueId)).Take(Count).Select(g => g.MatchId).ToList();
         var ranked = games.Where(g => RankedQueues.Contains(g.QueueId) && !Queues.IsRemake(g.GameDuration)).Take(RecentRankedGames).Select(g => g.MatchId).ToList();
-        var ids = recent.Concat(rift).Concat(ranked).Distinct().ToList();
-
-        var byId = (await db.Matches.Where(m => ids.Contains(m.MatchId)).Select(m => new { m.MatchId, m.Data }).ToListAsync(ct))
-            .ToDictionary(m => m.MatchId, m => JsonSerializer.Deserialize<RiotMatch>(m.Data, JsonSerializerOptions.Web)!);
+        var ids = recent.Concat(rift).Concat(ranked).Distinct().ToArray();
+        // The Rift panel reads only the player's own participant, so Rift-only games drop the other nine
+        var ownOnly = rift.Except(recent).Except(ranked).ToArray();
+        var byId = await MatchProjection.ByIdsAsync(db, ids, puuid, ownOnly, ct);
 
         List<RiotMatch> Pick(List<string> list) => list.Where(byId.ContainsKey).Select(id => byId[id]).ToList();
         return new ProfileMatches(Pick(recent), Pick(rift), Pick(ranked));
