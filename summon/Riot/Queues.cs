@@ -66,6 +66,11 @@ public static class Queues
         "solo" => (true, [420]),
         "flex" => (true, [440]),
         "premade" => (true, [710]),
+        "normal" => (true, [400, 430, 480, 490]),
+        "aram" => (true, [450, 720]),
+        "mayhem" => (true, [2400]),
+        "arena" => (true, ArenaIds),
+        "event" => (true, [900, 1010, 1020, 1300, 1400, 1900, 2300]),
         _ => (false, ArenaIds)
     };
 
