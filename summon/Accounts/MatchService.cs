@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 using summon.Data;
 using summon.Riot;
 
@@ -13,7 +14,7 @@ public record MatchRow(string MatchId, string ChampionName, bool Win, int Kills,
 public record ProfileMatches(List<RiotMatch> Recent, List<RiotMatch> Rift, List<RiotMatch> Ranked);
 
 /// <summary>Per-champion totals over a player's stored games, remakes excluded.</summary>
-public record ChampionStat(string ChampionName, int Games, int Wins, double WinRate, double Kda);
+public record ChampionStat(int ChampionId, string ChampionName, int Games, int Wins, double WinRate, double Kills, double Deaths, double Assists, double Kda, double CsPerMin, double AvgDamage);
 
 /// <summary>One "Load more" page of games; HasMore is false once Riot returned a short page, Complete false when some games failed to download.</summary>
 public record MatchPage(List<MatchRow> Rows, bool HasMore, bool Complete);
@@ -137,33 +138,72 @@ public class MatchService(SummonDbContext db, RiotClient riot)
         .Select(r => (r.GameCreation, r.Win))
         .ToList();
 
+    private sealed class ChampionTotals
+    {
+        public int ChampionId { get; set; }
+        public string ChampionName { get; set; } = "";
+        public int Games { get; set; }
+        public int Wins { get; set; }
+        public int Kills { get; set; }
+        public int Deaths { get; set; }
+        public int Assists { get; set; }
+        public int Cs { get; set; }
+        public long Damage { get; set; }
+        public int DurationSeconds { get; set; }
+    }
+
+    /// <summary>
+    /// Per-champion totals over the player's stored games, remakes excluded, like the original's stats query: damage and the
+    /// champion id are only in the match documents, so the player's participant is read from the JSON.
+    /// </summary>
     public async Task<List<ChampionStat>> GetChampionStatsAsync(string puuid, string queueFilter, CancellationToken ct = default)
     {
         var (include, ids) = Queues.Selection(queueFilter);
-        var query = db.MatchParticipants.Where(p => p.Puuid == puuid && p.Match.GameDuration >= 300);
-        query = include ? query.Where(p => ids.Contains(p.Match.QueueId)) : query.Where(p => !ids.Contains(p.Match.QueueId));
+        // The condition is picked from two fixed strings, never built from input
+        var queueCondition = include ? """m."QueueId" = ANY(@ids)""" : """NOT (m."QueueId" = ANY(@ids))""";
+        var rows = await db.Database.SqlQueryRaw<ChampionTotals>($"""
+            SELECT
+                (p->>'championId')::int AS "ChampionId",
+                p->>'championName' AS "ChampionName",
+                COUNT(*)::int AS "Games",
+                (COUNT(*) FILTER (WHERE (p->>'win')::boolean))::int AS "Wins",
+                SUM((p->>'kills')::int)::int AS "Kills",
+                SUM((p->>'deaths')::int)::int AS "Deaths",
+                SUM((p->>'assists')::int)::int AS "Assists",
+                SUM((p->>'totalMinionsKilled')::int + (p->>'neutralMinionsKilled')::int)::int AS "Cs",
+                SUM((p->>'totalDamageDealtToChampions')::bigint)::bigint AS "Damage",
+                SUM(m."GameDuration")::int AS "DurationSeconds"
+            FROM "MatchParticipants" mp
+            JOIN "Matches" m ON m."MatchId" = mp."MatchId"
+            CROSS JOIN LATERAL jsonb_array_elements(m."Data"->'info'->'participants') AS p
+            WHERE mp."Puuid" = @puuid AND p->>'puuid' = @puuid AND m."GameDuration" >= 300 AND {queueCondition}
+            GROUP BY 1, 2
+            ORDER BY "Games" DESC, "Wins" DESC
+            """, new NpgsqlParameter("puuid", puuid), new NpgsqlParameter("ids", ids)).ToListAsync(ct);
 
-        var rows = await query
-            .GroupBy(p => p.ChampionName)
-            .Select(g => new
-            {
-                ChampionName = g.Key,
-                Games = g.Count(),
-                Wins = g.Count(p => p.Win),
-                Kills = g.Sum(p => p.Kills),
-                Deaths = g.Sum(p => p.Deaths),
-                Assists = g.Sum(p => p.Assists),
-            })
-            .OrderByDescending(r => r.Games).ThenByDescending(r => r.Wins)
-            .ToListAsync(ct);
-
-        return rows.Select(r => new ChampionStat(
-            r.ChampionName,
-            r.Games,
-            r.Wins,
-            Math.Round(100.0 * r.Wins / r.Games, 2),
-            Math.Round(r.Deaths > 0 ? (double)(r.Kills + r.Assists) / r.Deaths : r.Kills + r.Assists, 2))).ToList();
+        static double Round2(double value) => Math.Round(value, 2, MidpointRounding.AwayFromZero);
+        return rows.Select(r =>
+        {
+            var minutes = r.DurationSeconds / 60.0;
+            return new ChampionStat(
+                r.ChampionId,
+                r.ChampionName,
+                r.Games,
+                r.Wins,
+                Round2(100.0 * r.Wins / r.Games),
+                Round2((double)r.Kills / r.Games),
+                Round2((double)r.Deaths / r.Games),
+                Round2((double)r.Assists / r.Games),
+                // A deathless champion's KDA is its kills plus assists, as in the original
+                Round2(r.Deaths > 0 ? (double)(r.Kills + r.Assists) / r.Deaths : r.Kills + r.Assists),
+                minutes > 0 ? Round2(r.Cs / minutes) : 0,
+                Round2((double)r.Damage / r.Games));
+        }).ToList();
     }
+
+    /// <summary>The player's newest stored games on one champion (case-insensitive name), for the champion sub-page.</summary>
+    public Task<List<MatchRow>> GetChampionRowsAsync(string puuid, string championName, CancellationToken ct = default) =>
+        ToRows(db.MatchParticipants.Where(p => p.Puuid == puuid && p.ChampionName.ToLower() == championName.ToLower())).Take(Count).ToListAsync(ct);
 
     public async Task<RiotMatch> GetMatchAsync(string matchId, CancellationToken ct = default)
     {

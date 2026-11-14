@@ -65,6 +65,25 @@ public class AccountService(SummonDbContext db, RiotClient riot, IMemoryCache ca
         }
     }
 
+    /// <summary>Every champion's mastery, most points first; empty when Riot cannot be reached.</summary>
+    // shortcut: kept in memory for 30 minutes instead of the original's mastery table; store it once other pages need it without Riot
+    public async Task<List<RiotMastery>> AllMasteriesAsync(Account account, CancellationToken ct = default)
+    {
+        if (account.Platform is null) return [];
+        if (cache.TryGetValue($"masteries:{account.Puuid}", out List<RiotMastery>? cached)) return cached!;
+
+        try
+        {
+            var masteries = (await riot.GetAllMasteriesAsync(account.Platform, account.Puuid, ct) ?? []).OrderByDescending(m => m.ChampionPoints).ToList();
+            cache.Set($"masteries:{account.Puuid}", masteries, TimeSpan.FromMinutes(30));
+            return masteries;
+        }
+        catch (HttpRequestException)
+        {
+            return [];
+        }
+    }
+
     private async Task<Account?> FetchAsync(string gameName, string tagLine, CancellationToken ct)
     {
         var fetched = await riot.GetAccountByRiotIdAsync(gameName, tagLine, ct);

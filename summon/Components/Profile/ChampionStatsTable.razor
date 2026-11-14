@@ -1,0 +1,76 @@
+@using System.Globalization
+@using summon.Accounts
+
+<div class="relative w-full overflow-x-auto">
+    <table class="w-full caption-bottom text-xs">
+        <thead class="[&_tr]:border-b">
+            <tr class="border-b transition-colors hover:bg-muted/50">
+                <th class="@Head w-8">#</th>
+                <th class="@Head">Champion</th>
+                <th class="@Head text-right">Games</th>
+                <th class="@Head">Winrate</th>
+                <th class="@Head">KDA</th>
+                <th class="@Head hidden text-right sm:table-cell">CS/min</th>
+                <th class="@Head hidden text-right md:table-cell">Avg dmg</th>
+                <th class="@Head hidden lg:table-cell">Mastery</th>
+            </tr>
+        </thead>
+        <tbody class="[&_tr:last-child]:border-0">
+            @foreach (var (stat, index) in Rows.Select((s, i) => (s, i)))
+            {
+                var points = MasteryPoints.GetValueOrDefault(stat.ChampionId);
+                <tr class="cursor-pointer border-b transition-colors hover:bg-muted/50" @onclick="() => OnSelect.InvokeAsync(stat.ChampionName)" @key="stat.ChampionId">
+                    <td class="@Cell text-muted-foreground">@(index + 1)</td>
+                    <td class="@Cell">
+                        @* A real link for new-tab and copy-link; a plain click switches the view in place *@
+                        <a href="@($"{BasePath}/champions/{stat.ChampionName}")" data-enhance-nav="false"
+                           @onclick="() => OnSelect.InvokeAsync(stat.ChampionName)" @onclick:preventDefault @onclick:stopPropagation
+                           class="flex items-center gap-2 font-semibold text-foreground hover:text-primary">
+                            <ChampionIcon DataDragon="DataDragon" ChampionName="@stat.ChampionName" Size="26" />
+                            @DataDragon.ChampionName(stat.ChampionName)
+                        </a>
+                    </td>
+                    <td class="@Cell text-right">@stat.Games</td>
+                    <td class="@Cell">
+                        <div class="flex items-center gap-2">
+                            <div class="h-1.5 w-16 overflow-hidden rounded-full bg-loss/60">
+                                <div class="h-full bg-win" style="width: @Num(stat.WinRate)%"></div>
+                            </div>
+                            <span class="@(stat.WinRate >= 50 ? "text-win" : "text-loss")">@((int)Math.Floor(stat.WinRate + 0.5))%</span>
+                        </div>
+                    </td>
+                    <td class="@Cell">
+                        <span class="font-semibold text-foreground">@Num(stat.Kda)</span>
+                        <span class="text-xs text-muted-foreground">@Num(stat.Kills)/@Num(stat.Deaths)/@Num(stat.Assists)</span>
+                    </td>
+                    <td class="@Cell hidden text-right sm:table-cell">@Num(stat.CsPerMin)</td>
+                    <td class="@Cell hidden text-right md:table-cell">@Format.Thousands((int)Math.Floor(stat.AvgDamage + 0.5))</td>
+                    <td class="@Cell hidden lg:table-cell">
+                        @if (points > 0)
+                        {
+                            <Chip Color="var(--color-primary)">@Format.Points(points)</Chip>
+                        }
+                        else
+                        {
+                            <span class="text-muted-foreground">—</span>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public required List<ChampionStat> Rows { get; set; }
+    [Parameter, EditorRequired] public required IReadOnlyDictionary<int, int> MasteryPoints { get; set; }
+    [Parameter, EditorRequired] public required DataDragonData DataDragon { get; set; }
+    [Parameter, EditorRequired] public required string BasePath { get; set; }
+    [Parameter] public EventCallback<string> OnSelect { get; set; }
+
+    // The shadcn table cell classes, already merged
+    private const string Head = "h-10 px-2 text-left align-middle font-medium whitespace-nowrap text-foreground";
+    private const string Cell = "p-2 align-middle whitespace-nowrap";
+
+    private static string Num(double value) => value.ToString(CultureInfo.InvariantCulture);
+}

@@ -1,14 +1,16 @@
-﻿@page "/summoner/{Slug}"
+@page "/summoner/{Slug}"
 @page "/summoner/{Slug}/{Tab}"
+@page "/summoner/{Slug}/{Tab}/{Champion}"
 
 <PageTitle>@RiotId | Summon.gg</PageTitle>
 
 @* Interactive so the Update button can reload the data in place; no prerender, or every Riot call would run twice *@
-<SummonerProfile Slug="@Slug" Tab="@(Tab ?? "")" @rendermode="@(new InteractiveServerRenderMode(prerender: false))" />
+<SummonerProfile Slug="@Slug" Tab="@(Tab ?? "")" Champion="@Champion" @rendermode="@(new InteractiveServerRenderMode(prerender: false))" />
 
 @code {
     [Parameter] public required string Slug { get; set; }
     [Parameter] public string? Tab { get; set; }
+    [Parameter] public string? Champion { get; set; }
 
     // The interactive profile cannot set the static page title, so it comes from the URL
     private string RiotId

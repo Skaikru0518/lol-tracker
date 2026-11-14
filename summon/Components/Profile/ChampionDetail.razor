@@ -1,0 +1,97 @@
+@using summon.Accounts
+@using summon.Data
+@inject IServiceScopeFactory ScopeFactory
+
+@if (championKey is null)
+{
+    <Panel>
+        <EmptyState Title="Champion not found">
+            <Action>@BackLink</Action>
+        </EmptyState>
+    </Panel>
+}
+else
+{
+    <div class="space-y-4">
+        <HeroBanner SplashUrl="@DataDragonData.ChampionSplash(championKey)" Class="rounded-lg border">
+            <div class="flex h-32 flex-col justify-end p-5">
+                <div class="mb-auto">@BackLink</div>
+                <h2 class="text-2xl font-bold text-foreground">@DataDragon.ChampionName(championKey)</h2>
+                <p class="text-sm text-muted-foreground">
+                    @($"{Account.GameName}#{Account.TagLine}{(masteryPoints is { } points ? $" · {Format.Points(points)} mastery pts" : "")}")
+                </p>
+            </div>
+        </HeroBanner>
+        <Panel>
+            <div class="grid grid-cols-2 gap-4 p-4 sm:grid-cols-5">
+                @SummaryItem("games", stat is null ? "—" : stat.Games.ToString())
+                @SummaryItem("winrate", stat is null ? "—" : $"{(int)Math.Floor(stat.WinRate + 0.5)}%", stat is null ? "" : stat.WinRate >= 50 ? "text-win" : "text-loss")
+                @SummaryItem("KDA", stat is null ? "—" : stat.Kda.ToString(System.Globalization.CultureInfo.InvariantCulture))
+                @SummaryItem("CS/min", stat is null ? "—" : stat.CsPerMin.ToString(System.Globalization.CultureInfo.InvariantCulture))
+                @SummaryItem("KP", killParticipation is { } kp ? $"{kp}%" : "—")
+            </div>
+        </Panel>
+        <p class="text-xs text-muted-foreground">Games on @DataDragon.ChampionName(championKey) that Summon.gg has stored for this player, newest first.</p>
+        <MatchList Games="games" DataDragon="DataDragon" Puuid="@Account.Puuid" LpChanges="lpChanges" Performance="performance" Matches="documents" />
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public required Account Account { get; set; }
+    [Parameter, EditorRequired] public required string Champion { get; set; }
+    [Parameter, EditorRequired] public required DataDragonData DataDragon { get; set; }
+    [Parameter, EditorRequired] public required string BasePath { get; set; }
+    [Parameter] public EventCallback OnBack { get; set; }
+    // Bumped by the profile after each load, so a refresh also reloads the page
+    [Parameter] public int LoadVersion { get; set; }
+
+    private string? championKey;
+    private ChampionStat? stat;
+    private int? masteryPoints;
+    private int? killParticipation;
+    private List<MatchRow>? games;
+    private Dictionary<string, int>? lpChanges;
+    private Dictionary<string, PerformanceScore>? performance;
+    private Dictionary<string, RiotMatch>? documents;
+    private (string Champion, int Version)? loaded;
+
+    private RenderFragment BackLink =>
+        @<a href="@($"{BasePath}/champions")" data-enhance-nav="false" @onclick="() => OnBack.InvokeAsync()" @onclick:preventDefault
+            class="text-xs font-medium text-primary hover:underline">&larr; All champions</a>;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (loaded == (Champion, LoadVersion)) return;
+        loaded = (Champion, LoadVersion);
+
+        // The URL slug matches the Data Dragon id case-insensitively, like the original's findChampionBySlug
+        championKey = DataDragon.ChampionNames.Keys.FirstOrDefault(k => string.Equals(k, Champion, StringComparison.OrdinalIgnoreCase));
+        if (championKey is null) return;
+        var championId = DataDragon.ChampionIds.FirstOrDefault(p => p.Value == championKey).Key;
+
+        games = null;
+        performance = null;
+        // Runs inside the circuit, so it opens its own scope like the profile's loads do
+        await using var scope = ScopeFactory.CreateAsyncScope();
+        var matchService = scope.ServiceProvider.GetRequiredService<MatchService>();
+
+        // Stored games only (Riot cannot filter by champion); the list pages through them 20 at a time
+        games = await matchService.GetChampionRowsAsync(Account.Puuid, championKey);
+        killParticipation = games.Count == 0 ? null
+            : (int)Math.Floor(games.Average(g => (double)Format.Percent(g.Kills + g.Assists, g.TeamKills)) + 0.5);
+        stat = (await matchService.GetChampionStatsAsync(Account.Puuid, "all")).FirstOrDefault(s => s.ChampionId == championId);
+        masteryPoints = (await scope.ServiceProvider.GetRequiredService<AccountService>().AllMasteriesAsync(Account))
+            .FirstOrDefault(m => m.ChampionId == championId)?.ChampionPoints;
+        lpChanges = LpEstimate.ForRows(games, await scope.ServiceProvider.GetRequiredService<RankedService>().GetLpHistoryAsync(Account.Puuid));
+        StateHasChanged();
+
+        documents = await matchService.GetDocumentsAsync(Account.Puuid, games.Select(g => g.MatchId).ToArray());
+        performance = await scope.ServiceProvider.GetRequiredService<PerformanceService>().ScoreAsync(documents.Values, Account.Puuid);
+    }
+
+    private static RenderFragment SummaryItem(string label, string value, string className = "") =>
+        @<div>
+            <p class="text-lg font-bold text-foreground @className">@value</p>
+            <p class="text-xs text-muted-foreground">@label</p>
+        </div>;
+}

@@ -1,0 +1,102 @@
+@using summon.Accounts
+@using summon.Data
+@inject IServiceScopeFactory ScopeFactory
+
+<div class="space-y-4">
+    <Panel>
+        <PanelHeader>
+            <TitleContent>Champion stats <span class="font-normal text-muted-foreground">· stored matches</span></TitleContent>
+            <Actions><MatchFilters Queue="@queue" OnQueueChange="SetQueueAsync" /></Actions>
+        </PanelHeader>
+        @if (stats is null)
+        {
+            <div class="space-y-2 p-3">
+                @for (var i = 0; i < 6; i++)
+                {
+                    <Skeleton Class="h-10" />
+                }
+            </div>
+        }
+        else if (stats.Count == 0)
+        {
+            <EmptyState Title="No stored games for this queue" />
+        }
+        else
+        {
+            <ChampionStatsTable Rows="stats" MasteryPoints="masteryPoints" DataDragon="DataDragon" BasePath="@BasePath" OnSelect="OnSelectChampion" />
+        }
+    </Panel>
+
+    @if (queue == "all" && stats is not null && MasteryOnly is { Count: > 0 } masteryOnly)
+    {
+        <Panel>
+            <PanelHeader Title="Other champions">
+                <Actions><span class="text-xs text-muted-foreground">mastery only</span></Actions>
+            </PanelHeader>
+            <div class="grid grid-cols-2 gap-2 p-3 sm:grid-cols-3 lg:grid-cols-4">
+                @foreach (var (key, points) in masteryOnly)
+                {
+                    <div class="flex items-center gap-2 rounded-md border px-2 py-1.5 text-sm">
+                        <ChampionIcon DataDragon="DataDragon" ChampionName="@key" Size="24" />
+                        <span class="min-w-0 flex-1 truncate text-foreground">@DataDragon.ChampionName(key)</span>
+                        <span class="text-xs text-muted-foreground">@Format.Points(points) pts</span>
+                    </div>
+                }
+            </div>
+        </Panel>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public required Account Account { get; set; }
+    [Parameter, EditorRequired] public required DataDragonData DataDragon { get; set; }
+    [Parameter, EditorRequired] public required string BasePath { get; set; }
+    [Parameter] public EventCallback<string> OnSelectChampion { get; set; }
+    // Bumped by the profile after each load, so a refresh also reloads the stats
+    [Parameter] public int LoadVersion { get; set; }
+
+    private string queue = "all";
+    private List<ChampionStat>? stats;
+    private List<RiotMastery> masteries = [];
+    private Dictionary<int, int> masteryPoints = [];
+    private int loadedVersion = -1;
+
+    /// <summary>Champions with mastery but no stored games, most points first; only ones Data Dragon knows.</summary>
+    private List<(string Key, int Points)> MasteryOnly
+    {
+        get
+        {
+            var played = stats!.Select(s => s.ChampionId).ToHashSet();
+            return masteries
+                .Where(m => !played.Contains(m.ChampionId) && DataDragon.ChampionIds.ContainsKey(m.ChampionId))
+                .Select(m => (DataDragon.ChampionIds[m.ChampionId], m.ChampionPoints))
+                .ToList();
+        }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (LoadVersion == loadedVersion) return;
+        loadedVersion = LoadVersion;
+        await LoadAsync(withMasteries: true);
+    }
+
+    private Task SetQueueAsync(string value)
+    {
+        queue = value;
+        return LoadAsync(withMasteries: false);
+    }
+
+    private async Task LoadAsync(bool withMasteries)
+    {
+        stats = null;
+        // Runs inside the circuit, so it opens its own scope like the profile's loads do
+        await using var scope = ScopeFactory.CreateAsyncScope();
+        if (withMasteries)
+        {
+            masteries = await scope.ServiceProvider.GetRequiredService<AccountService>().AllMasteriesAsync(Account);
+            masteryPoints = masteries.ToDictionary(m => m.ChampionId, m => m.ChampionPoints);
+        }
+        stats = await scope.ServiceProvider.GetRequiredService<MatchService>().GetChampionStatsAsync(Account.Puuid, queue);
+    }
+}

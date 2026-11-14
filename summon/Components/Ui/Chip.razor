@@ -7,6 +7,8 @@
     [Parameter] public string? Class { get; set; }
     [Parameter, EditorRequired] public required RenderFragment ChildContent { get; set; }
 
-    // Hex text color with a 44 alpha border and a 20 alpha fill
-    private string Style => $"color: {Color}; border-color: {Color}44; background-color: {Color}20";
+    // Hex text color with a 44 alpha border and a 20 alpha fill; a var(--token) is mixed with transparency instead, like the original's chipStyle
+    private string Style => Color.StartsWith("var(", StringComparison.Ordinal)
+        ? $"color: {Color}; border-color: color-mix(in srgb, {Color} 27%, transparent); background-color: color-mix(in srgb, {Color} 13%, transparent)"
+        : $"color: {Color}; border-color: {Color}44; background-color: {Color}20";
 }

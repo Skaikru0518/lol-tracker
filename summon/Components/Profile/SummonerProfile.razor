@@ -2,6 +2,7 @@
 @using summon.Accounts
 @using summon.Data
 @inject IServiceScopeFactory ScopeFactory
+@inject IJSRuntime JS
 
 @if (notFound)
 {
@@ -26,7 +27,7 @@ else
                       Refreshing="refreshing" OnRefresh="RefreshAsync" />
     }
     <div class="mx-auto max-w-7xl px-4 sm:px-6">
-        <SummonerTabs BasePath="@($"/summoner/{Uri.EscapeDataString(Slug)}")" Active="@tab" OnSelect="t => tab = t" />
+        <SummonerTabs BasePath="@BasePath" Active="@tab" OnSelect="t => { tab = t; champion = null; }" />
         <div class="py-4 lg:py-6">
             @if (tab == "")
             {
@@ -55,7 +56,7 @@ else
                         @if (account is not null && dataDragon is not null)
                         {
                             <MostPlayedPanel Puuid="@account.Puuid" DataDragon="dataDragon" LoadVersion="loadVersion"
-                                             ChampionsPath="@($"/summoner/{Format.SummonerSlug(account.GameName, account.TagLine)}/champions")" />
+                                             ChampionsPath="@($"{BasePath}/champions")" OnShowAll="ShowChampionsAsync" />
                         }
                         @if (recentMatches is not null && account is not null && dataDragon is not null)
                         {
@@ -76,6 +77,16 @@ else
                     </div>
                 </div>
             }
+            else if (tab == "champions" && account is not null && dataDragon is not null && champion is not null)
+            {
+                <ChampionDetail Account="account" Champion="@champion" DataDragon="dataDragon" BasePath="@BasePath" LoadVersion="loadVersion"
+                                OnBack="ShowChampionsAsync" />
+            }
+            else if (tab == "champions" && account is not null && dataDragon is not null)
+            {
+                <ChampionsTab Account="account" DataDragon="dataDragon" BasePath="@BasePath" LoadVersion="loadVersion"
+                              OnSelectChampion="ShowChampionAsync" />
+            }
             else if (tab == "lp" && account is not null)
             {
                 <LpHistoryTab Puuid="@account.Puuid" LoadVersion="loadVersion" />
@@ -94,6 +105,7 @@ else
 @code {
     [Parameter, EditorRequired] public required string Slug { get; set; }
     [Parameter] public string Tab { get; set; } = "";
+    [Parameter] public string? Champion { get; set; }
 
     private Account? account;
     private bool notFound;
@@ -114,6 +126,22 @@ else
     private RecentSummary? recentSummary;
     // The tab is the profile's own state after the first render, so switching tabs never reloads the hero
     private string tab = "";
+    private string? champion;
+
+    private string BasePath => $"/summoner/{Uri.EscapeDataString(Slug)}";
+
+    /// <summary>Switches tab (and champion page) in place: only the address bar changes, like the tab links.</summary>
+    private async Task NavigateAsync(string toTab, string? toChampion)
+    {
+        var url = BasePath + (toTab == "" ? "" : $"/{toTab}") + (toChampion is null ? "" : $"/{Uri.EscapeDataString(toChampion)}");
+        await JS.InvokeVoidAsync("history.pushState", null, "", url);
+        tab = toTab;
+        champion = toChampion;
+    }
+
+    private Task ShowChampionsAsync() => NavigateAsync("champions", null);
+
+    private Task ShowChampionAsync(string name) => NavigateAsync("champions", name);
 
     // Riot pages match ids 50 at a time; the overview holds the first page, "Load more" asks for the next ones
     private const int RiotPage = 50;
@@ -122,7 +150,11 @@ else
     private bool loadingMore;
 
     // Read once before the load starts: OnParametersSet would run only after the whole load and undo a tab picked meanwhile
-    protected override void OnInitialized() => tab = Tab;
+    protected override void OnInitialized()
+    {
+        tab = Tab;
+        champion = Champion;
+    }
 
     protected override Task OnInitializedAsync() => LoadAsync();
 

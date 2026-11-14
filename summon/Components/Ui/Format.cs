@@ -14,6 +14,14 @@ public static class Format
     public static string Thousands(int value) =>
         value >= 1000 ? (value / 1000.0).ToString("0.0", CultureInfo.InvariantCulture) + "k" : value.ToString(CultureInfo.InvariantCulture);
 
+    /// <summary>Mastery points: 980, 412k, 1.25M.</summary>
+    public static string Points(int points) => points switch
+    {
+        >= 1_000_000 => (Math.Floor(points / 10_000.0 + 0.5) / 100).ToString(CultureInfo.InvariantCulture) + "M",
+        >= 1_000 => Math.Floor(points / 1_000.0 + 0.5).ToString(CultureInfo.InvariantCulture) + "k",
+        _ => points.ToString(CultureInfo.InvariantCulture),
+    };
+
     /// <summary>Just now, 15m ago, 3h ago, 4d ago; minutes round down to five.</summary>
     public static string TimeAgo(long timestampMs)
     {

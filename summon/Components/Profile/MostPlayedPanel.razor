@@ -76,8 +76,7 @@
                     </div>
                 </div>
             }
-            @* shortcut: the Champions tab is not built yet, so this link has no page behind it *@
-            <a href="@ChampionsPath" class="block text-center text-xs font-medium text-primary hover:underline">See all champions &rarr;</a>
+            <a href="@ChampionsPath" data-enhance-nav="false" @onclick="OnShowAll" @onclick:preventDefault class="block text-center text-xs font-medium text-primary hover:underline">See all champions &rarr;</a>
         </PanelBody>
     }
 </Panel>
@@ -85,6 +84,8 @@
 @code {
     [Parameter, EditorRequired] public required string Puuid { get; set; }
     [Parameter, EditorRequired] public required string ChampionsPath { get; set; }
+    // Switches to the Champions tab in place; the href stays for new-tab clicks
+    [Parameter] public EventCallback OnShowAll { get; set; }
     [Parameter, EditorRequired] public required DataDragonData DataDragon { get; set; }
     // Bumped by the profile after each load, so a refresh also reloads these stats
     [Parameter] public int LoadVersion { get; set; }
