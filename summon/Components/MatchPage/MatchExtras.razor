@@ -72,14 +72,20 @@
 
     private async Task LoadTimelineAsync()
     {
-        try
+        // Like the original's query: three more tries 1, 2 and 4 seconds apart (a rate limited Riot often answers on one), loading meanwhile
+        for (var attempt = 0; attempt <= 3; attempt++)
         {
-            await using var scope = ScopeFactory.CreateAsyncScope();
-            timeline = await scope.ServiceProvider.GetRequiredService<MatchPageService>().TimelineAsync(MatchId);
-        }
-        catch (Exception e)
-        {
-            Logger.LogError(e, "Timeline failed for {MatchId}", MatchId);
+            if (attempt > 0) await Task.Delay(TimeSpan.FromSeconds(Math.Pow(2, attempt - 1)));
+            try
+            {
+                await using var scope = ScopeFactory.CreateAsyncScope();
+                timeline = await scope.ServiceProvider.GetRequiredService<MatchPageService>().TimelineAsync(MatchId);
+                break;
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(e, "Timeline failed for {MatchId} (try {Attempt})", MatchId, attempt + 1);
+            }
         }
         timelineLoading = false;
         await InvokeAsync(StateHasChanged);
