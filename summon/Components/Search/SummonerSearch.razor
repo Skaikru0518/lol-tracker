@@ -217,6 +217,7 @@
         {
             var raw = await JS.InvokeAsync<string?>("localStorage.getItem", HistoryKey);
             await JS.InvokeVoidAsync("localStorage.setItem", HistoryKey, SearchQuery.AddToHistory(raw, riotId, platformKey));
+            await JS.InvokeVoidAsync("summonHistory.changed");
         }
         catch (JSException)
         {

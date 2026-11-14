@@ -1,4 +1,5 @@
 @using summon.Search
+@implements IAsyncDisposable
 @inject IJSRuntime JS
 
 @* Recent searches (this browser's localStorage) as chips linking to each profile, with a clear action *@
@@ -30,15 +31,34 @@
     private const string HistoryKey = "summon-gg-search-history";
 
     private List<(string RiotId, string Platform)> history = [];
+    private DotNetObjectReference<SearchHistory>? self;
+    private IJSObjectReference? subscription;
 
-    // shortcut: read once when the page opens; the original also follows changes from other tabs
+    // Read when the page opens and again whenever the history changes, in this tab or another one
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender) return;
+        await ReadAsync();
+        try
+        {
+            self = DotNetObjectReference.Create(this);
+            subscription = await JS.InvokeAsync<IJSObjectReference>("summonHistory.listen", self);
+        }
+        catch (JSException)
+        {
+            // Without the script the chips just don't follow later changes
+        }
+    }
+
+    [JSInvokable]
+    public Task HistoryChanged() => InvokeAsync(ReadAsync);
+
+    private async Task ReadAsync()
+    {
         try
         {
             history = SearchQuery.ParseHistory(await JS.InvokeAsync<string?>("localStorage.getItem", HistoryKey));
-            if (history.Count > 0) StateHasChanged();
+            StateHasChanged();
         }
         catch (JSException)
         {
@@ -52,10 +72,24 @@
         try
         {
             await JS.InvokeVoidAsync("localStorage.removeItem", HistoryKey);
+            await JS.InvokeVoidAsync("summonHistory.changed");
         }
         catch (JSException)
         {
             // Storage can be blocked; the chips are gone for this page anyway
         }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        try
+        {
+            if (subscription is not null) await subscription.InvokeVoidAsync("stop");
+        }
+        catch (JSDisconnectedException)
+        {
+            // The page is already gone
+        }
+        self?.Dispose();
     }
 }
