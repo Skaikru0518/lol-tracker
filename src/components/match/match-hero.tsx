@@ -9,6 +9,8 @@ import { getQueueName } from "@/lib/game/queue-names";
 import { formatRankLabel } from "@/lib/game/rank-calculator";
 import { toSummonerSlug } from "@/lib/game/riot-id";
 import { type Match, type Participant } from "@/lib/validators/match";
+import { ShareButton } from "@/components/ui/share-button";
+import { matchShareUrl } from "@/lib/og/share-urls";
 
 const RESULT_TONE: Record<MatchResult, string> = {
 	Victory: "text-win",
@@ -44,7 +46,10 @@ export function MatchHero({
 						&larr; {player.riotIdGameName}#{player.riotIdTagline}
 					</Link>
 				)}
-				<h1 className="text-2xl font-bold text-foreground">{getQueueName(match.info.queueId, match.info.gameMode)}</h1>
+				<div className="flex items-center gap-2">
+					<h1 className="text-2xl font-bold text-foreground">{getQueueName(match.info.queueId, match.info.gameMode)}</h1>
+					{player && <ShareButton path={matchShareUrl(match.metadata.matchId, player.puuid)} title={`${player.riotIdGameName}#${player.riotIdTagline} · ${player.championName}`} />}
+				</div>
 				<p className="text-sm text-muted-foreground">
 					{result && <span className={cn("font-semibold", RESULT_TONE[result])}>{result} · </span>}
 					{placement !== null && (

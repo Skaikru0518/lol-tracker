@@ -20,6 +20,8 @@ import { SHOW_SKILL_ESTIMATES } from "@/lib/shared/features";
 import { PerformanceRankSlot } from "./performance-rank-slot";
 import { ScoreBreakdown } from "./score-breakdown";
 import { rankedQueueForQueueId } from "@/lib/game/ranked-queues";
+import { ShareButton } from "@/components/ui/share-button";
+import { matchShareUrl } from "@/lib/og/share-urls";
 
 function Stat({ value, label, className }: { value: React.ReactNode; label: string; className?: string }) {
 	return (
@@ -65,75 +67,78 @@ export function MatchRow({
 
 	return (
 		<div className="border-b last:border-b-0">
-			<button
-				type="button"
-				onClick={() => setOpen((v) => !v)}
-				aria-expanded={open}
-				className={cn(
-					"flex w-full flex-wrap items-center gap-x-3 gap-y-2 bg-gradient-to-r to-transparent to-60% px-3 py-2.5 text-left transition-colors hover:bg-accent/40 sm:flex-nowrap sm:px-4",
-					result === "win" ? "from-win/20" : result === "loss" ? "from-loss/20" : "from-muted/40",
-				)}
-			>
-				<div className="w-[4.75rem] shrink-0 leading-tight">
-					{arena ? (
-						<p className="text-sm font-bold" style={{ color: getPlacementColor(placement) }}>
-							{placement}
-							<span className="align-super text-3xs">{getPlacementSuffix(placement)}</span>
+			<div className="flex items-center">
+				<button
+					type="button"
+					onClick={() => setOpen((v) => !v)}
+					aria-expanded={open}
+					className={cn(
+						"flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-2 bg-gradient-to-r to-transparent to-60% px-3 py-2.5 text-left transition-colors hover:bg-accent/40 sm:flex-nowrap sm:px-4",
+						result === "win" ? "from-win/20" : result === "loss" ? "from-loss/20" : "from-muted/40",
+					)}
+				>
+					<div className="w-[4.75rem] shrink-0 leading-tight">
+						{arena ? (
+							<p className="text-sm font-bold" style={{ color: getPlacementColor(placement) }}>
+								{placement}
+								<span className="align-super text-3xs">{getPlacementSuffix(placement)}</span>
+							</p>
+						) : (
+							<p className={cn("text-sm font-bold", result === "win" ? "text-win" : result === "loss" ? "text-loss" : "text-muted-foreground")}>
+								{result === "win" ? "Victory" : result === "loss" ? "Defeat" : "Remake"}
+							</p>
+						)}
+						<p className="truncate text-2xs text-foreground">{shortQueueName(info.queueId, info.gameMode)}</p>
+						<p className="text-3xs text-muted-foreground">
+							{formatDuration(info.gameDuration)} · {timeAgo(info.gameCreation)}
 						</p>
+					</div>
+	
+					{performance ? (
+						<ScoreCircle score={performance.score} grade={performance.grade} tooltip={<ScoreBreakdown matchId={match.metadata.matchId} puuid={player.puuid} />} />
+					) : performanceLoading ? (
+						<Skeleton className="size-9 rounded-full" />
 					) : (
-						<p className={cn("text-sm font-bold", result === "win" ? "text-win" : result === "loss" ? "text-loss" : "text-muted-foreground")}>
-							{result === "win" ? "Victory" : result === "loss" ? "Defeat" : "Remake"}
+						<ScorePlaceholder />
+					)}
+	
+					<ChampionIcon version={version} championName={player.championName} size={44} level={player.champLevel} />
+					<SpellRuneStack
+						version={version}
+						spells={[player.summoner1Id, player.summoner2Id]}
+						runes={runeIcons(player, runeData)}
+						className="hidden sm:grid"
+					/>
+	
+					<div className="w-24 leading-tight">
+						<p className="whitespace-nowrap text-base font-bold text-foreground">
+							{player.kills} / <span className="text-loss">{player.deaths}</span> / {player.assists}
 						</p>
-					)}
-					<p className="truncate text-2xs text-foreground">{shortQueueName(info.queueId, info.gameMode)}</p>
-					<p className="text-3xs text-muted-foreground">
-						{formatDuration(info.gameDuration)} · {timeAgo(info.gameCreation)}
-					</p>
-				</div>
-
-				{performance ? (
-					<ScoreCircle score={performance.score} grade={performance.grade} tooltip={<ScoreBreakdown matchId={match.metadata.matchId} puuid={player.puuid} />} />
-				) : performanceLoading ? (
-					<Skeleton className="size-9 rounded-full" />
-				) : (
-					<ScorePlaceholder />
-				)}
-
-				<ChampionIcon version={version} championName={player.championName} size={44} level={player.champLevel} />
-				<SpellRuneStack
-					version={version}
-					spells={[player.summoner1Id, player.summoner2Id]}
-					runes={runeIcons(player, runeData)}
-					className="hidden sm:grid"
-				/>
-
-				<div className="w-24 leading-tight">
-					<p className="whitespace-nowrap text-base font-bold text-foreground">
-						{player.kills} / <span className="text-loss">{player.deaths}</span> / {player.assists}
-					</p>
-					<p className="text-2xs text-muted-foreground">{kda === null ? "Perfect" : `${kda} KDA`}</p>
-				</div>
-
-				<div className="hidden gap-1 md:flex">
-					{!arena && <Stat value={cs} label={`CS ${csPerMinute(cs, info.gameDuration)}`} />}
-					<Stat value={`${killParticipation(player, info.participants)}%`} label="KP" />
-					{ranked && (
-						<Stat
-							value={lpChange === null ? "—" : `${lpChange >= 0 ? "+" : ""}${lpChange}`}
-							label="LP"
-							className={lpChange === null ? "text-muted-foreground" : lpChange >= 0 ? "text-win" : "text-loss"}
-						/>
-					)}
-					{ranked && SHOW_SKILL_ESTIMATES && <PerformanceRankSlot rank={performanceRank} />}
-				</div>
-
-				<div className="ml-auto flex basis-full flex-col items-start gap-1 sm:basis-auto sm:items-end">
-					<ItemSlots version={version} items={participantItems(player)} size={22} />
-					{badgeIds.length > 0 && <MatchBadges badgeIds={badgeIds} max={2} />}
-				</div>
-
-				<ChevronDown className={cn("size-4 shrink-0 text-muted-foreground transition-transform", open && "rotate-180")} />
-			</button>
+						<p className="text-2xs text-muted-foreground">{kda === null ? "Perfect" : `${kda} KDA`}</p>
+					</div>
+	
+					<div className="hidden gap-1 md:flex">
+						{!arena && <Stat value={cs} label={`CS ${csPerMinute(cs, info.gameDuration)}`} />}
+						<Stat value={`${killParticipation(player, info.participants)}%`} label="KP" />
+						{ranked && (
+							<Stat
+								value={lpChange === null ? "—" : `${lpChange >= 0 ? "+" : ""}${lpChange}`}
+								label="LP"
+								className={lpChange === null ? "text-muted-foreground" : lpChange >= 0 ? "text-win" : "text-loss"}
+							/>
+						)}
+						{ranked && SHOW_SKILL_ESTIMATES && <PerformanceRankSlot rank={performanceRank} />}
+					</div>
+	
+					<div className="ml-auto flex basis-full flex-col items-start gap-1 sm:basis-auto sm:items-end">
+						<ItemSlots version={version} items={participantItems(player)} size={22} />
+						{badgeIds.length > 0 && <MatchBadges badgeIds={badgeIds} max={2} />}
+					</div>
+	
+					<ChevronDown className={cn("size-4 shrink-0 text-muted-foreground transition-transform", open && "rotate-180")} />
+				</button>
+				<ShareButton path={matchShareUrl(match.metadata.matchId, player.puuid)} title={`${player.riotIdGameName}#${player.riotIdTagline} · ${player.championName}`} className="mx-1 shrink-0" />
+			</div>
 
 			<AnimatePresence initial={false}>
 				{open && (
