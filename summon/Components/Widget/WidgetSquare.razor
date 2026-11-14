@@ -1,0 +1,49 @@
+@* Square: Riot ID, a big emblem, rank, the record and today's LP side by side, and a dot per game *@
+<WidgetRiotIdLine Data="Data" Options="Options" />
+<WidgetEmblem Data="Data" Options="Options" Events="Events" />
+<div class="wg-rank" style="color: @WidgetView.TierColor(Data)">
+    @WidgetLogic.RankLabel(Data.Rank)@if (Data.Rank is not null)
+    {
+        @(" ")<span>· @Data.Rank.LeaguePoints LP</span>
+    }
+</div>
+<WidgetStreak Data="Data" />
+<div class="wg-split" style="@(lp ? null : "grid-template-columns: 1fr")">
+    <div>
+        <span class="wg-k">@WidgetView.RecordLabel(Data)</span>
+        <span class="wg-v"><WidgetWinLoss Record="Data.Record" Options="Options" /></span>
+    </div>
+    @if (lp)
+    {
+        <div>
+            <span class="wg-k">LP today</span>
+            <span class="wg-v @(Data.LpChange is { } c ? c < 0 ? "wg-down" : "wg-up" : "")">
+                @if (Data.LpChange is { } change)
+                {
+                    <WidgetNumber Value="change" Animate="Options.Animated" Format="signed" />
+                }
+                else
+                {
+                    <span class="wg-muted">—</span>
+                }
+            </span>
+        </div>
+    }
+</div>
+<div class="wg-dots">
+    @foreach (var g in Enumerable.Reverse(Data.Games.TakeLast(MaxDots)))
+    {
+        <i @key="g.MatchId" class="@(g.Win ? "wg-dotWin" : "") @(fresh.Contains(g.MatchId) ? "wg-dotNew" : "")"></i>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public required WidgetData Data { get; set; }
+    [Parameter, EditorRequired] public required WidgetOptions Options { get; set; }
+    [Parameter] public WidgetEvents? Events { get; set; }
+
+    private const int MaxDots = 10;
+
+    private bool lp => Data.Scope == "session" && WidgetLogic.ShowsPart(Options.Style, Options.Show, "lp");
+    private HashSet<string> fresh => Events?.NewGames.ToHashSet() ?? [];
+}

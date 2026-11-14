@@ -1,0 +1,25 @@
+@* Flash, floating LP and the promotion/demotion cover for the latest refresh; keyed by the nonce so each event replays *@
+@if (Events is not null)
+{
+    var k = Events.Nonce;
+    @if (Events.Result is { } result)
+    {
+        <span @key="@($"f{k}")" class="wg-flash @(result == "win" ? "wg-flashWin" : "wg-flashLoss")"></span>
+    }
+    @if (Events.LpDelta is { } delta)
+    {
+        <span @key="@($"l{k}")" class="wg-float @(delta < 0 ? "wg-down" : "wg-up")">@WidgetLogic.LpChangeLabel(delta) LP</span>
+    }
+    @if (Events.Rank is { } rank)
+    {
+        <span @key="@($"c{k}")" class="wg-cover @(rank == "down" ? "wg-coverDown" : "")">
+            <span class="wg-coverLabel">@(rank == "up" ? "PROMOTED" : "DEMOTED")</span>
+            <span class="wg-coverRank">@WidgetLogic.RankLabel(Data.Rank)</span>
+        </span>
+    }
+}
+
+@code {
+    [Parameter, EditorRequired] public required WidgetData Data { get; set; }
+    [Parameter] public WidgetEvents? Events { get; set; }
+}

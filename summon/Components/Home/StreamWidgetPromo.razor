@@ -1,0 +1,19 @@
+@* Shows streamers that the widget exists and where to make one *@
+<Panel>
+    <PanelHeader Title="Stream widget" />
+    <PanelBody Class="grid items-center gap-5 md:grid-cols-[minmax(0,1fr)_auto]">
+        <div class="space-y-2">
+            <p class="font-semibold text-foreground">Your rank and session on stream</p>
+            <p class="text-sm text-muted-foreground">
+                Rank, LP and today&apos;s wins and losses as an OBS Browser Source, refreshed every minute. Four styles, with or without a background.
+            </p>
+            <p class="text-sm text-muted-foreground">
+                Search your summoner, then press <span class="font-medium text-foreground">Stream widget</span> on the profile to copy your URL.
+            </p>
+        </div>
+        <div class="grid justify-items-center gap-3 overflow-hidden rounded-lg p-4" style="background: repeating-conic-gradient(#2a2d3a 0 25%, #1c1e28 0 50%) 0 0 / 20px 20px">
+            <StreamWidget Data="WidgetLogic.Sample" Options="@(WidgetLogic.Default with { Fx = ["smoke"] })" />
+            <StreamWidget Data="WidgetLogic.Sample" Options="@(WidgetLogic.Default with { Style = "pill", Theme = "clear" })" />
+        </div>
+    </PanelBody>
+</Panel>

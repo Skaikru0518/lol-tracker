@@ -1,0 +1,54 @@
+@* Strip: emblem, Riot ID, rank and the record on top, then the games newest first, the live game leading *@
+<div class="wg-head">
+    <WidgetEmblem Data="Data" Options="Options" Events="Events" />
+    <div>
+        <WidgetRiotIdLine Data="Data" Options="Options" />
+        <div class="wg-rank" style="color: @WidgetView.TierColor(Data)">
+            @WidgetLogic.RankLabel(Data.Rank)@(Data.Rank is null ? "" : $" · {Data.Rank.LeaguePoints} LP")
+        </div>
+    </div>
+    <div class="wg-sum">
+        <WidgetStreak Data="Data" />
+        <WidgetWinLoss Record="Data.Record" Options="Options" />
+        <WidgetLpChange Data="Data" Options="Options" Suffix=" LP" />
+    </div>
+</div>
+@if (games.Count == 0 && Data.LiveChampion is null)
+{
+    <div class="wg-empty">@(Data.Scope == "season" ? "No ranked games yet" : "No games this session yet")</div>
+}
+else
+{
+    <div class="wg-games">
+        @if (Data.LiveChampion is { } live)
+        {
+            <div class="wg-game wg-live">
+                <img src="@DataDragon?.ChampionIcon(live)" alt="@live" />
+                <svg class="wg-ants" viewBox="0 0 44 44" aria-hidden="true">
+                    <rect x="1" y="1" width="42" height="42" rx="8" />
+                </svg>
+                @* LiveClock: wwwroot/widget.js writes and ticks it *@
+                <span data-live-start="@(Data.LiveStartedAt ?? 0)"></span>
+            </div>
+        }
+        @foreach (var g in games)
+        {
+            <div @key="g.MatchId" class="wg-game @(g.Win ? "wg-gameWin" : "") @(fresh.Contains(g.MatchId) ? "wg-gameNew" : "")">
+                <img src="@DataDragon?.ChampionIcon(g.ChampionName)" alt="@g.ChampionName" />
+                <span>@g.Kills/@g.Deaths/@g.Assists</span>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public required WidgetData Data { get; set; }
+    [Parameter, EditorRequired] public required WidgetOptions Options { get; set; }
+    [Parameter] public WidgetEvents? Events { get; set; }
+    [Parameter] public DataDragonData? DataDragon { get; set; }
+
+    private const int MaxGames = 8;
+
+    private List<WidgetGame> games => Enumerable.Reverse(Data.Games.TakeLast(Data.LiveChampion is null ? MaxGames : MaxGames - 1)).ToList();
+    private HashSet<string> fresh => Events?.NewGames.ToHashSet() ?? [];
+}

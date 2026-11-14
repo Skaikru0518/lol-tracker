@@ -1,0 +1,38 @@
+@* Pill: emblem, short rank and LP, then the record (or the two rotating) *@
+<WidgetEmblem Data="Data" Options="Options" Events="Events" />
+@if (Options.HasFx("rotate"))
+{
+    <WidgetRotator>
+        <First><span>@Rank</span></First>
+        <Second><span>@Record</span></Second>
+    </WidgetRotator>
+}
+else
+{
+    @Rank
+    <span class="wg-sep"></span>
+    @Record
+}
+<span class="wg-wm">summon<b>.gg</b></span>
+
+@code {
+    [Parameter, EditorRequired] public required WidgetData Data { get; set; }
+    [Parameter, EditorRequired] public required WidgetOptions Options { get; set; }
+    [Parameter] public WidgetEvents? Events { get; set; }
+
+    private RenderFragment Rank =>
+        @<text>
+            <span style="color: @WidgetView.TierColor(Data)">@WidgetLogic.ShortRank(Data.Rank)</span>
+            @if (Data.Rank is not null)
+            {
+                <span>@Data.Rank.LeaguePoints LP</span>
+            }
+        </text>;
+
+    private RenderFragment Record =>
+        @<text>
+            <WidgetStreak Data="Data" />
+            <WidgetWinLoss Record="Data.Record" Options="Options" />
+            <WidgetLpChange Data="Data" Options="Options" />
+        </text>;
+}

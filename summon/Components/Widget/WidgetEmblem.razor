@@ -1,0 +1,24 @@
+@* Rank emblem with the smoke effect, and the promotion bursts; keyed so a new rank or event replays its animation *@
+<span class="wg-embWrap">
+    @if (Options.HasFx("smoke"))
+    {
+        <img class="wg-vapor" src="@Src" alt="" />
+        <img class="wg-vapor" src="@Src" alt="" />
+    }
+    <img @key="RankKey" class="wg-emblem @Motion" src="@Src" alt="" />
+    @if (Events?.Rank == "up")
+    {
+        <span @key="@($"b1-{Events.Nonce}")" class="wg-burst"></span>
+        <span @key="@($"b2-{Events.Nonce}")" class="wg-burst"></span>
+    }
+</span>
+
+@code {
+    [Parameter, EditorRequired] public required WidgetData Data { get; set; }
+    [Parameter, EditorRequired] public required WidgetOptions Options { get; set; }
+    [Parameter] public WidgetEvents? Events { get; set; }
+
+    private string Src => WidgetView.EmblemSrc(Data.Rank?.Tier);
+    private string RankKey => Data.Rank is null ? "unranked" : $"{Data.Rank.Tier}-{Data.Rank.Division}";
+    private string? Motion => Events?.Rank switch { "up" => "wg-promo", "down" => "wg-demote", _ => null };
+}

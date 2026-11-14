@@ -1,0 +1,8 @@
+@if (WidgetView.WinStreak(Data) is var streak && streak >= WidgetView.StreakMin)
+{
+    <span class="wg-streak">🔥 @streak</span>
+}
+
+@code {
+    [Parameter, EditorRequired] public required WidgetData Data { get; set; }
+}

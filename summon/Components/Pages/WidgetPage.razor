@@ -1,0 +1,23 @@
+@page "/widget/{Slug}"
+@layout WidgetLayout
+@inject NavigationManager Navigation
+
+<PageTitle>Stream widget | Summon.gg</PageTitle>
+<HeadContent>
+    <meta name="robots" content="noindex, nofollow" />
+</HeadContent>
+
+@* Interactive so it refreshes itself; no prerender, so the first frame on stream is already the real widget *@
+<LiveWidget Slug="@Slug" Options="options" @rendermode="@(new InteractiveServerRenderMode(prerender: false))" />
+
+@code {
+    [Parameter] public required string Slug { get; set; }
+
+    private WidgetOptions options = WidgetLogic.Default;
+
+    protected override void OnInitialized()
+    {
+        var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(new Uri(Navigation.Uri).Query);
+        options = WidgetLogic.ParseOptions(key => query.TryGetValue(key, out var values) ? values.FirstOrDefault() : null);
+    }
+}

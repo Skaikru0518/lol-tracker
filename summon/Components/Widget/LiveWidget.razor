@@ -1,0 +1,109 @@
+@implements IDisposable
+@inject IServiceScopeFactory ScopeFactory
+@inject IJSRuntime JS
+@inject ILogger<LiveWidget> Logger
+
+@* The widget OBS shows: refreshes every minute and plays the animations for what changed since the last refresh *@
+@if (missing && data is null)
+{
+    <div class="wg-wg wg-@Options.Theme wg-notFound">Summoner not found</div>
+}
+else if (data is not null)
+{
+    <StreamWidget Data="data" Options="Options" Events="events" DataDragon="dataDragon" />
+}
+
+@code {
+    [Parameter, EditorRequired] public required string Slug { get; set; }
+    [Parameter, EditorRequired] public required WidgetOptions Options { get; set; }
+
+    private static readonly TimeSpan Refresh = TimeSpan.FromMinutes(1);
+    private static readonly TimeSpan EventTime = TimeSpan.FromMilliseconds(3500);
+
+    private readonly CancellationTokenSource cts = new();
+    private WidgetData? data;
+    private WidgetEvents? events;
+    private DataDragonData? dataDragon;
+    private bool missing;
+    private WidgetQuery? query;
+    private CancellationTokenSource? clearEvents;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        var loadedAt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        long midnight = loadedAt;
+        try
+        {
+            midnight = await JS.InvokeAsync<long>("summonWidget.midnight");
+        }
+        catch (JSException)
+        {
+            // Without the script a "today" session counts from page load
+        }
+        query = WidgetLogic.Query(Options, loadedAt, midnight);
+        _ = PollAsync(cts.Token);
+    }
+
+    private async Task PollAsync(CancellationToken ct)
+    {
+        try
+        {
+            using var timer = new PeriodicTimer(Refresh);
+            do await LoadAsync(ct);
+            while (await timer.WaitForNextTickAsync(ct));
+        }
+        catch (OperationCanceledException)
+        {
+            // The source was closed
+        }
+    }
+
+    private async Task LoadAsync(CancellationToken ct)
+    {
+        try
+        {
+            await using var scope = ScopeFactory.CreateAsyncScope();
+            dataDragon ??= await scope.ServiceProvider.GetRequiredService<DataDragon>().GetAsync(ct);
+            var next = await scope.ServiceProvider.GetRequiredService<WidgetDataService>()
+                .BuildAsync(Slug, query!, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), ct);
+            if (next is null)
+            {
+                missing = true;
+            }
+            else
+            {
+                var happened = WidgetLogic.Events(data, next);
+                if (happened.Any) ShowEvents(happened with { Nonce = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() });
+                data = next;
+                missing = false;
+            }
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception e) when (e is not OperationCanceledException)
+        {
+            // Keep showing the last data on a failed refresh
+            Logger.LogError(e, "Widget refresh failed for {Slug}", Slug);
+        }
+    }
+
+    private void ShowEvents(WidgetEvents happened)
+    {
+        events = happened;
+        clearEvents?.Cancel();
+        clearEvents = new CancellationTokenSource();
+        var token = clearEvents.Token;
+        _ = Task.Delay(EventTime, token).ContinueWith(_ => InvokeAsync(() =>
+        {
+            events = null;
+            StateHasChanged();
+        }), token, TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Default);
+    }
+
+    public void Dispose()
+    {
+        cts.Cancel();
+        cts.Dispose();
+        clearEvents?.Cancel();
+    }
+}

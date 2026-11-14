@@ -1,0 +1,10 @@
+@* Rotator: alternates its two children every few seconds (wwwroot/widget.js toggles wg-flip) *@
+<div class="wg-rot" data-rotate>
+    @First
+    @Second
+</div>
+
+@code {
+    [Parameter, EditorRequired] public required RenderFragment First { get; set; }
+    [Parameter, EditorRequired] public required RenderFragment Second { get; set; }
+}

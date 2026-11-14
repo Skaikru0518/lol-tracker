@@ -1,0 +1,12 @@
+@if (Data.LpChange is { } change && Data.Scope != "season" && WidgetLogic.ShowsPart(Options.Style, Options.Show, "lp"))
+{
+    <span class="@(change < 0 ? "wg-down" : "wg-up")">
+        <WidgetNumber Value="change" Animate="Options.Animated" Format="signed" Suffix="@Suffix" />
+    </span>
+}
+
+@code {
+    [Parameter, EditorRequired] public required WidgetData Data { get; set; }
+    [Parameter, EditorRequired] public required WidgetOptions Options { get; set; }
+    [Parameter] public string Suffix { get; set; } = "";
+}

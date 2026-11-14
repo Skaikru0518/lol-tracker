@@ -1,13 +1,15 @@
-﻿@page "/"
+@page "/"
 @using summon.Changelog
 @* The sections show their skeletons first and fill in as their data arrives, like the original's client-side queries *@
 @attribute [StreamRendering]
 
 <PageTitle>Summon.gg — League of Legends Summoner Tracker</PageTitle>
 
-@* Hero search, then recently searched, free rotation and what's new, and this patch's new skins *@
+@* Hero search, the stream widget, then recently searched, free rotation and what's new, and this patch's new skins *@
 <HomeHero />
-@* shortcut: the original shows the stream widget promo here; it comes with the stream widget *@
+<div class="mx-auto max-w-6xl px-4 pt-8">
+    <StreamWidgetPromo />
+</div>
 <div class="mx-auto grid max-w-6xl gap-4 px-4 py-8 lg:grid-cols-3">
     <RecentlySearched />
     <FreeRotation />

@@ -1,0 +1,21 @@
+@if (id || server)
+{
+    <div class="wg-name">
+        @if (id)
+        {
+            <MarqueeText Animate="Options.Animated">@Data.GameName@(" ")<span class="wg-tag">#@Data.TagLine</span></MarqueeText>
+        }
+        @if (server)
+        {
+            <span class="wg-srv">@Platforms.ByKey(Data.Platform).Label</span>
+        }
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public required WidgetData Data { get; set; }
+    [Parameter, EditorRequired] public required WidgetOptions Options { get; set; }
+
+    private bool id => WidgetLogic.ShowsPart(Options.Style, Options.Show, "id");
+    private bool server => WidgetLogic.ShowsPart(Options.Style, Options.Show, "server");
+}

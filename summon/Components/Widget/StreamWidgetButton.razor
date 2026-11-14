@@ -1,0 +1,69 @@
+@inject IJSRuntime JS
+
+@* The profile's "Stream widget" button and the generator dialog it opens *@
+<button type="button" data-slot="button" title="Stream widget for OBS" class="@Trigger" @onclick="() => open = true">
+    @* Lucide "monitor-play" icon *@
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-3.5" aria-hidden="true">
+        <path d="M10 7.75a.75.75 0 0 1 1.142-.638l3.664 2.249a.75.75 0 0 1 0 1.278l-3.664 2.25a.75.75 0 0 1-1.142-.64z" />
+        <path d="M12 17v4" />
+        <path d="M8 21h8" />
+        <rect x="2" y="3" width="20" height="14" rx="2" />
+    </svg>
+    Stream widget
+</button>
+
+@if (open)
+{
+    @* A popover in the top layer: inside the hero's isolated stacking context the page below would paint over the dialog *@
+    <div popover="manual" @ref="layer" class="m-0 size-full max-h-none max-w-none overflow-visible border-0 bg-transparent p-0">
+    <div data-slot="dialog-overlay" class="fixed inset-0 z-50 bg-black/60" @onclick="() => open = false"></div>
+    <div role="dialog" aria-modal="true" aria-labelledby="stream-widget-title" data-slot="dialog-content" @onkeydown="OnKeyDown"
+         class="fixed top-1/2 left-1/2 z-50 grid max-h-[85vh] w-[calc(100%-2rem)] max-w-4xl -translate-x-1/2 -translate-y-1/2 gap-4 overflow-y-auto rounded-lg border bg-card p-6 text-card-foreground shadow-lg">
+        <div data-slot="dialog-header" class="flex flex-col gap-1.5 pr-6">
+            <h2 id="stream-widget-title" class="text-lg font-semibold text-foreground">Stream widget</h2>
+            <p class="text-sm text-muted-foreground">@RiotId: pick a style, copy the URL and add it to OBS as a Browser Source.</p>
+        </div>
+        <WidgetGenerator Slug="@Slug" />
+        <button type="button" class="absolute top-4 right-4 rounded-sm text-muted-foreground opacity-70 transition-opacity hover:opacity-100" @onclick="() => open = false">
+            @* Lucide "x" icon *@
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true">
+                <path d="M18 6 6 18" />
+                <path d="m6 6 12 12" />
+            </svg>
+            <span class="sr-only">Close</span>
+        </button>
+    </div>
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public required string Slug { get; set; }
+    [Parameter, EditorRequired] public required string RiotId { get; set; }
+
+    // The shadcn outline Button at size sm with the original's primary tint
+    private const string Trigger =
+        "group/button inline-flex shrink-0 items-center justify-center rounded-md border bg-clip-padding text-xs/relaxed font-medium whitespace-nowrap transition-all outline-none select-none " +
+        "focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 active:translate-y-px h-6 gap-1 px-2 " +
+        "border-primary/60 bg-primary/10 text-primary hover:bg-primary/20 hover:text-primary dark:bg-primary/15";
+
+    private bool open;
+    private bool shown;
+    private ElementReference layer;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!open)
+        {
+            shown = false;
+            return;
+        }
+        if (shown) return;
+        shown = true;
+        await JS.InvokeVoidAsync("summonWidget.showLayer", layer);
+    }
+
+    private void OnKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Escape") open = false;
+    }
+}

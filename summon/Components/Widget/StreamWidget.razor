@@ -1,0 +1,46 @@
+@* One widget in its style and theme; the tier color drives the promotion effects *@
+<div class="wg-wg wg-@Options.Theme wg-@Options.Style @(Options.Animated ? "wg-enter" : "wg-still") @(WidgetView.WinStreak(Data) >= WidgetView.StreakMin ? "wg-onFire" : "")"
+     style="--tier: @(WidgetView.TierColor(Data) ?? "#7d829c")">
+    @if (Options.HasFx("smoke"))
+    {
+        <svg width="0" height="0" style="position: absolute" aria-hidden="true">
+            <filter id="summon-vapor" x="-20%" y="-40%" width="140%" height="180%">
+                <feTurbulence type="fractalNoise" baseFrequency="0.015 0.05" numOctaves="2" seed="3">
+                    <animate attributeName="baseFrequency" dur="9s" values="0.015 0.05;0.02 0.07;0.015 0.05" repeatCount="indefinite" />
+                </feTurbulence>
+                <feDisplacementMap in="SourceGraphic" scale="14" xChannelSelector="R" yChannelSelector="G" />
+            </filter>
+        </svg>
+    }
+    @switch (Options.Style)
+    {
+        case "square":
+            <WidgetSquare Data="Data" Options="Options" Events="Events" />
+            break;
+        case "strip":
+            <WidgetStrip Data="Data" Options="Options" Events="Events" DataDragon="DataDragon" />
+            break;
+        case "pill":
+            <WidgetPill Data="Data" Options="Options" Events="Events" />
+            break;
+        default:
+            <WidgetBar Data="Data" Options="Options" Events="Events" />
+            break;
+    }
+    @if (Options.Animated)
+    {
+        <WidgetEventLayer Data="Data" Events="Events" />
+    }
+    @if (Options.Style != "pill")
+    {
+        <span class="wg-wm">summon<b>.gg</b></span>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public required WidgetData Data { get; set; }
+    [Parameter, EditorRequired] public required WidgetOptions Options { get; set; }
+    [Parameter] public WidgetEvents? Events { get; set; }
+    // Champion icons for the strip
+    [Parameter] public DataDragonData? DataDragon { get; set; }
+}

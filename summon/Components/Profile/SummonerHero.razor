@@ -32,6 +32,7 @@
             </div>
         </div>
         <div class="flex flex-wrap items-center gap-2">
+            <StreamWidgetButton Slug="@Format.SummonerSlug(Account.GameName, Account.TagLine)" RiotId="@($"{Account.GameName}#{Account.TagLine}")" />
             <RefreshButton Refreshing="Refreshing" OnRefresh="OnRefresh" />
         </div>
     </div>

@@ -1,0 +1,45 @@
+@* Bar: emblem, Riot ID and rank, then the session record (or session and season rotating) *@
+<WidgetEmblem Data="Data" Options="Options" Events="Events" />
+<div class="wg-id">
+    <WidgetRiotIdLine Data="Data" Options="Options" />
+    <div class="wg-rank" style="color: @WidgetView.TierColor(Data)">
+        @WidgetLogic.RankLabel(Data.Rank)@if (Data.Rank is not null)
+        {
+            @(" ")<span>· @Data.Rank.LeaguePoints LP</span>
+        }
+    </div>
+</div>
+<div class="wg-sess">
+    @if (Options.HasFx("rotate") && Data.Scope == "session" && Data.Season is not null)
+    {
+        <WidgetRotator>
+            <First><div>@SessionRecord</div></First>
+            <Second>
+                <div>
+                    <span class="wg-k">Season</span>
+                    <span class="wg-wl"><WidgetWinLoss Record="Data.Season" Options="Options" /></span>
+                </div>
+            </Second>
+        </WidgetRotator>
+    }
+    else
+    {
+        @SessionRecord
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public required WidgetData Data { get; set; }
+    [Parameter, EditorRequired] public required WidgetOptions Options { get; set; }
+    [Parameter] public WidgetEvents? Events { get; set; }
+
+    private RenderFragment SessionRecord =>
+        @<text>
+            <span class="wg-khead">
+                <WidgetStreak Data="Data" />
+                <span class="wg-k">@WidgetView.RecordLabel(Data)</span>
+            </span>
+            <span class="wg-wl"><WidgetWinLoss Record="Data.Record" Options="Options" /></span>
+            <WidgetLpChange Data="Data" Options="Options" Suffix=" LP" />
+        </text>;
+}

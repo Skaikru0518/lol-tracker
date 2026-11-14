@@ -1,0 +1,10 @@
+@* RollingNumber: wwwroot/widget.js writes the number and rolls it to each new value; with Animate it counts up from zero when it appears *@
+<span class="wg-num" data-roll="@Value" data-animate="@(Animate ? "1" : "0")" data-format="@Format" data-suffix="@Suffix"></span>
+
+@code {
+    [Parameter] public int Value { get; set; }
+    [Parameter] public bool Animate { get; set; }
+    // plain, rate "(71%)" or signed "+38"
+    [Parameter] public string Format { get; set; } = "plain";
+    [Parameter] public string Suffix { get; set; } = "";
+}

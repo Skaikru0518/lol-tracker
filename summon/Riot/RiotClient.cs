@@ -20,6 +20,11 @@ public class RiotClient(HttpClient http)
         http.GetFromJsonAsync<List<string>>(
             $"{Europe}/lol/match/v5/matches/by-puuid/{Uri.EscapeDataString(puuid)}/ids?start={start}&count={count}", ct);
 
+    /// <summary>The newest match ids in one queue, optionally only those started after a Unix time in seconds.</summary>
+    public Task<List<string>?> GetMatchIdsFilteredAsync(string puuid, int count, int queue, long? startTime, CancellationToken ct = default) =>
+        http.GetFromJsonAsync<List<string>>(
+            $"{Europe}/lol/match/v5/matches/by-puuid/{Uri.EscapeDataString(puuid)}/ids?start=0&count={count}&queue={queue}{(startTime is { } t ? $"&startTime={t}" : "")}", ct);
+
     public Task<string> GetMatchJsonAsync(string matchId, CancellationToken ct = default) =>
         http.GetStringAsync($"{Europe}/lol/match/v5/matches/{Uri.EscapeDataString(matchId)}", ct);
 

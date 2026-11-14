@@ -1,0 +1,15 @@
+@* Blazor drops whitespace-only text between elements, so the spaces are explicit *@
+<span>
+    <span class="wg-win"><WidgetNumber Value="Record.Wins" Animate="Options.Animated" />W</span>@(" ")<span class="wg-loss"><WidgetNumber Value="Record.Losses" Animate="Options.Animated" />L</span>
+    @if (rate is { } r)
+    {
+        <span class="wg-rate">@(" ")<WidgetNumber Value="r" Animate="Options.Animated" Format="rate" /></span>
+    }
+</span>
+
+@code {
+    [Parameter, EditorRequired] public required WidgetRecord Record { get; set; }
+    [Parameter, EditorRequired] public required WidgetOptions Options { get; set; }
+
+    private int? rate => WidgetLogic.ShowsPart(Options.Style, Options.Show, "wr") ? WidgetLogic.WinRate(Record.Wins, Record.Losses) : null;
+}
