@@ -23,9 +23,9 @@
                 {
                     <span class="size-6 rounded bg-muted"></span>
                 }
-                @* shortcut: long names are cut off; the original scrolls them (MarqueeText), port it with the widget *@
-                <span class="flex min-w-0 flex-1 text-sm text-foreground">
-                    <span class="truncate">@r.GameName<span class="text-muted-foreground">#@r.TagLine</span></span>
+                @* MarqueeText measures its outer span, so that span must be a shrinkable flex item *@
+                <span class="flex min-w-0 flex-1 text-sm text-foreground [&>span]:min-w-0 [&>span]:overflow-hidden">
+                    <MarqueeText Animate="true">@r.GameName<span class="text-muted-foreground">#@r.TagLine</span></MarqueeText>
                 </span>
                 <span class="text-3xs font-semibold text-muted-foreground">@(Platforms.ByHost(r.Platform)?.Label ?? r.Platform.ToUpperInvariant())</span>
                 <span class="text-xs" style="@(r.SoloTier is null ? null : $"color: {Ranks.Color(r.SoloTier)}")">@SearchQuery.RankLabel(r)</span>

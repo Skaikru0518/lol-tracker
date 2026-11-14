@@ -1,0 +1,7 @@
+@* Long names scroll back and forth instead of being cut off; wwwroot/marquee.js measures the outer span, so it must be able to shrink *@
+<span data-marquee="@(Animate ? "" : null)"><span class="marquee">@ChildContent</span></span>
+
+@code {
+    [Parameter] public bool Animate { get; set; }
+    [Parameter, EditorRequired] public required RenderFragment ChildContent { get; set; }
+}

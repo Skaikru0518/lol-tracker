@@ -140,3 +140,23 @@
     top: var(--tip-arrow);
     translate: 50% -50%;
 }
+
+/* MarqueeText: marquee.js adds marquee-moving with --shift and --dur when the text is wider than its box */
+.marquee {
+    white-space: nowrap;
+}
+
+.marquee-moving {
+    display: inline-block;
+    animation: marquee var(--dur) ease-in-out infinite alternate;
+}
+
+@keyframes marquee {
+    0%, 20% {
+        transform: translateX(0);
+    }
+
+    80%, 100% {
+        transform: translateX(var(--shift));
+    }
+}
