@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element -- next/og renders plain <img>, next/image does not exist there */
 import { getMatchBadgeById } from "@/lib/achievements/badges/definitions";
 import { getChampionIcon, getChampionSplash, getDDragonVersion, getRankEmblem } from "@/lib/game/icon-helpers";
 import { formatRankLabel } from "@/lib/game/rank-calculator";

@@ -8,6 +8,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { formatRankLabel } from "@/lib/game/rank-calculator";
 import { dayKeyToDate, groupChangesByDay, type LpChangeRow } from "@/lib/lp-history/summary";
 import { paginate } from "@/lib/shared/pagination";
+import { ShareButton } from "@/components/ui/share-button";
+import { promoShareUrl } from "@/lib/og/share-urls";
+import { useSummonerContext } from "@/components/summoner/shell/summoner-provider";
 
 const DAYS_PER_PAGE = 30;
 
@@ -30,6 +33,7 @@ const kindSuffix = (row: LpChangeRow) => (row.kind === "promotion" ? " · promot
 
 /** LP changes grouped into collapsible days, newest first, 30 days per page; each day shows its final rank, net LP and W/L. */
 export function LpChangesTable({ rows }: { rows: LpChangeRow[] }) {
+	const { gameName, tagLine } = useSummonerContext();
 	const groups = useMemo(() => groupChangesByDay(rows), [rows]);
 	const [open, setOpen] = useState<Set<string>>(new Set());
 	const [pageIndex, setPageIndex] = useState(0);
@@ -93,7 +97,12 @@ export function LpChangesTable({ rows }: { rows: LpChangeRow[] }) {
 												{row.kind === "reset" ? (
 													<span className="text-muted-foreground">new season</span>
 												) : (
-													<Delta value={row.kind === "start" ? null : row.delta} suffix={kindSuffix(row)} />
+													<span className="inline-flex items-center gap-1">
+														<Delta value={row.kind === "start" ? null : row.delta} suffix={kindSuffix(row)} />
+														{row.kind === "promotion" && (
+															<ShareButton path={promoShareUrl(gameName, tagLine, row.id)} title={`${gameName}#${tagLine} promoted to ${formatRankLabel(row.tier, row.rank)}`} />
+														)}
+													</span>
 												)}
 											</TableCell>
 											<TableCell className="hidden text-right text-muted-foreground sm:table-cell">

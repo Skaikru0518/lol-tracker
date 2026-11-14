@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element -- next/og renders plain <img>, next/image does not exist there */
 // Building blocks for next/og cards: Satori only lays out flexbox, so every multi-child box sets display: flex
 export const OG = {
 	bg: "#0b0d17",

@@ -94,6 +94,11 @@ export function lpAxisTickLabel(value: number): string {
 const pad = (n: number) => String(n).padStart(2, "0");
 
 /** Local calendar day of an ISO timestamp as `YYYY-MM-DD`. */
+/** `YYYY-MM-DD` of an instant in a fixed time zone, for server-rendered output that every viewer sees the same. */
+export function dayKeyIn(iso: string, timeZone: string): string {
+	return new Intl.DateTimeFormat("en-CA", { timeZone, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(iso));
+}
+
 export function localDayKey(iso: string): string {
 	const d = new Date(iso);
 	return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
@@ -128,10 +133,10 @@ export interface LpDayGroup {
 }
 
 /** Newest-first change rows grouped by local day with net LP and W/L; W/L uses running totals when known (a reset counts its new-season totals), else gain/loss kinds. */
-export function groupChangesByDay(rows: LpChangeRow[]): LpDayGroup[] {
+export function groupChangesByDay(rows: LpChangeRow[], dayKey: (iso: string) => string = localDayKey): LpDayGroup[] {
 	const groups: LpDayGroup[] = [];
 	rows.forEach((row, i) => {
-		const day = localDayKey(row.createdAt);
+		const day = dayKey(row.createdAt);
 		let group = groups[groups.length - 1];
 		if (!group || group.day !== day) {
 			group = { day, latest: row, rows: [], delta: null, wins: 0, losses: 0 };
