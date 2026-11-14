@@ -1,0 +1,112 @@
+@using System.Data.Common
+@using summon.Accounts
+@inject IServiceScopeFactory ScopeFactory
+
+<Panel>
+    <PanelHeader Title="Win rate by time" />
+    @if (failed)
+    {
+        <EmptyState Title="Win rates unavailable" Description="Try again in a moment." />
+    }
+    else if (cells is null)
+    {
+        <Skeleton Class="m-4 h-56" />
+    }
+    else if (games == 0)
+    {
+        <EmptyState Title="No ranked games in this range" Description="Stored Solo, Flex and 5s games show up here." />
+    }
+    else
+    {
+        var extremes = WinrateHeatmap.Extremes(cells);
+        <div class="space-y-3 p-4">
+            <div class="space-y-1 text-xs text-muted-foreground">
+                <p>@games ranked games (Solo, Flex and 5s) · @RangeLabel · Budapest time</p>
+                <p>
+                    @if (extremes is { } e)
+                    {
+                        @:Best: <span class="font-semibold text-win">@SlotSummary(e.Best)</span> · Worst: <span class="font-semibold text-loss">@SlotSummary(e.Worst)</span>
+                    }
+                    else
+                    {
+                        @($"Best and worst slots need {WinrateHeatmap.MinExtremeGames}+ games in at least two slots with different win rates.")
+                    }
+                </p>
+            </div>
+            <div class="grid grid-cols-[auto_repeat(8,minmax(0,1fr))] gap-1">
+                <span></span>
+                @for (var slot = 0; slot < WinrateHeatmap.SlotCount; slot++)
+                {
+                    <span class="text-center text-3xs text-muted-foreground">
+                        <span class="sm:hidden">@(slot * WinrateHeatmap.SlotHours)</span>
+                        <span class="hidden sm:inline">@WinrateHeatmap.SlotLabel(slot)</span>
+                    </span>
+                }
+                @for (var day = 0; day < WinrateHeatmap.Days.Length; day++)
+                {
+                    <span class="flex items-center pr-1 text-2xs text-muted-foreground">@WinrateHeatmap.Days[day][..3]</span>
+                    @foreach (var cell in cells.Where(c => c.Day == day))
+                    {
+                        var tone = WinrateHeatmap.Tone(cell);
+                        <Tooltip Content="@CellTooltip(cell, tone)">
+                            <div class="flex h-8 w-full items-center justify-center rounded-sm text-3xs font-semibold text-foreground" style="background-color: @Background(tone)">
+                                @if (tone is { } t)
+                                {
+                                    @t.WinRate<span class="hidden sm:inline">%</span>
+                                }
+                            </div>
+                        </Tooltip>
+                    }
+                }
+            </div>
+        </div>
+    }
+</Panel>
+
+@code {
+    [Parameter, EditorRequired] public required string Puuid { get; set; }
+    [Parameter, EditorRequired] public required string Range { get; set; }
+    [Parameter, EditorRequired] public required string RangeLabel { get; set; }
+    [Parameter] public int LoadVersion { get; set; }
+
+    private List<HeatmapCell>? cells;
+    private int games;
+    private bool failed;
+    private (string Range, int Version)? loaded;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (loaded == (Range, LoadVersion)) return;
+        loaded = (Range, LoadVersion);
+        cells = null;
+        failed = false;
+        try
+        {
+            // Runs inside the circuit, so it opens its own scope like the profile's loads do
+            await using var scope = ScopeFactory.CreateAsyncScope();
+            var since = new DateTimeOffset(LpHistory.RangeStart(Range, DateTime.UtcNow)).ToUnixTimeMilliseconds();
+            var results = await scope.ServiceProvider.GetRequiredService<MatchService>().GetRankedResultsAsync(Puuid, since);
+            games = results.Count;
+            cells = WinrateHeatmap.Cells(results);
+        }
+        catch (DbException)
+        {
+            // An exception here would end the circuit; the panel says it instead, like the original's error state
+            failed = true;
+        }
+    }
+
+    private static string SlotSummary(HeatmapCell cell) =>
+        $"{WinrateHeatmap.Days[cell.Day][..3]} {WinrateHeatmap.SlotLabel(cell.Slot)} ({(int)Math.Floor(100.0 * cell.Wins / cell.Games + 0.5)}%, {cell.Games} games)";
+
+    private static RenderFragment CellTooltip(HeatmapCell cell, (int WinRate, double Confidence)? tone) =>
+        @<span class="block">
+            <span class="block">@WinrateHeatmap.Days[cell.Day] @WinrateHeatmap.SlotLabel(cell.Slot)</span>
+            <span class="block">@(cell.Games == 0 ? "No games" : $"{cell.Wins}W {cell.Games - cell.Wins}L{(tone is { } t ? $" · {t.WinRate}%" : " · too few games")}")</span>
+        </span>;
+
+    // Loss red to win green by win rate; only the color fades with fewer games, the label stays readable
+    private static string Background((int WinRate, double Confidence)? tone) => tone is { } t
+        ? $"color-mix(in oklab, color-mix(in oklab, var(--color-win) {t.WinRate}%, var(--color-loss)) {(int)Math.Floor(25 + 45 * t.Confidence + 0.5)}%, transparent)"
+        : "var(--color-muted)";
+}

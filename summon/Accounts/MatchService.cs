@@ -128,6 +128,15 @@ public class MatchService(SummonDbContext db, RiotClient riot)
     public Task<Dictionary<string, RiotMatch>> GetDocumentsAsync(string puuid, string[] ids, CancellationToken ct = default) =>
         MatchProjection.ByIdsAsync(db, ids, puuid, [], ct);
 
+    /// <summary>Start time and result of the player's stored ranked games (Solo, Flex, 5s; remakes excluded) since the given time.</summary>
+    public async Task<List<(long GameCreation, bool Win)>> GetRankedResultsAsync(string puuid, long sinceMs, CancellationToken ct = default) =>
+        (await db.MatchParticipants
+            .Where(p => p.Puuid == puuid && RankedQueues.Contains(p.Match.QueueId) && p.Match.GameDuration >= 300 && p.Match.GameCreation >= sinceMs)
+            .Select(p => new { p.Match.GameCreation, p.Win })
+            .ToListAsync(ct))
+        .Select(r => (r.GameCreation, r.Win))
+        .ToList();
+
     public async Task<List<ChampionStat>> GetChampionStatsAsync(string puuid, string queueFilter, CancellationToken ct = default)
     {
         var (include, ids) = Queues.Selection(queueFilter);
