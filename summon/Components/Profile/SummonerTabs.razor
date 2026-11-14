@@ -1,0 +1,37 @@
+@inject IJSRuntime JS
+
+<nav class="flex gap-6 overflow-x-auto overflow-y-hidden border-b [scrollbar-width:none]">
+    @foreach (var (label, segment) in Tabs)
+    {
+        var active = Active == segment;
+        @* data-enhance-nav="false" keeps Blazor's enhanced navigation off these links; preventDefault keeps the browser off them *@
+        <a href="@Href(segment)" aria-current="@(active ? "page" : null)" data-enhance-nav="false" @onclick="() => SelectAsync(segment)" @onclick:preventDefault
+           class="-mb-px whitespace-nowrap border-b-2 py-2.5 text-sm font-medium transition-colors @(active ? "border-primary text-foreground" : "border-transparent text-muted-foreground hover:text-foreground")">
+            @label
+        </a>
+    }
+</nav>
+
+@code {
+    [Parameter, EditorRequired] public required string BasePath { get; set; }
+    [Parameter, EditorRequired] public required string Active { get; set; }
+    [Parameter] public EventCallback<string> OnSelect { get; set; }
+
+    // An empty segment is the Overview at the base path
+    private static readonly (string Label, string Segment)[] Tabs = [
+        ("Overview", ""),
+        ("Champions", "champions"),
+        ("LP History", "lp"),
+        ("Achievements", "achievements"),
+    ];
+
+    private string Href(string segment) => segment == "" ? BasePath : $"{BasePath}/{segment}";
+
+    private async Task SelectAsync(string segment)
+    {
+        if (segment == Active) return;
+        // Only the address bar changes; the profile swaps the tab itself, so the hero and the loaded data stay
+        await JS.InvokeVoidAsync("history.pushState", null, "", Href(segment));
+        await OnSelect.InvokeAsync(segment);
+    }
+}

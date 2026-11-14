@@ -26,58 +26,70 @@ else
                       Refreshing="refreshing" OnRefresh="RefreshAsync" />
     }
     <div class="mx-auto max-w-7xl px-4 sm:px-6">
+        <SummonerTabs BasePath="@($"/summoner/{Uri.EscapeDataString(Slug)}")" Active="@tab" OnSelect="t => tab = t" />
         <div class="py-4 lg:py-6">
-            <div class="grid gap-4 lg:grid-cols-[330px_minmax(0,1fr)]">
-                <div class="space-y-4">
-                    @foreach (var queueType in Ranks.QueueTypes)
-                    {
-                        if (ranked is null)
+            @if (tab == "")
+            {
+                <div class="grid gap-4 lg:grid-cols-[330px_minmax(0,1fr)]">
+                    <div class="space-y-4">
+                        @foreach (var queueType in Ranks.QueueTypes)
                         {
-                            <Skeleton Class="h-36" />
+                            if (ranked is null)
+                            {
+                                <Skeleton Class="h-36" />
+                            }
+                            else
+                            {
+                                <RankedPanel QueueType="@queueType" Entry="@ranked.FirstOrDefault(e => e.QueueType == queueType)"
+                                             Snapshots="@lpHistory?.GetValueOrDefault(queueType)" />
+                            }
+                        }
+                        @if (riftMatches is not null && account is not null)
+                        {
+                            <RolesPerformancePanel Matches="riftMatches" Puuid="@account.Puuid" />
                         }
                         else
                         {
-                            <RankedPanel QueueType="@queueType" Entry="@ranked.FirstOrDefault(e => e.QueueType == queueType)"
-                                         Snapshots="@lpHistory?.GetValueOrDefault(queueType)" />
+                            <Skeleton Class="h-72" />
                         }
-                    }
-                    @if (riftMatches is not null && account is not null)
-                    {
-                        <RolesPerformancePanel Matches="riftMatches" Puuid="@account.Puuid" />
-                    }
-                    else
-                    {
-                        <Skeleton Class="h-72" />
-                    }
-                    @if (account is not null && dataDragon is not null)
-                    {
-                        <MostPlayedPanel Puuid="@account.Puuid" DataDragon="dataDragon" LoadVersion="loadVersion"
-                                         ChampionsPath="@($"/summoner/{Format.SummonerSlug(account.GameName, account.TagLine)}/champions")" />
-                    }
-                    @if (recentMatches is not null && account is not null && dataDragon is not null)
-                    {
-                        <RecentlyPlayedPanel Matches="recentMatches" Puuid="@account.Puuid" DataDragon="dataDragon" />
-                    }
+                        @if (account is not null && dataDragon is not null)
+                        {
+                            <MostPlayedPanel Puuid="@account.Puuid" DataDragon="dataDragon" LoadVersion="loadVersion"
+                                             ChampionsPath="@($"/summoner/{Format.SummonerSlug(account.GameName, account.TagLine)}/champions")" />
+                        }
+                        @if (recentMatches is not null && account is not null && dataDragon is not null)
+                        {
+                            <RecentlyPlayedPanel Matches="recentMatches" Puuid="@account.Puuid" DataDragon="dataDragon" />
+                        }
+                    </div>
+                    <div class="min-w-0 space-y-4">
+                        @if (dataDragon is not null)
+                        {
+                            <RecentPerformancePanel Summary="recentSummary" DataDragon="dataDragon" />
+                        }
+                        else
+                        {
+                            <Skeleton Class="h-64" />
+                        }
+                        <MatchList Games="games" DataDragon="dataDragon" Puuid="@(account?.Puuid ?? "")" LpChanges="lpChanges" Performance="performance" Matches="matchesById"
+                                   HasMore="hasMore" LoadingMore="loadingMore" OnLoadMore="LoadMoreAsync" />
+                    </div>
                 </div>
-                <div class="min-w-0 space-y-4">
-                    @if (dataDragon is not null)
-                    {
-                        <RecentPerformancePanel Summary="recentSummary" DataDragon="dataDragon" />
-                    }
-                    else
-                    {
-                        <Skeleton Class="h-64" />
-                    }
-                    <MatchList Games="games" DataDragon="dataDragon" Puuid="@(account?.Puuid ?? "")" LpChanges="lpChanges" Performance="performance" Matches="matchesById"
-                               HasMore="hasMore" LoadingMore="loadingMore" OnLoadMore="LoadMoreAsync" />
-                </div>
-            </div>
+            }
+            else
+            {
+                @* shortcut: these tabs are ported in their own steps; until then they say so *@
+                <Panel>
+                    <EmptyState Title="Coming soon" Description="This tab is not ported to the C# version yet." />
+                </Panel>
+            }
         </div>
     </div>
 }
 
 @code {
     [Parameter, EditorRequired] public required string Slug { get; set; }
+    [Parameter] public string Tab { get; set; } = "";
 
     private Account? account;
     private bool notFound;
@@ -96,12 +108,17 @@ else
     private int loadVersion;
     private Dictionary<string, PerformanceScore>? performance;
     private RecentSummary? recentSummary;
+    // The tab is the profile's own state after the first render, so switching tabs never reloads the hero
+    private string tab = "";
 
     // Riot pages match ids 50 at a time; the overview holds the first page, "Load more" asks for the next ones
     private const int RiotPage = 50;
     private int nextStart = RiotPage;
     private bool hasMore;
     private bool loadingMore;
+
+    // Read once before the load starts: OnParametersSet would run only after the whole load and undo a tab picked meanwhile
+    protected override void OnInitialized() => tab = Tab;
 
     protected override Task OnInitializedAsync() => LoadAsync();
 
@@ -224,4 +241,5 @@ else
             loadingMore = false;
         }
     }
+
 }
