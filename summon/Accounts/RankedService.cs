@@ -8,6 +8,7 @@ namespace summon.Accounts
     {
         private static readonly TimeSpan MaxAge = TimeSpan.FromMinutes(2);
         private const int HistoryLimit = 100;
+        private const int RangeLimit = 2000;
 
         public async Task<List<RankedEntry>> GetAsync(Account account, CancellationToken ct = default)
         {
@@ -99,6 +100,19 @@ namespace summon.Accounts
             return Ranks.QueueTypes.ToDictionary(
                 queueType => queueType,
                 queueType => snapshots.Where(s => s.QueueType == queueType).OrderBy(s => s.CreatedAt).ToList());
+        }
+
+        /// <summary>One queue's snapshots in a range ("7d", "30d" or "season"), oldest first; at most the newest 2000, like the original.</summary>
+        public async Task<List<LpSnapshot>> GetLpRangeAsync(string puuid, string queueType, string range, CancellationToken ct = default)
+        {
+            var since = LpHistory.RangeStart(range, DateTime.UtcNow);
+            var snapshots = await db.LpSnapshots.AsNoTracking()
+                .Where(s => s.Puuid == puuid && s.QueueType == queueType && s.CreatedAt >= since)
+                .OrderByDescending(s => s.CreatedAt)
+                .Take(RangeLimit)
+                .ToListAsync(ct);
+            snapshots.Reverse();
+            return snapshots;
         }
 
         /// <summary>The newest snapshot of each (player, queue), in one query.</summary>
