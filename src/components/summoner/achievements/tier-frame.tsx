@@ -1,13 +1,7 @@
 import { cn } from "@/lib/utils";
-import { LOCKED_COLOR, TIER_COLORS } from "@/lib/achievements/tiers";
+import { tierColor } from "@/lib/achievements/tiers";
 
-const EARNED_COLOR = "#f1c40f";
-
-/** Tier color of a reached tier; binary achievements use one earned color. */
-export function tierColor(tier: number, maxTier: number): string {
-	if (tier === 0) return LOCKED_COLOR;
-	return maxTier === 1 ? EARNED_COLOR : TIER_COLORS[tier - 1];
-}
+export { tierColor };
 
 /** Achievement icon framed in its tier color; locked icons are grey. */
 export function TierFrame({ icon, tier, maxTier }: { icon: string; tier: number; maxTier: number }) {

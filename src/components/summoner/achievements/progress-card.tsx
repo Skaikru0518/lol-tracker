@@ -4,6 +4,9 @@ import { type ProgressDef } from "@/lib/achievements/progress/types";
 import { type ProgressRow, type Rarity } from "@/lib/validators/achievements";
 import { ProgressBar } from "./progress-bar";
 import { TierFrame, tierColor } from "./tier-frame";
+import { ShareButton } from "@/components/ui/share-button";
+import { useSummonerContext } from "@/components/summoner/shell/summoner-provider";
+import { achievementShareUrl } from "@/lib/og/share-urls";
 
 /** One milestone or seasonal achievement: tier frame, progress to the next tier, rarity, reached dates and an optional note. */
 export function ProgressCard({
@@ -19,6 +22,7 @@ export function ProgressCard({
 	scope: string;
 	note?: string | null;
 }) {
+	const { gameName, tagLine } = useSummonerContext();
 	const view = progressView(def, row);
 	const maxTier = def.thresholds.length;
 	const color = tierColor(view.tier, maxTier);
@@ -31,8 +35,11 @@ export function ProgressCard({
 			<div className="min-w-0 flex-1 space-y-1.5">
 				<div className="flex items-baseline justify-between gap-2">
 					<p className="truncate text-sm font-semibold text-foreground">{def.name}</p>
-					<span className="shrink-0 text-xs font-semibold" style={{ color }}>
+					<span className="flex shrink-0 items-center gap-1 text-xs font-semibold" style={{ color }}>
 						{view.tierName ?? "Locked"}
+						{view.tier > 0 && (
+							<ShareButton path={achievementShareUrl(gameName, tagLine, def.id, scope)} title={`${gameName}#${tagLine} · ${def.name}`} className="-my-1 text-muted-foreground" />
+						)}
 					</span>
 				</div>
 				<p className="text-xs text-muted-foreground">{def.description}</p>
