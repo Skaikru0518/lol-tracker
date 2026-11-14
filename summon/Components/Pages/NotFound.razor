@@ -1,0 +1,29 @@
+@page "/not-found"
+
+<PageTitle>Summon.gg — League of Legends Summoner Tracker</PageTitle>
+<HeadContent>
+    <meta name="robots" content="noindex" />
+</HeadContent>
+
+@* 404: Teemo splash, a short line, Go home and a summoner search; unknown URLs re-execute here with their 404 status *@
+<ErrorScreen Code="404" Title="This page vanished into the fog of war" Description="The link may be old, or the page never existed." Splash="Teemo">
+    <a href="/" data-slot="button" class="@GoHome">Go home</a>
+    <div class="w-full max-w-md rounded-xl border bg-background/85 p-3 backdrop-blur-md">
+        <SummonerSearch Compact="true" @rendermode="InteractiveServer" />
+    </div>
+</ErrorScreen>
+
+@code {
+    [CascadingParameter] public HttpContext? HttpContext { get; set; }
+
+    // Opened at /not-found itself it is still a 404, as every unknown URL is in the original
+    protected override void OnInitialized()
+    {
+        if (HttpContext is { Response.HasStarted: false }) HttpContext.Response.StatusCode = StatusCodes.Status404NotFound;
+    }
+
+    // The shadcn default Button classes
+    private const string GoHome =
+        "group/button inline-flex shrink-0 items-center justify-center rounded-md border border-transparent bg-clip-padding text-xs/relaxed font-medium whitespace-nowrap transition-all outline-none select-none " +
+        "focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 active:translate-y-px bg-primary text-primary-foreground hover:bg-primary/80 h-7 gap-1 px-2";
+}

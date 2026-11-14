@@ -2,7 +2,7 @@
 
 <form class="flex w-full gap-2" @onsubmit="Search">
     <div class="relative flex-1">
-        <SearchIcon Class="pointer-events-none absolute left-3.5 top-1/2 z-10 -translate-y-1/2 size-4 text-muted-foreground" />
+        <SearchIcon Class="@IconClass" />
         <input @bind="riotId" placeholder="GameName#TAG" data-slot="input" class="@InputClass" />
     </div>
     <button type="submit" data-slot="button" class="@ButtonClass">
@@ -19,6 +19,11 @@
 
 @code {
     [Parameter] public bool HeroSurface { get; set; }
+    // Smaller fields and a solid button, for boxes like the 404 page's
+    [Parameter] public bool Compact { get; set; }
+
+    private string IconClass =>
+        "pointer-events-none absolute top-1/2 z-10 -translate-y-1/2 text-muted-foreground " + (Compact ? "left-2.5 size-3.5" : "left-3.5 size-4");
 
     // Over the hero splash the fields need their own blurred backdrop to stay readable
     private const string Hero = "bg-background/75 backdrop-blur-md border-primary/30 shadow-xl";
@@ -26,13 +31,15 @@
     // The shadcn Input and Button classes with this form's overrides already merged in
     private string InputClass =>
         "w-full min-w-0 rounded-md border px-2 py-0.5 outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 " +
-        "md:text-xs/relaxed dark:bg-input/30 text-base hover:border-muted-foreground/50 focus:border-primary/50 transition-colors h-12 pl-10 " +
+        "md:text-xs/relaxed dark:bg-input/30 text-base hover:border-muted-foreground/50 focus:border-primary/50 transition-colors " + (Compact ? "h-9 pl-8 " : "h-12 pl-10 ") +
         (HeroSurface ? Hero + " focus:bg-background/95" : "border-border bg-card");
 
-    private const string ButtonClass =
+    private string ButtonClass =>
         "inline-flex shrink-0 items-center justify-center gap-1 rounded-md bg-clip-padding whitespace-nowrap transition-all outline-none select-none " +
         "focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 active:translate-y-px disabled:pointer-events-none disabled:opacity-50 " +
-        "h-12 px-3 text-base font-semibold sm:px-8 bg-primary/30 text-white/80 backdrop-blur-sm border border-primary/60 hover:bg-primary/40 hover:border-primary/80";
+        (Compact
+            ? "h-9 px-3 text-base font-semibold sm:px-4 border border-transparent bg-primary text-primary-foreground hover:bg-primary/80"
+            : "h-12 px-3 text-base font-semibold sm:px-8 bg-primary/30 text-white/80 backdrop-blur-sm border border-primary/60 hover:bg-primary/40 hover:border-primary/80");
 
     private string riotId = "";
     private string? error;
