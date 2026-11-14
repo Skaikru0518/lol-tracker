@@ -1,0 +1,113 @@
+@using System.Globalization
+@using summon.Accounts
+
+@* The original draws this with recharts; here the plot is an SVG stretched to the box and the axis labels are HTML, so text never stretches *@
+<div class="h-64 px-2 pb-2 pt-4">
+    <div class="flex h-full text-[11px] text-muted-foreground">
+        <div class="relative w-[90px] shrink-0" style="margin-bottom: @(XAxisHeight)px">
+            @foreach (var tick in ticks)
+            {
+                <span class="absolute right-0 flex -translate-y-1/2 items-center gap-1 whitespace-nowrap" style="top: @Num(Y(tick))%">
+                    @LpHistory.AxisTickLabel(tick)<span class="h-px w-1.5 bg-current"></span>
+                </span>
+            }
+        </div>
+        <div class="relative mx-2 flex-1" @onmouseleave="() => hover = null">
+            @* The axis lines, like recharts' axes in the muted color *@
+            <div class="absolute inset-x-0 top-0 border-b border-l border-muted-foreground" style="bottom: @(XAxisHeight)px">
+                <svg viewBox="0 0 1000 1000" preserveAspectRatio="none" class="absolute inset-0 size-full overflow-visible" aria-hidden="true">
+                    <defs>
+                        <linearGradient id="@fillId" x1="0" x2="0" y1="0" y2="1">
+                            <stop offset="0%" stop-color="var(--color-primary)" stop-opacity="0.35" />
+                            <stop offset="100%" stop-color="var(--color-primary)" stop-opacity="0" />
+                        </linearGradient>
+                    </defs>
+                    @foreach (var tick in ticks)
+                    {
+                        <line x1="0" x2="1000" y1="@Num(Y(tick) * 10)" y2="@Num(Y(tick) * 10)" stroke="var(--color-border)" stroke-dasharray="3 3" vector-effect="non-scaling-stroke" />
+                    }
+                    <path d="@($"{Step} V 1000 H 0 Z")" fill="url(#@fillId)" />
+                    <path d="@Step" fill="none" stroke="var(--color-primary)" stroke-width="2" vector-effect="non-scaling-stroke" />
+                    @if (hover is { } h)
+                    {
+                        <line x1="@Num(X(h) * 10)" x2="@Num(X(h) * 10)" y1="0" y2="1000" stroke="var(--color-muted-foreground)" stroke-opacity="0.5" vector-effect="non-scaling-stroke" />
+                    }
+                </svg>
+                @if (hover is { } active)
+                {
+                    <span class="absolute size-2 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-card bg-primary" style="left: @Num(X(active))%; top: @Num(Y(Points[active].Value))%"></span>
+                }
+                @* One hover strip per day, split halfway between neighbours, so the nearest day is found without JavaScript *@
+                <div class="absolute inset-0 flex">
+                    @for (var index = 0; index < Points.Count; index++)
+                    {
+                        var point = index;
+                        <div class="h-full" style="flex-grow: @(point == 0 || point == Points.Count - 1 ? 1 : 2)" @onmouseenter="() => hover = point"></div>
+                    }
+                </div>
+                @if (hover is { } tip)
+                {
+                    var ratio = (double)tip / (Points.Count - 1);
+                    <div class="pointer-events-none absolute top-2 z-10 whitespace-nowrap rounded-lg border bg-card px-2.5 py-1.5 text-xs shadow-sm"
+                         style="left: @Num(ratio * 100)%; transform: translateX(@(ratio < 0.2 ? "8px" : ratio > 0.8 ? "calc(-100% - 8px)" : "-50%"))">
+                        <p class="text-foreground">@DayLabel(Points[tip].Day)</p>
+                        <p class="text-primary">Rank : @Ranks.Label(Points[tip].Snapshot.Tier, Points[tip].Snapshot.Rank) · @Points[tip].Snapshot.Lp LP</p>
+                    </div>
+                }
+            </div>
+            <div class="absolute inset-x-0 bottom-0" style="height: @(XAxisHeight)px">
+                @foreach (var index in xLabels)
+                {
+                    @* Labels outside the sparse set only show on wide screens, standing in for recharts dropping labels that would overlap *@
+                    <span class="absolute top-0 flex -translate-x-1/2 flex-col items-center gap-0.5 whitespace-nowrap @(sparseLabels.Contains(index) ? "" : "max-lg:hidden")" style="left: @Num(X(index))%">
+                        <span class="h-1.5 w-px bg-current"></span>
+                        @DayLabel(Points[index].Day)
+                    </span>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public required List<DailyLpPoint> Points { get; set; }
+
+    private const int XAxisHeight = 24;
+    // About as many day labels as recharts fits before its minTickGap hides the rest: on a wide panel, and on a narrow one
+    private const int MaxXLabels = 20;
+    private const int MaxSparseXLabels = 7;
+
+    private readonly string fillId = $"lp-fill-{Guid.NewGuid():N}";
+    private List<int> ticks = [];
+    private List<int> xLabels = [];
+    private HashSet<int> sparseLabels = [];
+    private int? hover;
+
+    protected override void OnParametersSet()
+    {
+        ticks = LpHistory.AxisTicks(Points.Min(p => p.Value), Points.Max(p => p.Value));
+        xLabels = EveryNth(MaxXLabels).ToList();
+        sparseLabels = EveryNth(MaxSparseXLabels).ToHashSet();
+        hover = null;
+    }
+
+    private IEnumerable<int> EveryNth(int max)
+    {
+        var step = (int)Math.Ceiling(Points.Count / (double)max);
+        return Enumerable.Range(0, Points.Count).Where(i => i % step == 0);
+    }
+
+    // Days sit evenly from edge to edge, like a recharts category axis without padding
+    private double X(int index) => Points.Count == 1 ? 50 : 100.0 * index / (Points.Count - 1);
+
+    private double Y(int value) => 100 * (1 - (double)(value - ticks[0]) / (ticks[^1] - ticks[0]));
+
+    /// <summary>A stepAfter line: each day's value holds until the next day.</summary>
+    private string Step => "M " + string.Join(" ", Points.Select((p, i) => i == 0
+        ? $"{Num(X(0) * 10)},{Num(Y(p.Value) * 10)}"
+        : $"H {Num(X(i) * 10)} V {Num(Y(p.Value) * 10)}"));
+
+    private static string DayLabel(DateOnly day) => day.ToString("d MMM", CultureInfo.InvariantCulture);
+
+    private static string Num(double value) => Math.Round(value, 2).ToString(CultureInfo.InvariantCulture);
+}

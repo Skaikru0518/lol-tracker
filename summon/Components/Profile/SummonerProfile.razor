@@ -76,6 +76,10 @@ else
                     </div>
                 </div>
             }
+            else if (tab == "lp" && account is not null)
+            {
+                <LpHistoryTab Puuid="@account.Puuid" LoadVersion="loadVersion" />
+            }
             else
             {
                 @* shortcut: these tabs are ported in their own steps; until then they say so *@

@@ -1,0 +1,107 @@
+@using summon.Accounts
+@using summon.Data
+@inject IServiceScopeFactory ScopeFactory
+
+<div class="space-y-4">
+    <Panel>
+        <PanelHeader>
+            <TitleContent>@Toggle(Queues, queue, SetQueueAsync)</TitleContent>
+            <Actions>@Toggle(RangeOptions, range, SetRangeAsync)</Actions>
+        </PanelHeader>
+        @if (snapshots is null)
+        {
+            <Skeleton Class="m-4 h-64" />
+        }
+        else if (snapshots.Count == 0)
+        {
+            <EmptyState Title="No LP history in this range" Description="Snapshots are recorded while the profile is tracked." />
+        }
+        else
+        {
+            <LpSummaryRow Summary="summary!" RangeLabel="@RangeLabel" />
+            @if (days.Count > 1)
+            {
+                <LpChart Points="days" />
+            }
+            else
+            {
+                <p class="p-4 text-sm text-muted-foreground">@LpHistory.ChartNotice(days.Count)</p>
+            }
+        }
+    </Panel>
+    @if (rows.Count > 0)
+    {
+        <Panel>
+            <PanelHeader Title="Changes" />
+            @* Keyed by queue and range, so a new selection starts on the first page with every day closed *@
+            <LpChangesTable Rows="rows" @key="@($"{queue}-{range}")" />
+        </Panel>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public required string Puuid { get; set; }
+    // Bumped by the profile after each load, so a refresh also reloads the history
+    [Parameter] public int LoadVersion { get; set; }
+
+    private static readonly (string Value, string Label)[] Queues =
+    [
+        ("RANKED_SOLO_5x5", "Solo/Duo"),
+        ("RANKED_FLEX_SR", "Flex"),
+        ("RANKED_PREMADE_5x5", "5s"),
+    ];
+
+    private static readonly (string Value, string Label)[] RangeOptions = [("7d", "7D"), ("30d", "30D"), ("season", "Season")];
+
+    private string queue = "RANKED_SOLO_5x5";
+    private string range = "season";
+    private List<LpSnapshot>? snapshots;
+    private LpSummary? summary;
+    private List<LpChangeRow> rows = [];
+    private List<DailyLpPoint> days = [];
+    private int loadedVersion = -1;
+
+    private string RangeLabel => RangeOptions.First(r => r.Value == range).Label;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (LoadVersion == loadedVersion) return;
+        loadedVersion = LoadVersion;
+        await LoadAsync();
+    }
+
+    private Task SetQueueAsync(string value)
+    {
+        queue = value;
+        return LoadAsync();
+    }
+
+    private Task SetRangeAsync(string value)
+    {
+        range = value;
+        return LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        snapshots = null;
+        // Runs inside the circuit, so it opens its own scope like the profile's loads do
+        await using var scope = ScopeFactory.CreateAsyncScope();
+        var loaded = await scope.ServiceProvider.GetRequiredService<RankedService>().GetLpRangeAsync(Puuid, queue, range);
+        summary = LpHistory.Summary(loaded);
+        rows = LpHistory.ChangeRows(loaded);
+        days = LpHistory.DailyPoints(loaded);
+        snapshots = loaded;
+    }
+
+    private RenderFragment Toggle((string Value, string Label)[] options, string value, Func<string, Task> onChange) =>
+        @<div class="flex gap-1">
+            @foreach (var option in options)
+            {
+                <button type="button" @onclick="() => onChange(option.Value)"
+                        class="h-7 rounded-md border px-2.5 text-xs font-medium transition-colors @(value == option.Value ? "border-primary/50 bg-primary/15 text-foreground" : "text-muted-foreground hover:text-foreground")">
+                    @option.Label
+                </button>
+            }
+        </div>;
+}

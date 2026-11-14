@@ -1,0 +1,33 @@
+@using summon.Accounts
+@using summon.Data
+
+<div class="flex flex-wrap gap-6 px-4 pt-4">
+    @RankValue("Current", Summary.Current)
+    @RankValue("Peak", Summary.Peak)
+    <div>
+        <p class="text-xs text-muted-foreground">@RangeLabel change</p>
+        <p class="text-base font-bold @(Summary.Change is null ? "text-muted-foreground" : Summary.Change >= 0 ? "text-win" : "text-loss")">
+            @(Summary.Change is { } change ? $"{(change >= 0 ? "+" : "")}{change} LP" : "—")
+        </p>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public required LpSummary Summary { get; set; }
+    [Parameter, EditorRequired] public required string RangeLabel { get; set; }
+
+    private static RenderFragment RankValue(string label, LpSnapshot? snap) =>
+        @<div>
+            <p class="text-xs text-muted-foreground">@label</p>
+            @if (snap is not null)
+            {
+                <p class="text-base font-bold" style="color: @Ranks.Color(snap.Tier)">
+                    @Ranks.Label(snap.Tier, snap.Rank) <span class="text-sm font-medium text-muted-foreground">@snap.Lp LP</span>
+                </p>
+            }
+            else
+            {
+                <p class="text-base font-bold text-muted-foreground">—</p>
+            }
+        </div>;
+}

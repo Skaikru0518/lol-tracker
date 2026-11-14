@@ -1,0 +1,111 @@
+@using System.Globalization
+@using summon.Accounts
+
+<div class="relative w-full overflow-x-auto">
+    <table class="w-full caption-bottom text-xs">
+        <thead class="[&_tr]:border-b">
+            <tr class="border-b transition-colors hover:bg-muted/50">
+                <th class="@Head">Date</th>
+                <th class="@Head">Rank</th>
+                <th class="@Head text-right">LP</th>
+                <th class="@Head">Change</th>
+                <th class="@Head hidden text-right sm:table-cell">W/L</th>
+            </tr>
+        </thead>
+        <tbody class="[&_tr:last-child]:border-0">
+            @foreach (var group in PageDays)
+            {
+                var expanded = open.Contains(group.Day);
+                var games = group.Wins + group.Losses;
+                <tr class="border-b bg-muted/30 transition-colors hover:bg-muted/50" @key="group.Day">
+                    <td class="@Cell">
+                        <button type="button" @onclick="() => Toggle(group.Day)" aria-expanded="@(expanded ? "true" : "false")" class="flex items-center gap-1 font-medium text-foreground">
+                            @* Lucide "chevron-right" icon *@
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-3.5 transition-transform @(expanded ? "rotate-90" : "")" aria-hidden="true">
+                                <path d="m9 18 6-6-6-6" />
+                            </svg>
+                            @group.Day.ToString("ddd d MMM", CultureInfo.InvariantCulture)
+                            <span class="text-xs font-normal text-muted-foreground">· @games @(games == 1 ? "game" : "games")</span>
+                        </button>
+                    </td>
+                    <td class="@Cell">@Ranks.Label(group.Latest.Tier, group.Latest.Rank)</td>
+                    <td class="@Cell text-right">@group.Latest.Lp</td>
+                    <td class="@Cell">@Delta(group.Delta)</td>
+                    <td class="@Cell hidden text-right sm:table-cell">
+                        <span class="text-win">@(group.Wins)W</span> <span class="text-loss">@(group.Losses)L</span>
+                    </td>
+                </tr>
+                @if (expanded)
+                {
+                    @foreach (var row in group.Rows)
+                    {
+                        <tr class="border-b transition-colors hover:bg-muted/50" @key="row.Id">
+                            <td class="@Cell pl-9 text-muted-foreground">@row.CreatedAt.ToLocalTime().ToString("HH:mm", CultureInfo.InvariantCulture)</td>
+                            <td class="@Cell">@Ranks.Label(row.Tier, row.Rank)</td>
+                            <td class="@Cell text-right">@row.Lp</td>
+                            <td class="@Cell">
+                                @if (row.Kind == "reset")
+                                {
+                                    <span class="text-muted-foreground">new season</span>
+                                }
+                                else
+                                {
+                                    @Delta(row.Kind == "start" ? null : row.Delta, row.Kind == "promotion" ? " · promoted" : row.Kind == "demotion" ? " · demoted" : "")
+                                }
+                            </td>
+                            <td class="@Cell hidden text-right text-muted-foreground sm:table-cell">
+                                @(row.Wins is { } w && row.Losses is { } l ? $"{w}/{l}" : "—")
+                            </td>
+                        </tr>
+                    }
+                }
+            }
+        </tbody>
+    </table>
+</div>
+@if (PageCount > 1)
+{
+    <div class="flex items-center justify-end gap-2 border-t px-4 py-2 text-xs text-muted-foreground">
+        <button type="button" data-slot="button" class="@PagerButton" @onclick="() => page--" disabled="@(page == 0)" aria-label="Newer days">
+            @* Lucide "chevron-left" icon *@
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg>
+        </button>
+        <span>@(page + 1) / @PageCount</span>
+        <button type="button" data-slot="button" class="@PagerButton" @onclick="() => page++" disabled="@(page == PageCount - 1)" aria-label="Older days">
+            @* Lucide "chevron-right" icon *@
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
+        </button>
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public required List<LpChangeRow> Rows { get; set; }
+
+    private const int DaysPerPage = 30;
+
+    // The shadcn table cell classes and the ghost "sm" button, already merged
+    private const string Head = "h-10 px-2 text-left align-middle font-medium whitespace-nowrap text-foreground";
+    private const string Cell = "p-2 align-middle whitespace-nowrap";
+    private const string PagerButton =
+        "group/button inline-flex shrink-0 items-center justify-center gap-1 rounded-md border border-transparent bg-clip-padding h-6 px-2 text-xs/relaxed font-medium whitespace-nowrap " +
+        "transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 active:translate-y-px " +
+        "disabled:pointer-events-none disabled:opacity-50 hover:bg-muted hover:text-foreground dark:hover:bg-muted/50";
+
+    private List<LpDayGroup> groups = [];
+    private readonly HashSet<DateOnly> open = [];
+    private int page;
+
+    protected override void OnParametersSet() => groups = LpHistory.GroupByDay(Rows);
+
+    private int PageCount => Math.Max((int)Math.Ceiling(groups.Count / (double)DaysPerPage), 1);
+
+    private IEnumerable<LpDayGroup> PageDays => groups.Skip(Math.Clamp(page, 0, PageCount - 1) * DaysPerPage).Take(DaysPerPage);
+
+    private void Toggle(DateOnly day)
+    {
+        if (!open.Remove(day)) open.Add(day);
+    }
+
+    private static RenderFragment Delta(int? value, string suffix = "") =>
+        @<span class="@(value is null || value == 0 ? "text-muted-foreground" : value > 0 ? "text-win" : "text-loss")">@(value is { } v ? $"{(v > 0 ? "+" : "")}{v}{suffix}" : "—")</span>;
+}

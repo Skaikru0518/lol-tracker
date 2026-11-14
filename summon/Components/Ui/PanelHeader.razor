@@ -1,5 +1,12 @@
 <header data-slot="panel-header" class="flex min-h-11 items-center justify-between gap-3 border-b px-4 py-2 @Class">
-    <h2 class="text-sm font-semibold text-foreground">@Title</h2>
+    @if (TitleContent is not null)
+    {
+        <div class="flex items-center gap-2 text-sm font-semibold text-foreground">@TitleContent</div>
+    }
+    else
+    {
+        <h2 class="text-sm font-semibold text-foreground">@Title</h2>
+    }
     @if (Actions is not null)
     {
         <div class="flex items-center gap-2">@Actions</div>
@@ -7,7 +14,9 @@
 </header>
 
 @code {
-    [Parameter, EditorRequired] public required string Title { get; set; }
+    [Parameter] public string? Title { get; set; }
+    // Takes the place of Title when the header holds controls instead of text, like the original's non-string title
+    [Parameter] public RenderFragment? TitleContent { get; set; }
     [Parameter] public RenderFragment? Actions { get; set; }
     [Parameter] public string? Class { get; set; }
 }
