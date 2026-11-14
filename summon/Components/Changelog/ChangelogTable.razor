@@ -1,0 +1,31 @@
+@using summon.Changelog
+
+@* Achievement or badge requirements of a change as a name/requirement table, in the shadcn Table style *@
+<div class="mt-3 overflow-hidden rounded-md border">
+    <div data-slot="table-container" class="relative w-full overflow-x-auto">
+        <table data-slot="table" class="w-full caption-bottom text-xs">
+            <thead data-slot="table-header" class="[&_tr]:border-b">
+                <tr data-slot="table-row" class="border-b transition-colors hover:bg-muted/50">
+                    <th data-slot="table-head" class="@Head">Name</th>
+                    <th data-slot="table-head" class="@Head">Requirement</th>
+                </tr>
+            </thead>
+            <tbody data-slot="table-body" class="[&_tr:last-child]:border-0">
+                @foreach (var row in Rows)
+                {
+                    <tr data-slot="table-row" class="border-b transition-colors hover:bg-muted/50" @key="row.Name">
+                        <td data-slot="table-cell" class="@Cell font-medium text-foreground">@row.Name</td>
+                        <td data-slot="table-cell" class="@Cell text-muted-foreground">@row.Requirement</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public required IReadOnlyList<ChangeRequirement> Rows { get; set; }
+
+    private const string Head = "h-10 px-2 text-left align-middle font-medium whitespace-nowrap text-foreground";
+    private const string Cell = "p-2 align-middle whitespace-nowrap";
+}

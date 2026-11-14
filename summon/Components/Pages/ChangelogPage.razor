@@ -1,0 +1,16 @@
+@page "/changelog"
+@using summon.Changelog
+
+<PageTitle>Summon.gg — League of Legends Summoner Tracker</PageTitle>
+
+@* Changelog list: every entry on a vertical timeline, newest first *@
+<div class="mx-auto max-w-3xl px-4 py-10">
+    <h1 class="text-3xl font-bold tracking-tight text-foreground">Changelog</h1>
+    <p class="mt-1 text-muted-foreground">New features, improvements and fixes in Summon.gg</p>
+    <ol class="mt-8">
+        @foreach (var (entry, i) in Changelogs.All.Select((entry, i) => (entry, i)))
+        {
+            <ChangelogTimelineItem Entry="entry" Latest="i == 0" @key="entry.Slug" />
+        }
+    </ol>
+</div>

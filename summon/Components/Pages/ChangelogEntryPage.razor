@@ -1,0 +1,25 @@
+@page "/changelog/{Slug}"
+@using summon.Changelog
+@inject NavigationManager Navigation
+
+<PageTitle>Summon.gg — League of Legends Summoner Tracker</PageTitle>
+
+@* One changelog entry; unknown slugs are a 404 *@
+@if (entry is not null)
+{
+    <div class="mx-auto max-w-3xl px-4 py-10">
+        <ChangelogDetail Entry="entry" />
+    </div>
+}
+
+@code {
+    [Parameter] public required string Slug { get; set; }
+
+    private ChangelogEntry? entry;
+
+    protected override void OnInitialized()
+    {
+        entry = Changelogs.Get(Slug);
+        if (entry is null) Navigation.NotFound();
+    }
+}

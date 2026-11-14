@@ -1,0 +1,56 @@
+@using summon.Changelog
+
+@* One changelog entry: back link, date, title, summary and count chips, then one panel per category *@
+<div class="space-y-6">
+    <div>
+        <a href="/changelog" class="text-xs font-medium text-primary hover:underline">&larr; Changelog</a>
+        <p class="mt-4 text-sm text-muted-foreground">@Changelogs.FormatDate(Entry.Date, longMonth: true)</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight text-foreground">@Entry.Title</h1>
+        <p class="mt-3 text-muted-foreground">@Entry.Summary</p>
+        <div class="mt-4 flex flex-wrap gap-1.5">
+            @foreach (var (category, count) in Changelogs.CategoryCounts(Entry))
+            {
+                @* The full path: with <base href="/"> a bare #fragment would point at the home page *@
+                <a href="/changelog/@Entry.Slug#@category">
+                    <Chip Color="@Changelogs.Categories[category].Color">@Changelogs.CategoryLabel(category, count)</Chip>
+                </a>
+            }
+        </div>
+    </div>
+    @foreach (var (category, items) in Changelogs.GroupChanges(Entry))
+    {
+        var meta = Changelogs.Categories[category];
+        <Panel Id="@category" Class="scroll-mt-20" @key="category">
+            <PanelHeader>
+                <TitleContent>
+                    <span class="flex items-center gap-2">
+                        <span class="size-2 rounded-full" style="background: @meta.Color"></span>
+                        @meta.Plural
+                        <span class="text-xs font-normal text-muted-foreground">@items.Count</span>
+                    </span>
+                </TitleContent>
+            </PanelHeader>
+            <ul class="divide-y divide-border/50">
+                @foreach (var change in items)
+                {
+                    <li class="px-4 py-4" @key="change.Title">
+                        <h3 class="font-semibold text-foreground">@change.Title</h3>
+                        <p class="mt-1 text-sm leading-relaxed text-muted-foreground">@change.Description</p>
+                        @if (change.Img is not null)
+                        {
+                            <img src="@change.Img" alt="@change.Title" class="mt-3 w-full rounded-md border" />
+                        }
+                        @if (change.Table is not null)
+                        {
+                            <ChangelogTable Rows="change.Table" />
+                        }
+                    </li>
+                }
+            </ul>
+        </Panel>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public required ChangelogEntry Entry { get; set; }
+}
