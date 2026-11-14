@@ -85,3 +85,32 @@ public static class Grades
     public static IEnumerable<(string Grade, int Min, int Max)> Bands() =>
         MinScore.Select((g, i) => (g.Grade, g.Min, i == 0 ? 100 : MinScore[i - 1].Min)).Reverse();
 }
+
+/// <summary>How the match page names and prints each metric and the lane opponent differences.</summary>
+public static class MetricFormat
+{
+    public static readonly Dictionary<string, string> Labels = new()
+    {
+        ["goldDiffPerMin"] = "Gold diff / min", ["xpDiffPerMin"] = "XP diff / min", ["csDiffPerMin"] = "CS diff / min",
+        ["damageDiffPerMin"] = "Damage diff / min", ["csPerMin"] = "CS / min", ["goldPerMin"] = "Gold / min", ["kda"] = "KDA",
+        ["deathsPerMin"] = "Deaths / min", ["killParticipation"] = "Kill participation", ["damageShare"] = "Team damage share",
+        ["damageTakenShare"] = "Damage taken share", ["objectiveDamagePerMin"] = "Objective damage / min", ["epicKills"] = "Dragons and barons",
+        ["structureKills"] = "Turrets and inhibitors", ["steals"] = "Objective steals", ["visionPerMin"] = "Vision score / min",
+        ["wardsPlacedPerMin"] = "Wards placed / min", ["wardsKilledPerMin"] = "Wards killed / min", ["controlWards"] = "Control wards",
+    };
+
+    private static readonly HashSet<string> Percent = ["killParticipation", "damageShare", "damageTakenShare"];
+    private static readonly HashSet<string> Count = ["epicKills", "structureKills", "steals", "controlWards"];
+
+    public static string Metric(string id, double value) =>
+        Percent.Contains(id) ? $"{ScoreEngine.JsRound(value * 100)}%"
+        : Count.Contains(id) ? ScoreEngine.JsRound(value).ToString(System.Globalization.CultureInfo.InvariantCulture)
+        : id == "kda" ? value.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)
+        : value.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture);
+
+    public static string Diff(double value)
+    {
+        var rounded = ScoreEngine.JsRound(value);
+        return $"{(rounded > 0 ? "+" : "")}{rounded.ToString("N0", System.Globalization.CultureInfo.InvariantCulture)}";
+    }
+}

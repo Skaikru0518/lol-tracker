@@ -44,6 +44,10 @@ else
                 <MirroredScoreboard Match="match" DataDragon="dataDragon" HighlightPuuid="@Puuid" Ranks="ranks" RanksLoading="ranks is null" Badges="@badges?.GetValueOrDefault(MatchId)" />
             }
         </Panel>
+        @if (!arena)
+        {
+            <MatchExtras MatchId="@MatchId" Puuid="@Puuid" @rendermode="@(new InteractiveServerRenderMode(prerender: false))" />
+        }
     </div>
 }
 

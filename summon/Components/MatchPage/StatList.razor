@@ -1,0 +1,18 @@
+@* Titled label/value rows for one stat group *@
+<div>
+    <p class="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">@Title</p>
+    <dl class="space-y-1 text-sm">
+        @foreach (var s in Stats)
+        {
+            <div class="flex justify-between gap-3" @key="s.Label">
+                <dt class="text-muted-foreground">@s.Label</dt>
+                <dd class="font-medium tabular-nums text-foreground">@s.Value</dd>
+            </div>
+        }
+    </dl>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public required string Title { get; set; }
+    [Parameter, EditorRequired] public required IReadOnlyList<StatLine> Stats { get; set; }
+}

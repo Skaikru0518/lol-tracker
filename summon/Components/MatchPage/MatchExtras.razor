@@ -1,0 +1,136 @@
+@using summon.Accounts
+@using summon.Scoring
+@inject IServiceScopeFactory ScopeFactory
+@inject ILogger<MatchExtras> Logger
+
+@* Below the scoreboard: team gold and player comparison, the player selector and the selected player's tabs.
+   Interactive, so switching player, tab or metric happens in place; the timeline fills in when Riot answers *@
+@if (match is not null && dataDragon is not null)
+{
+    var player = match.Info.Participants.FirstOrDefault(p => p.Puuid == selected);
+    var participantId = MatchPageLogic.ParticipantIdOf(match, selected);
+    <div class="grid gap-4 lg:grid-cols-2">
+        <TimelineChartSlot Title="Team gold advantage" State="@TimelineState">
+            @if (timeline is not null)
+            {
+                <GoldChart Timeline="timeline" />
+            }
+        </TimelineChartSlot>
+        <ComparisonBars Match="match" DataDragon="dataDragon" />
+    </div>
+    <PlayerSelector Match="match" DataDragon="dataDragon" Selected="@selected" OnSelect="SelectAsync" />
+    @if (player is not null && participantId is { } id)
+    {
+        <PlayerTabs Match="match" Timeline="timeline" TimelineState="@TimelineState" Player="player" Detail="@details.ElementAtOrDefault(id - 1)"
+                    ParticipantId="id" DataDragon="dataDragon" BadgeIds="@BadgeIdsFor(selected)" Perks="perks" AbilityIcons="abilities"
+                    Performance="performance" PerformanceFailed="performanceFailed" />
+    }
+}
+
+@code {
+    [Parameter, EditorRequired] public required string MatchId { get; set; }
+    [Parameter] public string? Puuid { get; set; }
+
+    private RiotMatch? match;
+    private DataDragonData? dataDragon;
+    private RiotTimeline? timeline;
+    private bool timelineLoading = true;
+    private List<ParticipantDetail> details = [];
+    private Dictionary<int, PerkInfo>? perks;
+    private List<string>? abilities;
+    private Dictionary<string, PerformanceScore>? performance;
+    private bool performanceFailed;
+    private List<BadgeAssignment> badges = [];
+    private string selected = "";
+
+    private string TimelineState => timeline is not null ? "ready" : timelineLoading ? "loading" : "missing";
+
+    private List<string> BadgeIdsFor(string puuid) => badges.Where(b => b.Puuid == puuid).Select(b => b.BadgeId).ToList();
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Each load runs in its own scope: the pieces arrive one after another and a circuit outlives any request scope
+        try
+        {
+            await using var scope = ScopeFactory.CreateAsyncScope();
+            dataDragon = await scope.ServiceProvider.GetRequiredService<DataDragon>().GetAsync();
+            match = await scope.ServiceProvider.GetRequiredService<MatchService>().GetMatchAsync(MatchId);
+            details = await scope.ServiceProvider.GetRequiredService<MatchPageService>().DetailsAsync(MatchId);
+            badges = (await scope.ServiceProvider.GetRequiredService<AchievementService>().GetBadgesAsync([MatchId])).GetValueOrDefault(MatchId) ?? [];
+            selected = MatchPageLogic.DefaultSelectedPuuid(match, Puuid);
+        }
+        catch (Exception e)
+        {
+            // The page above already says the match was not found; this part just stays empty
+            Logger.LogError(e, "Match page extras failed for {MatchId}", MatchId);
+            return;
+        }
+        StateHasChanged();
+
+        await Task.WhenAll(LoadTimelineAsync(), LoadPerformanceAsync(), LoadPerksAsync(), LoadAbilitiesAsync());
+    }
+
+    private async Task LoadTimelineAsync()
+    {
+        try
+        {
+            await using var scope = ScopeFactory.CreateAsyncScope();
+            timeline = await scope.ServiceProvider.GetRequiredService<MatchPageService>().TimelineAsync(MatchId);
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e, "Timeline failed for {MatchId}", MatchId);
+        }
+        timelineLoading = false;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task LoadPerformanceAsync()
+    {
+        try
+        {
+            await using var scope = ScopeFactory.CreateAsyncScope();
+            performance = await scope.ServiceProvider.GetRequiredService<PerformanceService>().ScoreMatchAsync(match!);
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e, "Performance failed for {MatchId}", MatchId);
+            performanceFailed = true;
+        }
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task LoadPerksAsync()
+    {
+        try
+        {
+            await using var scope = ScopeFactory.CreateAsyncScope();
+            perks = await scope.ServiceProvider.GetRequiredService<MatchPageService>().PerksAsync();
+        }
+        catch (Exception e)
+        {
+            // Without them the runes show names only, like the original before its query answers
+            Logger.LogError(e, "Rune texts failed");
+        }
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task LoadAbilitiesAsync()
+    {
+        var champion = match?.Info.Participants.FirstOrDefault(p => p.Puuid == selected)?.ChampionName;
+        if (champion is null || dataDragon is null) return;
+        await using var scope = ScopeFactory.CreateAsyncScope();
+        var icons = await scope.ServiceProvider.GetRequiredService<MatchPageService>().AbilityIconsAsync(dataDragon, champion);
+        // Another player may have been picked meanwhile
+        if (match?.Info.Participants.FirstOrDefault(p => p.Puuid == selected)?.ChampionName != champion) return;
+        abilities = icons;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task SelectAsync(string puuid)
+    {
+        selected = puuid;
+        abilities = null;
+        await LoadAbilitiesAsync();
+    }
+}

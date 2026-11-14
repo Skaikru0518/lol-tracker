@@ -1,0 +1,83 @@
+@* The player's kills, deaths and assists on the Rift map next to a time-ordered list; hovering either side highlights the other *@
+<Panel>
+    <PanelHeader Title="Kills &amp; deaths">
+        <Actions>
+            <div class="flex gap-1">
+                @foreach (var (id, label) in Filters)
+                {
+                    <button type="button" @key="id" @onclick="() => filter = id" aria-pressed="@(id == filter ? "true" : "false")" class="@MatchPageUi.Toggle(id == filter)">@label</button>
+                }
+            </div>
+        </Actions>
+    </PanelHeader>
+    @if (events.Count == 0)
+    {
+        <EmptyState Title="No kills, deaths or assists" />
+    }
+    else
+    {
+        var shown = filter == "all" ? events : events.Where(e => e.Role == filter).ToList();
+        <PanelBody Class="grid gap-4 md:grid-cols-[minmax(0,18rem)_1fr]">
+            <div class="relative aspect-square w-full overflow-hidden rounded-md border">
+                <img src="@($"{DataDragon.Cdn}/{Version}/img/map/map11.png")" alt="Summoner's Rift" class="size-full object-cover opacity-70" />
+                @foreach (var e in shown.Where(e => e.X is not null && e.Y is not null))
+                {
+                    <span @key="e.Id" @onmouseenter="() => hovered = e.Id" @onmouseleave="() => hovered = null"
+                          class="absolute size-2.5 -translate-x-1/2 translate-y-1/2 rounded-full transition-transform @(hovered == e.Id ? "scale-150 ring-4 ring-gold/60" : "")"
+                          style="left: @Pct(e.X!.Value); bottom: @Pct(e.Y!.Value); background: @RoleColor(e.Role)"></span>
+                }
+            </div>
+            <ul class="max-h-80 divide-y divide-border/50 overflow-y-auto">
+                @foreach (var e in shown)
+                {
+                    var other = e.OtherId > 0 ? Participants.ElementAtOrDefault(e.OtherId - 1) : null;
+                    <li @key="e.Id" @onmouseenter="() => hovered = e.Id" @onmouseleave="() => hovered = null"
+                        class="flex items-center gap-2 px-2 py-1.5 text-sm @(hovered == e.Id ? "bg-gold/10" : "")">
+                        <span class="w-11 tabular-nums text-muted-foreground">@Format.Duration((int)(e.Timestamp / 1000))</span>
+                        <span class="size-2 rounded-full" style="background: @RoleColor(e.Role)"></span>
+                        <span class="text-foreground">@RoleLabel(e.Role)</span>
+                        <span class="ml-auto flex items-center gap-1.5 text-xs text-muted-foreground">
+                            @if (e.Role == "death")
+                            {
+                                @(other is not null ? "by" : "Executed")
+                            }
+                            @if (other is not null)
+                            {
+                                <ChampionIcon DataDragon="DataDragonData" ChampionName="@other.ChampionName" Size="20" />
+                            }
+                        </span>
+                    </li>
+                }
+            </ul>
+        </PanelBody>
+    }
+</Panel>
+
+@code {
+    [Parameter, EditorRequired] public required RiotTimeline Timeline { get; set; }
+    [Parameter, EditorRequired] public required int ParticipantId { get; set; }
+    [Parameter, EditorRequired] public required List<RiotParticipant> Participants { get; set; }
+    [Parameter, EditorRequired] public required DataDragonData DataDragonData { get; set; }
+
+    private const double MapSize = 15000;
+    private static readonly (string Id, string Label)[] Filters = [("all", "All"), ("kill", "Kills"), ("death", "Deaths"), ("assist", "Assists")];
+
+    private List<FightEvent> events = [];
+    private string filter = "all";
+    private string? hovered;
+
+    private string Version => DataDragonData.Version;
+
+    protected override void OnParametersSet() => events = TimelineEvents.PlayerFightEvents(Timeline, ParticipantId);
+
+    private static string Pct(int coord) => $"{(coord / MapSize * 100).ToString("0.###", System.Globalization.CultureInfo.InvariantCulture)}%";
+
+    private static string RoleColor(string role) => role switch
+    {
+        "kill" => "var(--color-win)",
+        "death" => "var(--color-loss)",
+        _ => "var(--color-team-blue)",
+    };
+
+    private static string RoleLabel(string role) => role switch { "kill" => "Kill", "death" => "Death", _ => "Assist" };
+}

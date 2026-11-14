@@ -1,0 +1,31 @@
+@using System.Globalization
+@* Circular progress ring with a label and a centered value *@
+<div class="flex flex-col items-center gap-1.5">
+    <span class="text-xs font-medium text-muted-foreground">@Label</span>
+    <div class="relative size-16">
+        <svg viewBox="0 0 @Size @Size" class="size-full -rotate-90">
+            <circle cx="@N(Size / 2.0)" cy="@N(Size / 2.0)" r="@N(Radius)" fill="none" stroke="var(--color-border)" stroke-width="@Stroke" />
+            <circle cx="@N(Size / 2.0)" cy="@N(Size / 2.0)" r="@N(Radius)" fill="none" stroke="@Color" stroke-width="@Stroke" stroke-linecap="round"
+                    stroke-dasharray="@N(Circumference)" stroke-dashoffset="@N(Offset)" />
+        </svg>
+        <span class="absolute inset-0 grid place-items-center text-sm font-bold text-foreground">@Display</span>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public required string Label { get; set; }
+    [Parameter] public double Value { get; set; }
+    [Parameter] public double Max { get; set; } = 100;
+    [Parameter, EditorRequired] public required string Display { get; set; }
+    [Parameter] public string Color { get; set; } = "var(--color-primary)";
+
+    private const int Size = 64;
+    private const int Stroke = 5;
+    private const double Radius = (Size - Stroke) / 2.0;
+    private static readonly double Circumference = 2 * Math.PI * Radius;
+
+    // The ratio clamped to 0-1, so a stat above its scale shows a full ring
+    private double Offset => Circumference * (1 - (Max > 0 && double.IsFinite(Value) ? Math.Clamp(Value / Max, 0, 1) : 0));
+
+    private static string N(double v) => v.ToString("0.###", CultureInfo.InvariantCulture);
+}

@@ -1,0 +1,48 @@
+@* Blue minus red team gold per minute, split-coloured around zero, with monster objectives marked under the axis *@
+@if (data.Count > 0)
+{
+    var last = data[^1].Diff;
+    <Panel Class="flex h-full flex-col">
+        <PanelHeader Title="Team gold advantage">
+            <Actions>
+                <span class="text-xs text-muted-foreground">@(last == 0 ? "Even" : $"{(last > 0 ? "Blue" : "Red")} +{Format.Thousands(Math.Abs(last))}")</span>
+            </Actions>
+        </PanelHeader>
+        <PanelBody Class="flex-1">
+            <TimeChart X="minutes" Series="series" YMin="-bound" YMax="bound" YTicks="@ChartMath.Ticks(-bound, bound)" YTick="YLabel"
+                       XTicks="@ChartMath.Ticks(0, minutes[^1])" XTick="@(m => $"{Math.Floor(m + 0.5)}m")"
+                       TooltipLabel="@(m => $"{Math.Floor(m + 0.5)} min")" TooltipItem="@((_, v) => ("Gold", Diff((int)v)))"
+                       Split="true" ZeroLine="true" BottomMargin="34" Markers="markers" />
+        </PanelBody>
+    </Panel>
+}
+
+@code {
+    [Parameter, EditorRequired] public required RiotTimeline Timeline { get; set; }
+
+    private static readonly HashSet<string> MarkerKinds = ["dragon", "elder", "baron", "herald", "grubs", "atakhan"];
+
+    private List<(double Minute, int Diff)> data = [];
+    private List<double> minutes = [];
+    private List<TimeChart.ChartSeries> series = [];
+    private List<TimeChart.ChartMarker> markers = [];
+    private double bound;
+
+    protected override void OnParametersSet()
+    {
+        data = TimelineEvents.GoldDiff(Timeline);
+        minutes = data.Select(d => d.Minute).ToList();
+        // The line is the foreground color; TimeChart fills it blue above zero and red below
+        series = [new("Gold", "var(--color-foreground)", data.Select(d => (double)d.Diff).ToList())];
+        var peak = Math.Max(1000, data.Select(d => Math.Abs(d.Diff)).DefaultIfEmpty(0).Max());
+        bound = Math.Ceiling(peak / 1000.0) * 1000;
+        markers = TimelineEvents.GrubWaves(TimelineEvents.ObjectiveEvents(Timeline))
+            .Where(o => MarkerKinds.Contains(o.Kind))
+            .Select(o => new TimeChart.ChartMarker(o.Timestamp / 60000.0, o.Label, o.Icon, MatchPageUi.TeamColor(o.Side)))
+            .ToList();
+    }
+
+    private static string Diff(int v) => v == 0 ? "Even" : $"{(v > 0 ? "Blue" : "Red")} +{Format.Thousands(Math.Abs(v))}";
+
+    private static string YLabel(double v) => v == 0 ? "0" : $"{(v > 0 ? "+" : "-")}{(Math.Abs(v) / 1000).ToString(System.Globalization.CultureInfo.InvariantCulture)}k";
+}

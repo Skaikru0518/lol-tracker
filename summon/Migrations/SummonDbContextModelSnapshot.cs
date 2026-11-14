@@ -265,6 +265,25 @@ namespace summon.Migrations
                     b.ToTable("MatchParticipants");
                 });
 
+            modelBuilder.Entity("summon.Data.MatchTimeline", b =>
+                {
+                    b.Property<string>("MatchId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Data")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("MatchId");
+
+                    b.HasIndex("UpdatedAt");
+
+                    b.ToTable("MatchTimelines");
+                });
+
             modelBuilder.Entity("summon.Data.PlayerAchievement", b =>
                 {
                     b.Property<string>("Puuid")

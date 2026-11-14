@@ -1,0 +1,145 @@
+@using System.Globalization
+@* A recharts-style area chart over game minutes: dashed grid, axes, monotone areas and a hover cursor with a tooltip.
+   The plot is an SVG stretched to its box; labels, markers and the tooltip are HTML so text never stretches with it. *@
+<div class="relative h-60 text-[11px] text-muted-foreground">
+    <div class="absolute" style="@PlotBox">
+        <svg viewBox="0 0 1000 1000" preserveAspectRatio="none" class="absolute inset-0 size-full overflow-visible" aria-hidden="true">
+            <defs>
+                @if (Split)
+                {
+                    <linearGradient id="@($"{id}-split")" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="@SplitAboveColor" stop-opacity="0.45" />
+                        <stop offset="@N(splitAt)" stop-color="@SplitAboveColor" stop-opacity="0.05" />
+                        <stop offset="@N(splitAt)" stop-color="@SplitBelowColor" stop-opacity="0.05" />
+                        <stop offset="100%" stop-color="@SplitBelowColor" stop-opacity="0.45" />
+                    </linearGradient>
+                }
+                else
+                {
+                    @foreach (var (series, i) in Series.Select((s, i) => (s, i)))
+                    {
+                        <linearGradient id="@($"{id}-{i}")" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="@series.Color" stop-opacity="0.35" />
+                            <stop offset="100%" stop-color="@series.Color" stop-opacity="0" />
+                        </linearGradient>
+                    }
+                }
+            </defs>
+            @foreach (var tick in YTicks)
+            {
+                <line x1="0" x2="1000" y1="@N(Y(tick))" y2="@N(Y(tick))" stroke="var(--color-border)" stroke-dasharray="3 3" vector-effect="non-scaling-stroke" />
+            }
+            @if (ZeroLine)
+            {
+                <line x1="0" x2="1000" y1="@N(Y(0))" y2="@N(Y(0))" stroke="var(--color-border)" vector-effect="non-scaling-stroke" />
+            }
+            @foreach (var (series, i) in Series.Select((s, i) => (s, i)))
+            {
+                var points = Points(series);
+                <path d="@ChartMath.MonotoneArea(points, Y(Math.Max(YMin, 0)))" fill="@($"url(#{id}-{(Split ? "split" : i.ToString())})")" />
+                <path d="@ChartMath.MonotonePath(points)" fill="none" stroke="@series.Color" stroke-width="1.5" vector-effect="non-scaling-stroke" />
+            }
+        </svg>
+
+        @* One hover column per point; its wrapper has no box, so the cursor line, the dots and the tooltip sit in the plot's coordinates *@
+        @for (var i = 0; i < X.Count; i++)
+        {
+            var index = i;
+            var at = Fx(X[index]);
+            <div class="group/pt contents">
+                <div class="absolute inset-y-0 z-10" style="@Column(index)"></div>
+                <span class="pointer-events-none absolute inset-y-0 hidden w-px bg-border group-hover/pt:block" style="left: @Pct(at)"></span>
+                @foreach (var series in Series)
+                {
+                    <span class="pointer-events-none absolute z-20 hidden size-2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-background group-hover/pt:block"
+                          style="left: @Pct(at); top: @Pct(Y(series.Values[index]) / 10); background: @series.Color"></span>
+                }
+                <div class="pointer-events-none absolute top-2 z-20 hidden w-max rounded-lg border bg-card px-2.5 py-2 text-xs text-foreground shadow-md group-hover/pt:block"
+                     style="@TooltipSide(at)">
+                    <p class="mb-1 text-muted-foreground">@TooltipLabel(X[index])</p>
+                    @foreach (var series in Series)
+                    {
+                        var (name, value) = TooltipItem(series, series.Values[index]);
+                        <p style="color: @series.Color">@name : @value</p>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+
+    @foreach (var tick in YTicks)
+    {
+        <span class="absolute left-0 w-10 -translate-y-1/2 pr-1.5 text-right" style="top: calc(8px + (100% - @(8 + AxisBottom)px) * @N(Y(tick) / 1000))">@YTick(tick)</span>
+    }
+    @foreach (var tick in XTicks)
+    {
+        <span class="absolute -translate-x-1/2" style="left: calc(40px + (100% - 48px) * @N(Fx(tick) / 100)); top: calc(100% - @(AxisBottom - 6)px)">@XTick(tick)</span>
+    }
+    @foreach (var marker in Markers)
+    {
+        <span title="@marker.Label" class="absolute grid size-[18px] -translate-x-1/2 place-items-center rounded-full border-[1.5px] bg-card"
+              style="left: calc(40px + (100% - 48px) * @N(Fx(marker.Minute) / 100)); top: calc(100% - @(AxisBottom - 25)px); border-color: @marker.Color">
+            <img src="@marker.Icon" alt="" width="12" height="12" class="size-3" />
+        </span>
+    }
+</div>
+
+@code {
+    public record ChartSeries(string Name, string Color, IReadOnlyList<double> Values);
+
+    public record ChartMarker(double Minute, string Label, string Icon, string Color);
+
+    [Parameter, EditorRequired] public required IReadOnlyList<double> X { get; set; }
+    [Parameter, EditorRequired] public required IReadOnlyList<ChartSeries> Series { get; set; }
+    [Parameter] public double YMin { get; set; }
+    [Parameter] public double YMax { get; set; } = 1;
+    [Parameter, EditorRequired] public required IReadOnlyList<double> YTicks { get; set; }
+    [Parameter, EditorRequired] public required Func<double, string> YTick { get; set; }
+    [Parameter, EditorRequired] public required IReadOnlyList<double> XTicks { get; set; }
+    [Parameter, EditorRequired] public required Func<double, string> XTick { get; set; }
+    [Parameter, EditorRequired] public required Func<double, string> TooltipLabel { get; set; }
+    [Parameter, EditorRequired] public required Func<ChartSeries, double, (string Name, string Value)> TooltipItem { get; set; }
+    // One series filled blue above zero and red below it, like the gold advantage chart
+    [Parameter] public bool Split { get; set; }
+    [Parameter] public string SplitAboveColor { get; set; } = "var(--color-team-blue)";
+    [Parameter] public string SplitBelowColor { get; set; } = "var(--color-team-red)";
+    [Parameter] public bool ZeroLine { get; set; }
+    // Room under the x axis, for the objective markers
+    [Parameter] public int BottomMargin { get; set; }
+    [Parameter] public IReadOnlyList<ChartMarker> Markers { get; set; } = [];
+
+    private readonly string id = $"chart-{Guid.NewGuid():N}";
+    private double splitAt;
+
+    private const int XAxisHeight = 30;
+    private int AxisBottom => XAxisHeight + BottomMargin;
+    private double XMax => X.Count == 0 ? 1 : Math.Max(X[^1], 1e-9);
+    private string PlotBox => $"left: 40px; right: 8px; top: 8px; bottom: {AxisBottom}px";
+
+    protected override void OnParametersSet()
+    {
+        if (!Split || Series.Count == 0) return;
+        // Gradient offsets are relative to the area's own box, so the zero line sits at this fraction
+        var highest = Math.Max(0, Series[0].Values.DefaultIfEmpty(0).Max());
+        var lowest = Math.Min(0, Series[0].Values.DefaultIfEmpty(0).Min());
+        splitAt = highest == lowest ? 0.5 : highest / (highest - lowest);
+    }
+
+    private static string N(double v) => v.ToString("0.####", CultureInfo.InvariantCulture);
+
+    private static string Pct(double v) => $"{N(v)}%";
+
+    // x as a percentage of the plot width, y in the SVG's 0-1000 space (top 0)
+    private double Fx(double x) => x / XMax * 100;
+    private double Y(double v) => (1 - (v - YMin) / (YMax - YMin)) * 1000;
+
+    private List<(double X, double Y)> Points(ChartSeries series) => X.Select((x, i) => (Fx(x) * 10, Y(series.Values[i]))).ToList();
+
+    private double Left(int i) => i == 0 ? 0 : (Fx(X[i - 1]) + Fx(X[i])) / 2;
+    private double Right(int i) => i == X.Count - 1 ? 100 : (Fx(X[i]) + Fx(X[i + 1])) / 2;
+
+    private string Column(int i) => $"left: {Pct(Left(i))}; width: {Pct(Right(i) - Left(i))}";
+
+    // Next to the cursor, on the left of it in the right part of the chart so it never leaves the box
+    private string TooltipSide(double at) => at > 60 ? $"right: calc({Pct(100 - at)} + 10px)" : $"left: calc({Pct(at)} + 10px)";
+}

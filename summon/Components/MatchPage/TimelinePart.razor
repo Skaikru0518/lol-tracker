@@ -1,0 +1,20 @@
+@* Timeline-based content: a skeleton while loading, an empty state when Riot sent no timeline, else the children *@
+@if (State == "loading")
+{
+    <Skeleton Class="@Height" />
+}
+else if (State == "missing")
+{
+    <EmptyState Title="Timeline not available" Description="Riot did not return a timeline for this match." />
+}
+else
+{
+    @ChildContent
+}
+
+@code {
+    // loading, missing or ready
+    [Parameter, EditorRequired] public required string State { get; set; }
+    [Parameter] public string Height { get; set; } = "h-24";
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

@@ -1,0 +1,43 @@
+@* The player's purchases by shop visit: the visit's time, then its items; consumables smaller and faded *@
+@if (groups.Count > 0)
+{
+    <div class="flex flex-wrap items-center gap-3">
+        @foreach (var (group, gi) in groups.Select((g, i) => (g, i)))
+        {
+            <div class="flex items-center gap-3" @key="gi">
+                @if (gi > 0)
+                {
+                    <span class="select-none text-lg text-muted-foreground/40">›</span>
+                }
+                <div class="flex items-center gap-2 rounded-xl border border-border/30 bg-muted/10 px-4 py-2.5">
+                    <span class="mr-1 font-mono text-sm text-muted-foreground">@Time(group.Timestamp)</span>
+                    @foreach (var item in group.Items)
+                    {
+                        if (DataDragon.ItemIcon(item.ItemId) is not { } icon) continue;
+                        var consumable = Consumables.Contains(item.ItemId);
+                        var name = DataDragon.ItemNames.GetValueOrDefault(item.ItemId) ?? $"Item {item.ItemId}";
+                        var size = consumable ? 24 : 32;
+                        <Tooltip Text="@name">
+                            <img src="@icon" alt="@name" width="@size" height="@size" style="@Css.Square(size)"
+                                 class="cursor-pointer rounded-md transition-transform hover:scale-110 @(consumable ? "opacity-50" : "")" />
+                        </Tooltip>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public required RiotTimeline Timeline { get; set; }
+    [Parameter, EditorRequired] public required int ParticipantId { get; set; }
+    [Parameter, EditorRequired] public required DataDragonData DataDragon { get; set; }
+
+    private static readonly HashSet<int> Consumables = [2003, 2031, 2033, 2138, 2139, 2140, 3340, 3363, 3364];
+
+    private List<ItemGroup> groups = [];
+
+    protected override void OnParametersSet() => groups = TimelineEvents.ItemGroups(Timeline, ParticipantId);
+
+    private static string Time(long ms) => $"{ms / 60000}:{ms / 1000 % 60:00}";
+}

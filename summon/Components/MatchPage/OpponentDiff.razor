@@ -1,0 +1,24 @@
+@using summon.Scoring
+@* Gold, XP, CS and damage against the lane opponent; XP needs the timeline and shows a dash without it *@
+<div class="flex flex-wrap items-center gap-4">
+    <div class="flex items-center gap-2 text-xs text-muted-foreground">
+        vs <ChampionIcon DataDragon="DataDragon" ChampionName="@Opponent.ChampionName" Size="28" />
+    </div>
+    @Stat("Gold", Opponent.GoldDiff)
+    @Stat("XP", Opponent.XpDiff)
+    @Stat("CS", Opponent.CsDiff)
+    @Stat("Damage", Opponent.DamageDiff)
+</div>
+
+@code {
+    [Parameter, EditorRequired] public required summon.Scoring.OpponentDiff Opponent { get; set; }
+    [Parameter, EditorRequired] public required DataDragonData DataDragon { get; set; }
+
+    private static RenderFragment Stat(string label, int? value) =>
+        @<div class="text-center">
+            <p class="text-sm font-semibold @(value is null ? "text-muted-foreground" : value > 0 ? "text-win" : value < 0 ? "text-loss" : "text-foreground")">
+                @(value is { } v ? MetricFormat.Diff(v) : "—")
+            </p>
+            <p class="text-3xs text-muted-foreground">@label</p>
+        </div>;
+}

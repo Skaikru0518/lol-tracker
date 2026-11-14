@@ -48,6 +48,10 @@ public class PerformanceService(SummonDbContext db, IMemoryCache cache)
         return scores;
     }
 
+    /// <summary>Every scored player's score in one match, by puuid; empty when the match or its roles cannot be scored.</summary>
+    public async Task<Dictionary<string, PerformanceScore>> ScoreMatchAsync(RiotMatch match, CancellationToken ct = default) =>
+        ScoreEngine.ScoreMatch(match, await GetBaselinesAsync(ct));
+
     /// <summary>Summary of the player's last 30 stored ranked games: winrate, top champions, average score, MVP/ACE and category averages.</summary>
     public async Task<RecentSummary> RecentAsync(IReadOnlyList<RiotMatch> matches, string puuid, CancellationToken ct = default)
     {

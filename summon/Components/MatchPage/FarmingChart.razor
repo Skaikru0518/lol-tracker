@@ -1,0 +1,30 @@
+@* Team CS or total gold over time, switched in the header *@
+<TeamAreaChart Title="@(metric == "cs" ? "CS over time" : "Gold over time")" Data="data" ValueFormat="@(metric == "gold" ? Format.Thousands : Plain)">
+    <Actions>
+        <div class="flex gap-1">
+            @foreach (var (id, label) in Metrics)
+            {
+                <button type="button" @key="id" @onclick="() => Pick(id)" aria-pressed="@(id == metric ? "true" : "false")" class="@MatchPageUi.Toggle(id == metric)">@label</button>
+            }
+        </div>
+    </Actions>
+</TeamAreaChart>
+
+@code {
+    [Parameter, EditorRequired] public required RiotTimeline Timeline { get; set; }
+
+    private static readonly (string Id, string Label)[] Metrics = [("cs", "CS"), ("gold", "Gold")];
+
+    private static string Plain(int v) => v.ToString();
+
+    private string metric = "cs";
+    private List<TeamPoint> data = [];
+
+    protected override void OnParametersSet() => data = TimelineEvents.TeamSeries(Timeline, metric);
+
+    private void Pick(string id)
+    {
+        metric = id;
+        data = TimelineEvents.TeamSeries(Timeline, metric);
+    }
+}

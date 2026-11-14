@@ -1,0 +1,61 @@
+@* Ability icons per row with the level each point went in, and the max order (R first) above. Letters stand in until icons load *@
+@if (levels.Count == 0)
+{
+    <p class="text-sm text-muted-foreground">No skill data.</p>
+}
+else
+{
+    <div class="space-y-3">
+        <div class="flex items-center gap-1.5 text-xs text-muted-foreground">
+            Max:
+            @foreach (var (slot, i) in order.Select((s, i) => (s, i)))
+            {
+                @if (i > 0)
+                {
+                    <span>&rsaquo;</span>
+                }
+                @Icon(slot)
+            }
+        </div>
+        <div class="overflow-x-auto">
+            <div class="grid min-w-[30rem] gap-1" style="grid-template-columns: 1.75rem repeat(@Levels, minmax(0, 1fr))">
+                @for (var slot = 1; slot <= 4; slot++)
+                {
+                    var row = slot;
+                    @Icon(row)
+                    @for (var i = 0; i < Levels; i++)
+                    {
+                        var hit = i < levels.Count && levels[i] == row;
+                        <div class="grid h-6 place-items-center rounded text-3xs @(hit ? row == 4 ? "bg-gold font-semibold text-background" : "bg-primary text-primary-foreground" : "bg-muted/50")">
+                            @(hit ? i + 1 : "")
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public required RiotTimeline Timeline { get; set; }
+    [Parameter, EditorRequired] public required int ParticipantId { get; set; }
+    // Q, W, E and R icon URLs; null until loaded or when Data Dragon has none
+    [Parameter] public IReadOnlyList<string>? AbilityIcons { get; set; }
+
+    private static readonly string[] Keys = ["Q", "W", "E", "R"];
+    private const int Levels = 18;
+
+    private List<int> levels = [];
+    private List<int> order = [];
+
+    protected override void OnParametersSet()
+    {
+        levels = TimelineEvents.SkillLevels(Timeline, ParticipantId);
+        order = TimelineEvents.SkillMaxOrder(levels);
+    }
+
+    private RenderFragment Icon(int slot) =>
+        AbilityIcons?.ElementAtOrDefault(slot - 1) is { } src
+            ? @<img src="@src" alt="@Keys[slot - 1]" title="@Keys[slot - 1]" width="24" height="24" class="size-6 rounded" />
+            : @<span class="grid size-6 place-items-center rounded bg-muted text-xs font-bold text-foreground">@Keys[slot - 1]</span>;
+}

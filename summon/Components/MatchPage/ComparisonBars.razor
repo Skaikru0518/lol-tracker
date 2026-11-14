@@ -1,0 +1,52 @@
+@* Both teams' players side by side for one metric, blue mirrored left, the top value in gold; bars grow in and the body stretches to the row height *@
+<Panel Class="flex h-full flex-col">
+    <PanelHeader Title="@Title">
+        <Actions>
+            @if (Metrics.Count > 1)
+            {
+                <div class="flex gap-1 overflow-x-auto">
+                    @foreach (var (id, label) in MatchPageLogic.ComparisonMetrics.Where(m => Metrics.Contains(m.Id)))
+                    {
+                        <button type="button" @key="id" @onclick="() => metric = id" aria-pressed="@(id == metric ? "true" : "false")" class="@MatchPageUi.Toggle(id == metric)">@label</button>
+                    }
+                </div>
+            }
+        </Actions>
+    </PanelHeader>
+    @{
+        var rows = MatchPageLogic.Comparison(Match, metric!);
+    }
+    <div class="grid flex-1 grid-cols-2 gap-x-5 p-4">
+        @* Keyed by metric so the bars grow in again on every switch *@
+        <div @key="@($"blue-{metric}")">@BarColumn(rows.Blue, rows, "blue")</div>
+        <div @key="@($"red-{metric}")">@BarColumn(rows.Red, rows, "red")</div>
+    </div>
+</Panel>
+
+@code {
+    [Parameter, EditorRequired] public required RiotMatch Match { get; set; }
+    [Parameter, EditorRequired] public required DataDragonData DataDragon { get; set; }
+    [Parameter] public string DefaultMetric { get; set; } = "damage";
+    [Parameter] public string Title { get; set; } = "Players";
+    [Parameter] public IReadOnlyList<string> Metrics { get; set; } = MatchPageLogic.ComparisonMetrics.Select(m => m.Id).ToList();
+
+    private string? metric;
+
+    protected override void OnParametersSet() => metric ??= DefaultMetric;
+
+    private RenderFragment BarColumn(List<ComparisonEntry> entries, ComparisonRows rows, string side) =>
+        @<ul class="flex h-full flex-col justify-around gap-2">
+            @foreach (var e in entries)
+            {
+                var top = e.Puuid == rows.TopPuuid;
+                <li @key="e.Puuid" class="flex items-center gap-2 @(side == "blue" ? "flex-row-reverse" : "")">
+                    <ChampionIcon DataDragon="DataDragon" ChampionName="@e.ChampionName" Size="22" />
+                    <div class="flex h-2.5 flex-1 overflow-hidden rounded-full bg-muted @(side == "blue" ? "justify-end" : "")">
+                        <div class="h-full animate-bar-grow rounded-full @(side == "blue" ? "origin-right" : "origin-left")"
+                             style="width: @((e.Value * 100.0 / rows.Max).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture))%; background: @(top ? "var(--color-gold)" : MatchPageUi.TeamColor(side))"></div>
+                    </div>
+                    <span class="w-11 text-xs tabular-nums @(side == "blue" ? "text-left" : "text-right") @(top ? "font-semibold text-gold" : "text-foreground")">@Format.Thousands(e.Value)</span>
+                </li>
+            }
+        </ul>;
+}

@@ -1,0 +1,44 @@
+@* Blue and red team totals over time as two gradient areas, in the same style as the gold advantage chart *@
+@if (Data.Count > 0)
+{
+    var last = Data[^1];
+    <Panel Class="flex h-full flex-col">
+        <PanelHeader Title="@Title">
+            <Actions>
+                <div class="flex items-center gap-3">
+                    <span class="text-xs text-muted-foreground">
+                        <span class="text-team-blue">@ValueFormat(last.Blue)</span> · <span class="text-team-red">@ValueFormat(last.Red)</span>
+                    </span>
+                    @Actions
+                </div>
+            </Actions>
+        </PanelHeader>
+        <PanelBody Class="flex-1">
+            <TimeChart X="minutes" Series="series" YMin="0" YMax="max" YTicks="@ChartMath.Ticks(0, max)" YTick="@(v => ValueFormat((int)v))"
+                       XTicks="@ChartMath.Ticks(0, minutes[^1])" XTick="@(m => $"{m}m")"
+                       TooltipLabel="@(m => $"{m} min")" TooltipItem="@((s, v) => (s.Name, ValueFormat((int)v)))" />
+        </PanelBody>
+    </Panel>
+}
+
+@code {
+    [Parameter, EditorRequired] public required string Title { get; set; }
+    [Parameter, EditorRequired] public required IReadOnlyList<TeamPoint> Data { get; set; }
+    [Parameter] public Func<int, string> ValueFormat { get; set; } = v => v.ToString();
+    [Parameter] public RenderFragment? Actions { get; set; }
+
+    private List<double> minutes = [];
+    private List<TimeChart.ChartSeries> series = [];
+    private double max;
+
+    protected override void OnParametersSet()
+    {
+        minutes = Data.Select(d => d.Minute).ToList();
+        series =
+        [
+            new("Blue", MatchPageUi.Blue, Data.Select(d => (double)d.Blue).ToList()),
+            new("Red", MatchPageUi.Red, Data.Select(d => (double)d.Red).ToList()),
+        ];
+        max = ChartMath.NiceMax(Data.Select(d => Math.Max(d.Blue, d.Red)).DefaultIfEmpty(0).Max());
+    }
+}

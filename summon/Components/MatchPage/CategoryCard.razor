@@ -1,0 +1,40 @@
+@using summon.Scoring
+@* One performance category: grade, score bar, and its metrics against the role when opened *@
+<div class="rounded-md border p-3">
+    <button type="button" @onclick="() => open = !open" class="w-full text-left">
+        <div class="flex items-baseline justify-between">
+            <span class="text-sm font-semibold text-foreground">@Weights.CategoryLabels[Category.Id]</span>
+            <span class="text-lg font-bold" style="color: @Color">@Category.Grade</span>
+        </div>
+        <div class="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
+            <div class="h-full rounded-full" style="width: @Category.Score%; background-color: @Color"></div>
+        </div>
+        <p class="mt-1 text-2xs text-muted-foreground">@Category.Score / 100</p>
+    </button>
+    @if (open)
+    {
+        <div class="mt-2">
+            <table class="w-full text-xs">
+                <tbody>
+                    @foreach (var m in Category.Metrics)
+                    {
+                        <tr class="border-t" @key="m.Id">
+                            <td class="py-1.5 text-muted-foreground">@MetricFormat.Labels[m.Id]</td>
+                            <td class="py-1.5 text-right font-semibold text-foreground">@MetricFormat.Metric(m.Id, m.Value)</td>
+                            <td class="py-1.5 pl-3 text-right text-muted-foreground">better than @m.Percentile% of @RoleLabel</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public required CategoryScore Category { get; set; }
+    [Parameter, EditorRequired] public required string RoleLabel { get; set; }
+
+    private bool open;
+
+    private string Color => Grades.Colors[Category.Grade];
+}

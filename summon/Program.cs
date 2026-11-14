@@ -10,6 +10,7 @@ using summon.Achievements;
 using summon.Live;
 using summon.Home;
 using summon.Widget;
+using summon.MatchPage;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -43,6 +44,7 @@ builder.Services.AddScoped<AchievementService>();
 builder.Services.AddScoped<LiveGameService>();
 builder.Services.AddHttpClient<HomeService>();
 builder.Services.AddScoped<WidgetDataService>();
+builder.Services.AddHttpClient<MatchPageService>();
 builder.Services.AddHostedService<AchievementJob>();
 
 var app = builder.Build();

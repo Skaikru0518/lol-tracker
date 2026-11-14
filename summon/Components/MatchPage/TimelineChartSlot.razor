@@ -1,0 +1,20 @@
+@* A self-contained timeline chart, or a titled panel holding its skeleton or empty state until the timeline is ready *@
+@if (State == "ready")
+{
+    @ChildContent
+}
+else
+{
+    <Panel>
+        <PanelHeader Title="@Title" />
+        <PanelBody>
+            <TimelinePart State="@State" Height="h-56" />
+        </PanelBody>
+    </Panel>
+}
+
+@code {
+    [Parameter, EditorRequired] public required string Title { get; set; }
+    [Parameter, EditorRequired] public required string State { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

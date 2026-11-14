@@ -1,0 +1,49 @@
+@* Primary and secondary trees; each rune shows what it did this game, hovering shows its short description. Shards below *@
+<div class="space-y-4">
+    <div class="grid gap-4 sm:grid-cols-2">
+        @foreach (var style in trees)
+        {
+            <div @key="style.Description">
+                <p class="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">@(DataDragon.RuneName(style.Style) ?? "Runes")</p>
+                <ul class="space-y-2">
+                    @foreach (var selection in style.Selections)
+                    {
+                        if (DataDragon.RuneName(selection.Perk) is not { } name) continue;
+                        var perk = Perks?.GetValueOrDefault(selection.Perk);
+                        <li class="flex items-start gap-2.5" title="@(perk is null ? null : MatchPageLogic.PlainText(perk.ShortDesc))" @key="selection.Perk">
+                            <img src="@DataDragon.RuneIcon(selection.Perk)" alt="" width="28" height="28" class="size-7 shrink-0" />
+                            <div class="min-w-0">
+                                <p class="text-sm font-medium text-foreground">@name</p>
+                                @foreach (var line in MatchPageLogic.RuneStatLines(perk, [selection.Var1, selection.Var2, selection.Var3]))
+                                {
+                                    <p class="text-xs text-muted-foreground">@line</p>
+                                }
+                            </div>
+                        </li>
+                    }
+                </ul>
+            </div>
+        }
+    </div>
+    @if (shards.Count > 0)
+    {
+        <p class="text-xs text-muted-foreground">Shards: @string.Join(" · ", shards)</p>
+    }
+</div>
+
+@code {
+    [Parameter] public ParticipantDetail? Detail { get; set; }
+    [Parameter, EditorRequired] public required DataDragonData DataDragon { get; set; }
+    [Parameter] public IReadOnlyDictionary<int, PerkInfo>? Perks { get; set; }
+
+    private List<DetailStyle> trees = [];
+    private List<string> shards = [];
+
+    protected override void OnParametersSet()
+    {
+        var styles = Detail?.Perks?.Styles ?? [];
+        trees = new[] { "primaryStyle", "subStyle" }.Select(d => styles.FirstOrDefault(s => s.Description == d)).OfType<DetailStyle>().ToList();
+        var stat = Detail?.Perks?.StatPerks;
+        shards = stat is null ? [] : new[] { stat.Offense, stat.Flex, stat.Defense }.Select(id => Perks?.GetValueOrDefault(id)?.Name).OfType<string>().ToList();
+    }
+}

@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 
 namespace summon.Data
 {
@@ -13,6 +13,7 @@ namespace summon.Data
         public DbSet<AchievementProgress> AchievementProgress => Set<AchievementProgress>();
         public DbSet<MatchBadge> MatchBadges => Set<MatchBadge>();
         public DbSet<AppSetting> AppSettings => Set<AppSetting>();
+        public DbSet<MatchTimeline> MatchTimelines => Set<MatchTimeline>();
         public DbSet<ChampionMastery> ChampionMasteries => Set<ChampionMastery>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -65,6 +66,12 @@ namespace summon.Data
 
             modelBuilder.Entity<MatchBadge>().HasKey(b => new { b.MatchId, b.Puuid, b.BadgeId });
             modelBuilder.Entity<AppSetting>().HasKey(s => s.Key);
+            modelBuilder.Entity<MatchTimeline>(timeline =>
+            {
+                timeline.HasKey(t => t.MatchId);
+                timeline.Property(t => t.Data).HasColumnType("jsonb");
+                timeline.HasIndex(t => t.UpdatedAt);
+            });
             modelBuilder.Entity<ChampionMastery>().HasKey(m => new { m.Puuid, m.ChampionId });
         }
 

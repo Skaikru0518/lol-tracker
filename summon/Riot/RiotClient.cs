@@ -25,6 +25,9 @@ public class RiotClient(HttpClient http)
         http.GetFromJsonAsync<List<string>>(
             $"{Europe}/lol/match/v5/matches/by-puuid/{Uri.EscapeDataString(puuid)}/ids?start=0&count={count}&queue={queue}{(startTime is { } t ? $"&startTime={t}" : "")}", ct);
 
+    public Task<string> GetMatchTimelineJsonAsync(string matchId, CancellationToken ct = default) =>
+        http.GetStringAsync($"{Europe}/lol/match/v5/matches/{Uri.EscapeDataString(matchId)}/timeline", ct);
+
     public Task<string> GetMatchJsonAsync(string matchId, CancellationToken ct = default) =>
         http.GetStringAsync($"{Europe}/lol/match/v5/matches/{Uri.EscapeDataString(matchId)}", ct);
 

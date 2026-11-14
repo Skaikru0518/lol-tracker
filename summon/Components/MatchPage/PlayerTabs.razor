@@ -1,0 +1,200 @@
+@using summon.Scoring
+@* Tab bar for the selected player's views, and the active view *@
+<div class="space-y-4">
+    <Panel>
+        <div role="tablist" aria-label="Player details" class="flex gap-5 overflow-x-auto overflow-y-hidden px-4">
+            @foreach (var (id, label, _) in Tabs)
+            {
+                <button type="button" role="tab" @key="id" aria-selected="@(id == active ? "true" : "false")" @onclick="() => active = id"
+                        class="-mb-px whitespace-nowrap border-b-2 py-2.5 text-sm font-medium transition-colors @(id == active ? "border-primary text-foreground" : "border-transparent text-muted-foreground hover:text-foreground")">
+                    @label
+                </button>
+            }
+        </div>
+    </Panel>
+    @if (Tabs.First(t => t.Id == active).NeedsTimeline && TimelineState != "ready")
+    {
+        <Panel>
+            <TimelinePart State="@TimelineState" Height="h-64" />
+        </Panel>
+    }
+    else
+    {
+        var groups = MatchPageLogic.StatGroups(Player, Detail, Match.Info.GameDuration);
+        @switch (active)
+        {
+            case "performance":
+                @PerformanceView
+                break;
+            case "fighting":
+                <div class="space-y-4">
+                    <Panel>
+                        <PanelBody Class="grid gap-6 sm:grid-cols-3">
+                            <StatList Title="Damage" Stats="groups.Damage" />
+                            <StatList Title="Survivability" Stats="groups.Survivability" />
+                            <StatList Title="Combat" Stats="groups.Combat" />
+                        </PanelBody>
+                    </Panel>
+                    <TimelineChartSlot Title="Kills over time" State="@TimelineState">
+                        <TeamAreaChart Title="Kills over time" Data="@(Timeline is null ? [] : TimelineEvents.CumulativeKills(Timeline))" />
+                    </TimelineChartSlot>
+                    <TimelineChartSlot Title="Kills &amp; deaths" State="@TimelineState">
+                        @if (Timeline is not null)
+                        {
+                            <FightMap Timeline="Timeline" ParticipantId="ParticipantId" Participants="Match.Info.Participants" DataDragonData="DataDragon" />
+                        }
+                    </TimelineChartSlot>
+                </div>
+                break;
+            case "farming":
+                <div class="space-y-4">
+                    <Panel>
+                        <PanelBody Class="max-w-sm"><StatList Title="Income" Stats="groups.Income" /></PanelBody>
+                    </Panel>
+                    <TimelineChartSlot Title="CS over time" State="@TimelineState">
+                        @if (Timeline is not null)
+                        {
+                            <FarmingChart Timeline="Timeline" />
+                        }
+                    </TimelineChartSlot>
+                </div>
+                break;
+            case "objectives":
+                <ObjectivesPanel Timeline="Timeline!" Match="Match" DataDragon="DataDragon" />
+                break;
+            case "vision":
+                <div class="space-y-4">
+                    <Panel>
+                        <PanelBody Class="max-w-sm"><StatList Title="Vision" Stats="groups.Vision" /></PanelBody>
+                    </Panel>
+                    <ComparisonBars Match="Match" DataDragon="DataDragon" DefaultMetric="vision" Title="Vision" Metrics="@(["vision"])" />
+                </div>
+                break;
+            default:
+                @OverviewView
+                break;
+        }
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public required RiotMatch Match { get; set; }
+    [Parameter] public RiotTimeline? Timeline { get; set; }
+    // loading, missing or ready
+    [Parameter, EditorRequired] public required string TimelineState { get; set; }
+    [Parameter, EditorRequired] public required RiotParticipant Player { get; set; }
+    [Parameter] public ParticipantDetail? Detail { get; set; }
+    [Parameter, EditorRequired] public required int ParticipantId { get; set; }
+    [Parameter, EditorRequired] public required DataDragonData DataDragon { get; set; }
+    [Parameter] public IReadOnlyList<string> BadgeIds { get; set; } = [];
+    [Parameter] public IReadOnlyDictionary<int, PerkInfo>? Perks { get; set; }
+    [Parameter] public IReadOnlyList<string>? AbilityIcons { get; set; }
+    // Every scored player's performance by puuid; null while loading
+    [Parameter] public IReadOnlyDictionary<string, PerformanceScore>? Performance { get; set; }
+    [Parameter] public bool PerformanceFailed { get; set; }
+
+    private static readonly (string Id, string Label, bool NeedsTimeline)[] Tabs =
+    [
+        ("overview", "Overview", false), ("performance", "Performance", false), ("fighting", "Fighting", false),
+        ("farming", "Farming", false), ("objectives", "Objectives", true), ("vision", "Vision", false),
+    ];
+
+    private string active = "overview";
+
+    private RenderFragment OverviewView => __builder =>
+    {
+        var shares = MatchPageLogic.Shares(Match, Player);
+        var csPerMin = shares.CsPerMin.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        <div class="space-y-4">
+            <Panel>
+                <PanelBody Class="space-y-4">
+                    @if (BadgeIds.Count > 0)
+                    {
+                        <div class="flex justify-center"><MatchBadgeChips BadgeIds="BadgeIds" /></div>
+                    }
+                    <div class="flex flex-wrap justify-around gap-4">
+                        <StatRing Label="Damage share" Value="shares.DamageShare" Display="@($"{shares.DamageShare}%")" />
+                        <StatRing Label="Gold share" Value="shares.GoldShare" Display="@($"{shares.GoldShare}%")" Color="var(--color-gold)" />
+                        <StatRing Label="KP" Value="shares.KillParticipation" Display="@($"{shares.KillParticipation}%")" Color="var(--color-win)" />
+                        <StatRing Label="CS/min" Value="shares.CsPerMin" Max="10" Display="@csPerMin" Color="var(--color-team-blue)" />
+                        <StatRing Label="Vision" Value="shares.VisionScore" Max="100" Display="@shares.VisionScore.ToString()" Color="var(--color-muted-foreground)" />
+                    </div>
+                </PanelBody>
+            </Panel>
+            <Panel>
+                <PanelHeader Title="Item build" />
+                <PanelBody>
+                    <TimelinePart State="@TimelineState">
+                        @if (Timeline is not null)
+                        {
+                            <ItemBuild Timeline="Timeline" ParticipantId="ParticipantId" DataDragon="DataDragon" />
+                        }
+                    </TimelinePart>
+                </PanelBody>
+            </Panel>
+            <div class="grid gap-4 lg:grid-cols-2">
+                <Panel>
+                    <PanelHeader Title="Skill order" />
+                    <PanelBody>
+                        <TimelinePart State="@TimelineState">
+                            @if (Timeline is not null)
+                            {
+                                <SkillOrder Timeline="Timeline" ParticipantId="ParticipantId" AbilityIcons="AbilityIcons" />
+                            }
+                        </TimelinePart>
+                    </PanelBody>
+                </Panel>
+                <Panel>
+                    <PanelHeader Title="Runes" />
+                    <PanelBody><RunePage Detail="Detail" DataDragon="DataDragon" Perks="Perks" /></PanelBody>
+                </Panel>
+            </div>
+        </div>
+    };
+
+    private RenderFragment PerformanceView => __builder =>
+    {
+        if (Performance is null && !PerformanceFailed)
+        {
+            <Skeleton Class="h-72" />
+            return;
+        }
+        if (PerformanceFailed)
+        {
+            <Panel><EmptyState Title="Performance unavailable" Description="Try again in a moment." /></Panel>
+            return;
+        }
+        if (Performance!.GetValueOrDefault(Player.Puuid) is not { } performance)
+        {
+            <Panel>
+                <EmptyState Title="No performance score" Description="Scores are given for ranked Solo, Flex and 5s games with a known role, once enough games are tracked for that role." />
+            </Panel>
+            return;
+        }
+        var roleLabel = Weights.RoleLabels[performance.Role];
+        <div class="space-y-4">
+            <Panel>
+                <PanelBody Class="flex flex-wrap items-center gap-6">
+                    <ScoreCircle Score="performance.Score" Grade="@performance.Grade" Large="true" />
+                    <div>
+                        <p class="text-sm text-muted-foreground">@roleLabel</p>
+                        <p class="text-2xl font-bold text-foreground">Grade @performance.Grade</p>
+                    </div>
+                    @if (performance.Opponent is not null)
+                    {
+                        <div class="ml-auto"><OpponentDiff Opponent="performance.Opponent" DataDragon="DataDragon" /></div>
+                    }
+                </PanelBody>
+            </Panel>
+            <div class="grid grid-cols-2 gap-2 lg:grid-cols-3">
+                @foreach (var c in performance.Categories)
+                {
+                    <CategoryCard Category="c" RoleLabel="@($"{roleLabel} players")" @key="c.Id" />
+                }
+            </div>
+            <p class="text-xs text-muted-foreground">
+                Compared with @performance.BaselineGames.ToString("N0", System.Globalization.CultureInfo.InvariantCulture) @roleLabel players from ranked games in the last 60 days.
+            </p>
+        </div>
+    };
+}
