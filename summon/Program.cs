@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using summon;
 using summon.Data;
 using summon.Components;
 using summon.Riot;
@@ -51,6 +52,17 @@ if (!app.Environment.IsDevelopment())
 }
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 app.UseHttpsRedirection();
+
+// Blazor routes cannot tell an old champion link from a tab, so these redirect before routing (308, like Next's permanentRedirect)
+app.Use(async (context, next) =>
+{
+    if (LegacyRedirects.ChampionPath(context.Request.Path.Value ?? "") is { } target)
+    {
+        context.Response.Redirect(target, permanent: true, preserveMethod: true);
+        return;
+    }
+    await next();
+});
 
 app.UseAntiforgery();
 
