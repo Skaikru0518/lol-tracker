@@ -24,7 +24,16 @@
     <EmbeddedResource Include="Changelog\changelog.json" LogicalName="summon.Changelog.changelog.json" />
   </ItemGroup>
 
+	<PropertyGroup>
+		<!-- The Dockerfile passes the Linux build of the same Tailwind version -->
+		<TailwindCli Condition="'$(TailwindCli)' == ''">$(MSBuildProjectDirectory)\..\tools\tailwindcss.exe</TailwindCli>
+	</PropertyGroup>
+
 	<Target Name="Tailwind" BeforeTargets="BeforeBuild">
-		<Exec Command="&quot;$(MSBuildProjectDirectory)\..\tools\tailwindcss.exe&quot; -i Styles/app.css -o wwwroot/app.css --minify" />
+		<Exec Command="&quot;$(TailwindCli)&quot; -i Styles/app.css -o wwwroot/app.css --minify" />
+		<!-- On a clean checkout the file did not exist when the project was evaluated, so it is added to the static assets here -->
+		<ItemGroup>
+			<Content Include="wwwroot/app.css" Exclude="@(Content)" />
+		</ItemGroup>
 	</Target>
 </Project>
