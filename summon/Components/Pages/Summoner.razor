@@ -2,6 +2,7 @@
 @page "/summoner/{Slug}/{Tab}"
 @page "/summoner/{Slug}/{Tab}/{Champion}"
 
+@using System.Net
 @using Microsoft.EntityFrameworkCore
 @using summon.Accounts
 @using summon.Data
@@ -9,27 +10,34 @@
 @inject SummonDbContext Db
 @inject AccountService Accounts
 
-<PageTitle>@(meta?.Title ?? RiotId) | Summon.gg</PageTitle>
-@if (meta is not null)
+@if (known && !missing)
 {
-    <PageMeta Description="@meta.Description" Canonical="@meta.Canonical" />
-}
-
-@* Interactive so the Update button can reload the data in place; no prerender, or every Riot call would run twice *@
-@if (known)
-{
-    <SummonerProfile Slug="@Slug" Tab="@(Tab ?? "")" Champion="@Champion" @rendermode="@(new InteractiveServerRenderMode(prerender: false))" />
+    <PageTitle>@(meta?.Title ?? RiotId) | Summon.gg</PageTitle>
+    @if (meta is not null)
+    {
+        <PageMeta Description="@meta.Description" Canonical="@meta.Canonical" />
+    }
+    @* The skeleton shows until the profile renders its first element, then hides itself *@
+    <div>
+        <div class="[&:not(:last-child)]:hidden">
+            <ProfileSkeleton />
+        </div>
+        @* Interactive so the Update button can reload the data in place; no prerender, or every Riot call would run twice *@
+        <SummonerProfile Slug="@Slug" Tab="@(Tab ?? "")" Champion="@Champion" @rendermode="@(new InteractiveServerRenderMode(prerender: false))" />
+    </div>
 }
 
 @code {
     [Parameter] public required string Slug { get; set; }
     [Parameter] public string? Tab { get; set; }
     [Parameter] public string? Champion { get; set; }
+    [CascadingParameter] public HttpContext? HttpContext { get; set; }
 
     // Only these paths exist in the original; anything else under a profile is a 404 there too
     private static readonly HashSet<string> Tabs = ["", "champions", "lp", "achievements", "live"];
 
     private bool known;
+    private bool missing;
 
     private record ProfileMeta(string Title, string Description, string Canonical);
 
@@ -43,25 +51,48 @@
             Navigation.NotFound();
             return;
         }
-        meta = await ProfileMetaAsync();
+
+        // Resolved here like the original's server layout, so a missing Riot ID answers 404; the profile then finds the stored account
+        var separator = Slug.LastIndexOf('-');
+        Account? account = null;
+        if (separator <= 0 || separator == Slug.Length - 1)
+        {
+            missing = true;
+        }
+        else
+        {
+            try
+            {
+                account = await Accounts.AccountAsync(Slug[..separator], Slug[(separator + 1)..]);
+                missing = account is null || Platforms.ByHost(account.Platform) is null;
+            }
+            catch (HttpRequestException e) when (e.StatusCode == HttpStatusCode.NotFound)
+            {
+                missing = true;
+            }
+            catch (HttpRequestException)
+            {
+                // Riot could not be reached: the profile shows its own error state
+            }
+        }
+
+        if (missing)
+        {
+            // The 404 page shows the original's summoner not-found panel for this request instead of the general one
+            if (HttpContext is not null) HttpContext.Items[SummonerNotFound.ItemKey] = true;
+            Navigation.NotFound();
+            return;
+        }
+        if (account is not null) meta = await ProfileMetaAsync(account);
     }
 
-    /// <summary>
-    /// The original's profile title and description ("Name#TAG — Gold II", level, server, solo record) and its canonical URL.
-    /// Read from stored data; the summoner (level) comes through the profile's own cache, so the profile reuses it.
-    /// </summary>
-    // shortcut: a Riot ID never opened before gets the plain title until its profile has loaded once; resolve it here if that matters
-    private async Task<ProfileMeta?> ProfileMetaAsync()
+    /// <summary>The original's profile title and description ("Name#TAG — Gold II", level, server, solo record) and its canonical URL.</summary>
+    private async Task<ProfileMeta?> ProfileMetaAsync(Account account)
     {
-        var separator = Slug.LastIndexOf('-');
-        if (separator <= 0) return null;
-        var (gameName, tagLine) = (Slug[..separator].ToLower(), Slug[(separator + 1)..].ToLower());
-        var account = await Db.Accounts.AsNoTracking().Include(a => a.RankedEntries)
-            .FirstOrDefaultAsync(a => a.GameName.ToLower() == gameName && a.TagLine.ToLower() == tagLine && a.Platform != null);
-        if (account is null || await Accounts.SummonerAsync(account) is not { } summoner) return null;
+        if (await Accounts.SummonerAsync(account) is not { } summoner) return null;
 
         var riotId = $"{account.GameName}#{account.TagLine}";
-        var solo = account.RankedEntries.FirstOrDefault(e => e.QueueType == "RANKED_SOLO_5x5");
+        var solo = await Db.RankedEntries.AsNoTracking().FirstOrDefaultAsync(e => e.Puuid == account.Puuid && e.QueueType == "RANKED_SOLO_5x5");
         var rankLabel = solo is null ? "Unranked" : Ranks.Label(solo.Tier, solo.Rank);
         var soloLine = solo is null ? "" : $" Ranked Solo: {rankLabel} {solo.LeaguePoints} LP, {solo.Wins}W {solo.Losses}L.";
         var server = Platforms.ByHost(account.Platform)?.Label ?? account.Platform!.ToUpperInvariant();
@@ -71,7 +102,7 @@
             $"/summoner/{Format.SummonerSlug(account.GameName, account.TagLine)}");
     }
 
-    // The interactive profile cannot set the static page title, so it comes from the URL
+    // Used while the account could not be read (Riot down)
     private string RiotId
     {
         get

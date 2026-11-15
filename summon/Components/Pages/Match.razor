@@ -9,7 +9,8 @@
 @inject IpRateLimiter Limiter
 @inject ClientIp Client
 
-<PageTitle>Match | Summon.gg</PageTitle>
+@* The original sets no title here, so the site default shows *@
+<PageTitle>Summon.gg — League of Legends Summoner Tracker</PageTitle>
 
 @if (notFound)
 {
@@ -35,11 +36,11 @@ else
     var arena = Queues.IsArena(match.Info.QueueId);
     <div class="mx-auto max-w-6xl space-y-4 px-4 py-6">
         <MatchHero Match="match" Player="@match.Info.Participants.FirstOrDefault(p => p.Puuid == Puuid)"
-                   AvgRank="@(arena ? null : Ranks.Average(ranks, match.Info.QueueId))" />
+                   AvgRank="@Ranks.Average(ranks, match.Info.QueueId)" />
         <Panel>
             @if (arena)
             {
-                <ArenaScoreboard Participants="match.Info.Participants" DataDragon="dataDragon" HighlightPuuid="@Puuid" ShowItems="true" />
+                <ArenaScoreboard Participants="match.Info.Participants" DataDragon="dataDragon" HighlightPuuid="@Puuid" ShowItems="true" Badges="@badges?.GetValueOrDefault(MatchId)" />
             }
             else
             {
@@ -76,8 +77,6 @@ else
             notFound = true;
             return;
         }
-
-        if (Queues.IsArena(match.Info.QueueId)) return;
 
         badges = await Achievements.GetBadgesAsync([MatchId]);
         // The page streams the scoreboard first; the ranks fill in once Riot answers

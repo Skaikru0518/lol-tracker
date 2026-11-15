@@ -1,0 +1,22 @@
+@* Shown when a Riot ID does not exist or has no summoner on a supported server *@
+<div class="mx-auto max-w-lg px-4 py-20">
+    <Panel Class="p-4">
+        <EmptyState Title="Summoner not found" Description="Check the Riot ID (GameName#TAG) and the server. Summon.gg tracks EUNE and EUW accounts." />
+        @if (Static)
+        {
+            <SummonerSearch @rendermode="InteractiveServer" />
+        }
+        else
+        {
+            <SummonerSearch />
+        }
+    </Panel>
+</div>
+
+@code {
+    // Set on the request by the profile page when the Riot ID is missing; the re-executed 404 page then shows this panel
+    public const string ItemKey = "summoner-not-found";
+
+    // Inside the interactive profile the search inherits its render mode; on the static page it needs its own
+    [Parameter] public bool Static { get; set; }
+}

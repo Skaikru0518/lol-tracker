@@ -14,6 +14,10 @@
                            class="truncate font-medium hover:text-primary @(p.Puuid == HighlightPuuid ? "text-gold" : "text-foreground")">
                             @p.RiotIdGameName
                         </a>
+                        @if (Badges is not null)
+                        {
+                            <MatchBadgeChips BadgeIds="@Badges.Where(b => b.Puuid == p.Puuid).Select(b => b.BadgeId).ToList()" Max="2" />
+                        }
                         @if (ShowItems)
                         {
                             <ItemSlots DataDragon="DataDragon" Items="@(new[] { p.Item0, p.Item1, p.Item2, p.Item3, p.Item4, p.Item5, p.Item6 })" Size="18" Display="ml-auto hidden md:flex" ShowNames="true" />
@@ -34,6 +38,8 @@
     [Parameter] public string? HighlightPuuid { get; set; }
     // The match page adds items; the expanded match row does not
     [Parameter] public bool ShowItems { get; set; }
+    // Only the match page shows badges, like the original
+    [Parameter] public List<BadgeAssignment>? Badges { get; set; }
 
     private record ArenaTeam(int Placement, List<RiotParticipant> Players);
 

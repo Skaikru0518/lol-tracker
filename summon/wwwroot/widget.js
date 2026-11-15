@@ -76,3 +76,28 @@
     // "Today" sessions count from the viewer's own midnight, which only the browser knows; the generator dialog opens in the top layer
     window.summonWidget = { midnight: () => new Date().setHours(0, 0, 0, 0), showLayer: el => el.showPopover() };
 })();
+
+// OBS keeps a widget open for hours. Once Blazor gives up reconnecting (a deploy, a long network drop), the page waits until
+// the server answers again and reloads into a fresh circuit, like the original's plain fetch loop that just kept going
+(() => {
+    if (!location.pathname.startsWith("/widget/")) return;
+    let waiting = false;
+    const lost = () => {
+        const modal = document.getElementById("components-reconnect-modal");
+        return modal !== null && (modal.classList.contains("components-reconnect-failed") || modal.classList.contains("components-reconnect-rejected"));
+    };
+    const reloadWhenUp = async () => {
+        try {
+            // A cheap page answers once the server is back
+            if ((await fetch("/robots.txt", { cache: "no-store" })).ok) return location.reload();
+        } catch {
+            // Still down
+        }
+        setTimeout(reloadWhenUp, 10_000);
+    };
+    new MutationObserver(() => {
+        if (waiting || !lost()) return;
+        waiting = true;
+        reloadWhenUp();
+    }).observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ["class"] });
+})();

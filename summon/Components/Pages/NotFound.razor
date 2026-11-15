@@ -1,15 +1,24 @@
 @page "/not-found"
+@using summon.Components.Profile
 
-<PageTitle>Summon.gg — League of Legends Summoner Tracker</PageTitle>
 <PageMeta NoIndex="true" />
+@if (summonerPath)
+{
+    <PageTitle>Summoner not found | Summon.gg</PageTitle>
+    <SummonerNotFound Static="true" />
+}
+else
+{
+    <PageTitle>Summon.gg — League of Legends Summoner Tracker</PageTitle>
 
-@* 404: Teemo splash, a short line, Go home and a summoner search; unknown URLs re-execute here with their 404 status *@
-<ErrorScreen Code="404" Title="This page vanished into the fog of war" Description="The link may be old, or the page never existed." Splash="Teemo">
-    <a href="/" data-slot="button" class="@GoHome">Go home</a>
-    <div class="w-full max-w-md rounded-xl border bg-background/85 p-3 backdrop-blur-md">
-        <SummonerSearch Compact="true" @rendermode="InteractiveServer" />
-    </div>
-</ErrorScreen>
+    @* 404: Teemo splash, a short line, Go home and a summoner search; unknown URLs re-execute here with their 404 status *@
+    <ErrorScreen Code="404" Title="This page vanished into the fog of war" Description="The link may be old, or the page never existed." Splash="Teemo">
+        <a href="/" data-slot="button" class="@GoHome">Go home</a>
+        <div class="w-full max-w-md rounded-xl border bg-background/85 p-3 backdrop-blur-md">
+            <SummonerSearch Compact="true" @rendermode="InteractiveServer" />
+        </div>
+    </ErrorScreen>
+}
 
 @code {
     [CascadingParameter] public HttpContext? HttpContext { get; set; }
@@ -18,7 +27,11 @@
     protected override void OnInitialized()
     {
         if (HttpContext is { Response.HasStarted: false }) HttpContext.Response.StatusCode = StatusCodes.Status404NotFound;
+        summonerPath = HttpContext?.Items.ContainsKey(SummonerNotFound.ItemKey) == true;
     }
+
+    // A missing Riot ID gets the original's summoner not-found panel instead of the general 404
+    private bool summonerPath;
 
     // The shadcn default Button classes
     private const string GoHome =

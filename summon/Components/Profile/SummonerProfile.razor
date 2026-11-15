@@ -5,14 +5,11 @@
 @inject IpRateLimiter Limiter
 @inject ClientIp Client
 @inject IJSRuntime JS
-@implements IDisposable
+@implements IAsyncDisposable
 
 @if (notFound)
 {
-    <div class="mx-auto max-w-7xl px-4 py-10 sm:px-6">
-        <h1 class="text-2xl font-bold">Summoner not found</h1>
-        <p class="mt-2 text-sm text-muted-foreground">No Riot ID matches "@Slug".</p>
-    </div>
+    <SummonerNotFound />
 }
 else if (failed && account is null)
 {
@@ -24,7 +21,11 @@ else if (failed && account is null)
 }
 else
 {
-    @if (account is not null)
+    @if (account is null)
+    {
+        <ProfileSkeleton HeroOnly="true" />
+    }
+    else
     {
         <SummonerHero Account="account" Ranked="ranked" Summoner="summoner" DataDragon="dataDragon" SplashChampion="@splashChampion"
                       Refreshing="refreshing" OnRefresh="RefreshAsync" />
@@ -211,10 +212,19 @@ else
         }
     }
 
-    public void Dispose()
+    public async ValueTask DisposeAsync()
     {
         liveCts.Cancel();
         liveCts.Dispose();
+        try
+        {
+            if (navSubscription is not null) await navSubscription.InvokeVoidAsync("stop");
+        }
+        catch (JSDisconnectedException)
+        {
+            // The page is already gone
+        }
+        self?.Dispose();
     }
 
     // Riot pages match ids 50 at a time; the overview holds the first page, "Load more" asks for the next ones
@@ -230,6 +240,36 @@ else
         champion = Champion;
     }
 
+    private DotNetObjectReference<SummonerProfile>? self;
+    private IJSObjectReference? navSubscription;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        try
+        {
+            self = DotNetObjectReference.Create(this);
+            navSubscription = await JS.InvokeAsync<IJSObjectReference>("summonProfileNav.listen", self);
+        }
+        catch (JSException)
+        {
+            // Without the script Back/Forward only change the address
+        }
+    }
+
+    /// <summary>Back/Forward landed on another path of this profile: shows the tab (and champion page) it names.</summary>
+    [JSInvokable]
+    public Task AddressChanged(string path) => InvokeAsync(() =>
+    {
+        var prefix = $"/summoner/{Slug}";
+        var current = Uri.UnescapeDataString(path);
+        if (!current.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) return;
+        var parts = current[prefix.Length..].Split('/', StringSplitOptions.RemoveEmptyEntries);
+        tab = parts.ElementAtOrDefault(0) ?? "";
+        champion = parts.ElementAtOrDefault(1);
+        StateHasChanged();
+    });
+
     protected override Task OnInitializedAsync() => LoadAsync();
 
     private async Task RefreshAsync()
@@ -239,7 +279,7 @@ else
         StateHasChanged();
         try
         {
-            await LoadAsync();
+            await LoadAsync(force: true);
         }
         finally
         {
@@ -248,7 +288,7 @@ else
     }
 
     // Fields are replaced as each piece arrives and never cleared, so a refresh keeps showing the old data instead of skeletons
-    private async Task LoadAsync()
+    private async Task LoadAsync(bool force = false)
     {
         var separator = Slug.LastIndexOf('-');
         if (separator <= 0 || separator == Slug.Length - 1)
@@ -286,7 +326,7 @@ else
             splashChampion = topChampionId is { } id ? dataDragon.ChampionIds.GetValueOrDefault(id) : null;
             StateHasChanged();
 
-            ranked = loaded.Platform is null ? [] : await rankedService.GetAsync(loaded) ?? [];
+            ranked = loaded.Platform is null ? [] : await rankedService.GetAsync(loaded, maxAge: force ? TimeSpan.Zero : null) ?? [];
             StateHasChanged();
 
             lpHistory = await rankedService.GetLpHistoryAsync(loaded.Puuid);
