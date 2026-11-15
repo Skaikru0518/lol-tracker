@@ -1,4 +1,7 @@
+using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
+using Npgsql;
 using summon.Accounts;
 using summon.Data;
 using summon.Riot;
@@ -25,6 +28,9 @@ public class PerformanceService(SummonDbContext db, IMemoryCache cache)
 {
     private const int WindowDays = 60;
     private const int TopChampions = 3;
+    // A match's scores are stored only when every role in it was scored against at least this many calibrated games
+    private const int MinCacheGames = 100;
+    private const int FullLobby = 10;
 
     /// <summary>
     /// Role baselines from the last 60 days of stored ranked games, kept for 10 minutes.
@@ -39,26 +45,67 @@ public class PerformanceService(SummonDbContext db, IMemoryCache cache)
         }))!;
 
     /// <summary>The player's score in each match, by match id; matches without one are left out.</summary>
-    public async Task<Dictionary<string, PerformanceScore>> ScoreAsync(IEnumerable<RiotMatch> matches, string puuid, CancellationToken ct = default)
-    {
-        var baselines = await GetBaselinesAsync(ct);
-        var scores = new Dictionary<string, PerformanceScore>();
-        foreach (var match in matches)
-            if (ScoreEngine.Score(match, puuid, baselines) is { } score) scores[match.Metadata.MatchId] = score;
-        return scores;
-    }
+    public async Task<Dictionary<string, PerformanceScore>> ScoreAsync(IEnumerable<RiotMatch> matches, string puuid, CancellationToken ct = default) =>
+        (await ScoresAsync(matches, ct))
+            .Where(m => m.Value.ContainsKey(puuid))
+            .ToDictionary(m => m.Key, m => m.Value[puuid]);
 
     /// <summary>Every scored player's score in one match, by puuid; empty when the match or its roles cannot be scored.</summary>
     public async Task<Dictionary<string, PerformanceScore>> ScoreMatchAsync(RiotMatch match, CancellationToken ct = default) =>
-        ScoreEngine.ScoreMatch(match, await GetBaselinesAsync(ct));
+        (await ScoresAsync([match], ct)).GetValueOrDefault(match.Metadata.MatchId) ?? [];
+
+    /// <summary>
+    /// Every scored player's score per match, like the original's scoreAndCache: stored scores are read back, the rest are
+    /// scored now and stored when they can be kept (finished games never change).
+    /// </summary>
+    private async Task<Dictionary<string, Dictionary<string, PerformanceScore>>> ScoresAsync(IEnumerable<RiotMatch> matches, CancellationToken ct)
+    {
+        var list = matches.DistinctBy(m => m.Metadata.MatchId).ToList();
+        var ids = list.Select(m => m.Metadata.MatchId).ToArray();
+        var result = (await db.MatchPerformances.AsNoTracking().Where(p => ids.Contains(p.MatchId)).Select(p => new { p.MatchId, p.Data }).ToListAsync(ct))
+            .ToDictionary(p => p.MatchId, p => JsonSerializer.Deserialize<Dictionary<string, PerformanceScore>>(p.Data, JsonSerializerOptions.Web) ?? []);
+
+        var missing = list.Where(m => !result.ContainsKey(m.Metadata.MatchId)).ToList();
+        if (missing.Count == 0) return result;
+        var baselines = await GetBaselinesAsync(ct);
+        foreach (var match in missing)
+        {
+            var scores = ScoreEngine.ScoreMatch(match, baselines);
+            result[match.Metadata.MatchId] = scores;
+            if (scores.Count > 0 && Cacheable(match, baselines)) await StoreAsync(match.Metadata.MatchId, scores, ct);
+        }
+        return result;
+    }
+
+    // Scores move while a role's baseline is small or uncalibrated, so only matches scored against settled baselines are kept.
+    // A document trimmed to one player is never kept, since the others' scores would be missing.
+    private static bool Cacheable(RiotMatch match, IReadOnlyDictionary<string, RoleBaseline> baselines) =>
+        ScoreEngine.IsEligible(match.Info.QueueId, match.Info.GameDuration)
+        && match.Info.Participants.Count >= FullLobby
+        && match.Info.Participants
+            .Where(p => Weights.Roles.Contains(p.TeamPosition))
+            .All(p => baselines.TryGetValue(p.TeamPosition, out var b) && b.Calibration is not null && b.Games >= MinCacheGames);
+
+    private Task StoreAsync(string matchId, Dictionary<string, PerformanceScore> scores, CancellationToken ct) =>
+        db.Database.ExecuteSqlRawAsync(
+            """
+            INSERT INTO "MatchPerformances" ("MatchId", "Data", "Summary") VALUES (@id, @data::jsonb, @summary::jsonb)
+            ON CONFLICT ("MatchId") DO NOTHING
+            """,
+            [
+                new NpgsqlParameter("id", matchId),
+                new NpgsqlParameter("data", JsonSerializer.Serialize(scores, JsonSerializerOptions.Web)),
+                // The score and grade alone, like the original's summary column the match list reads
+                new NpgsqlParameter("summary", JsonSerializer.Serialize(scores.ToDictionary(s => s.Key, s => new { score = s.Value.Score, grade = s.Value.Grade }), JsonSerializerOptions.Web)),
+            ], ct);
 
     /// <summary>Summary of the player's last 30 stored ranked games: winrate, top champions, average score, MVP/ACE and category averages.</summary>
     public async Task<RecentSummary> RecentAsync(IReadOnlyList<RiotMatch> matches, string puuid, CancellationToken ct = default)
     {
-        var baselines = await GetBaselinesAsync(ct);
+        var stored = await ScoresAsync(matches, ct);
 
         var games = matches
-            .Select(m => (Match: m, Player: m.Info.Participants.FirstOrDefault(p => p.Puuid == puuid), Scores: ScoreEngine.ScoreMatch(m, baselines)))
+            .Select(m => (Match: m, Player: m.Info.Participants.FirstOrDefault(p => p.Puuid == puuid), Scores: stored.GetValueOrDefault(m.Metadata.MatchId) ?? []))
             .Where(g => g.Player is not null)
             .ToList();
         var wins = games.Count(g => g.Player!.Win);

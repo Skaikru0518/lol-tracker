@@ -14,6 +14,8 @@ namespace summon.Data
         public DbSet<MatchBadge> MatchBadges => Set<MatchBadge>();
         public DbSet<AppSetting> AppSettings => Set<AppSetting>();
         public DbSet<MatchTimeline> MatchTimelines => Set<MatchTimeline>();
+        public DbSet<Summoner> Summoners => Set<Summoner>();
+        public DbSet<MatchPerformance> MatchPerformances => Set<MatchPerformance>();
         public DbSet<ChampionMastery> ChampionMasteries => Set<ChampionMastery>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -66,6 +68,18 @@ namespace summon.Data
 
             modelBuilder.Entity<MatchBadge>().HasKey(b => new { b.MatchId, b.Puuid, b.BadgeId });
             modelBuilder.Entity<AppSetting>().HasKey(s => s.Key);
+            modelBuilder.Entity<Summoner>(summoner =>
+            {
+                summoner.HasKey(s => s.Puuid);
+                summoner.HasOne(s => s.Account).WithOne().HasForeignKey<Summoner>(s => s.Puuid);
+            });
+            modelBuilder.Entity<MatchPerformance>(performance =>
+            {
+                performance.HasKey(p => p.MatchId);
+                performance.Property(p => p.Data).HasColumnType("jsonb");
+                performance.Property(p => p.Summary).HasColumnType("jsonb");
+                performance.Property(p => p.CreatedAt).HasDefaultValueSql("now()");
+            });
             modelBuilder.Entity<MatchTimeline>(timeline =>
             {
                 timeline.HasKey(t => t.MatchId);

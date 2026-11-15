@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using System.Net;
@@ -8,9 +9,13 @@ using summon.Search;
 
 namespace summon.Accounts;
 
-public class AccountService(SummonDbContext db, RiotClient riot, IMemoryCache cache)
+public class AccountService(SummonDbContext db, RiotClient riot, IMemoryCache cache, IServiceScopeFactory scopes, ILogger<AccountService> logger)
 {
-    // Icon, level and top mastery change rarely, so a profile view and its refreshes reuse them for a while
+    // A stored summoner is served as it is and refreshed in the background once older than this, like the original
+    private static readonly TimeSpan SummonerMaxAge = TimeSpan.FromMinutes(5);
+    private static readonly ConcurrentDictionary<string, byte> RefreshingSummoners = new();
+
+    // The top mastery changes rarely, so a profile view and its refreshes reuse it for a while
     private static readonly TimeSpan ProfileCacheTime = TimeSpan.FromMinutes(10);
 
     public async Task<Account?> AccountAsync(string gameName, string tagLine, CancellationToken ct = default)
@@ -34,19 +39,78 @@ public class AccountService(SummonDbContext db, RiotClient riot, IMemoryCache ca
     public async Task<RiotSummoner?> SummonerAsync(Account account, CancellationToken ct = default)
     {
         if (account.Platform is null) return null;
-        if (cache.TryGetValue($"summoner:{account.Puuid}", out RiotSummoner? cached)) return cached;
-
         try
         {
-            var summoner = await riot.GetSummonerAsync(account.Platform, account.Puuid, ct);
-            cache.Set($"summoner:{account.Puuid}", summoner, ProfileCacheTime);
-            return summoner;
+            return await ResolveSummonerAsync(account.Platform, account.Puuid, account.Platform, ct);
         }
         catch (HttpRequestException)
         {
-            // Without it the hero just has no icon and level; nothing is cached, so the next load tries again
+            // Without it the hero just has no icon and level; nothing is stored, so the next load tries again
             return null;
         }
+    }
+
+    /// <summary>The summoner on a server, or null when the account has none there; the stored row only counts on the account's stored server.</summary>
+    private async Task<RiotSummoner?> ResolveSummonerAsync(string platform, string puuid, string? stored, CancellationToken ct)
+    {
+        var cached = stored == platform ? await db.Summoners.AsNoTracking().FirstOrDefaultAsync(s => s.Puuid == puuid, ct) : null;
+        if (cached is null)
+        {
+            try
+            {
+                return await FetchAndStoreSummonerAsync(platform, puuid, ct);
+            }
+            catch (HttpRequestException e) when (e.StatusCode == HttpStatusCode.NotFound)
+            {
+                return null;
+            }
+        }
+        if (DateTime.UtcNow - cached.UpdatedAt >= SummonerMaxAge) RefreshSummonerInBackground(platform, puuid);
+        return new RiotSummoner(cached.ProfileIconId, cached.SummonerLevel);
+    }
+
+    private async Task<RiotSummoner?> FetchAndStoreSummonerAsync(string platform, string puuid, CancellationToken ct)
+    {
+        var summoner = await riot.GetSummonerAsync(platform, puuid, ct);
+        if (summoner is null) return null;
+        await db.Database.ExecuteSqlRawAsync(
+            """
+            INSERT INTO "Summoners" ("Puuid", "ProfileIconId", "SummonerLevel", "UpdatedAt") VALUES (@puuid, @icon, @level, now())
+            ON CONFLICT ("Puuid") DO UPDATE SET "ProfileIconId" = excluded."ProfileIconId", "SummonerLevel" = excluded."SummonerLevel", "UpdatedAt" = excluded."UpdatedAt"
+            """,
+            [new NpgsqlParameter("puuid", puuid), new NpgsqlParameter("icon", summoner.ProfileIconId), new NpgsqlParameter("level", summoner.SummonerLevel)], ct);
+        return summoner;
+    }
+
+    private void RefreshSummonerInBackground(string platform, string puuid)
+    {
+        if (!RefreshingSummoners.TryAdd(puuid, 0)) return;
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                // The request's scope ends with the page, so the refresh gets its own
+                await using var scope = scopes.CreateAsyncScope();
+                var accounts = scope.ServiceProvider.GetRequiredService<AccountService>();
+                try
+                {
+                    await accounts.FetchAndStoreSummonerAsync(platform, puuid, CancellationToken.None);
+                }
+                catch (HttpRequestException e) when (e.StatusCode == HttpStatusCode.NotFound)
+                {
+                    // The account left this server; without the row the next load locates it again
+                    await scope.ServiceProvider.GetRequiredService<SummonDbContext>().Summoners.Where(s => s.Puuid == puuid).ExecuteDeleteAsync();
+                }
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e, "Background summoner refresh failed for {Puuid}", puuid);
+            }
+            finally
+            {
+                RefreshingSummoners.TryRemove(puuid, out _);
+            }
+        });
     }
 
     public async Task<int?> TopChampionIdAsync(Account account, CancellationToken ct = default)
@@ -121,9 +185,12 @@ public class AccountService(SummonDbContext db, RiotClient riot, IMemoryCache ca
             return null;
         }
         if (account is null) return null;
+        // A newly fetched account is saved first, since a found summoner is stored against it
+        await db.SaveChangesAsync(ct);
 
-        var platform = await SearchQuery.LocatePlatformAsync(hint, Platforms.ByHost(account.Platform)?.Host,
-            host => HasSummonerAsync(host, account.Puuid, ct), () => ActiveRegionAsync(account.Puuid, ct));
+        var stored = Platforms.ByHost(account.Platform)?.Host;
+        var platform = await SearchQuery.LocatePlatformAsync(hint, stored,
+            async host => await ResolveSummonerAsync(host, account.Puuid, stored, ct) is not null, () => ActiveRegionAsync(account.Puuid, ct));
         if (platform is not null && platform != account.Platform)
         {
             // One tracked server per account: moving it drops the old server's ranked and mastery rows
@@ -137,20 +204,6 @@ public class AccountService(SummonDbContext db, RiotClient riot, IMemoryCache ca
         }
         await db.SaveChangesAsync(ct);
         return platform is null ? null : (account, platform);
-    }
-
-    private async Task<bool> HasSummonerAsync(string platform, string puuid, CancellationToken ct)
-    {
-        try
-        {
-            var summoner = await riot.GetSummonerAsync(platform, puuid, ct);
-            if (summoner is not null) cache.Set($"summoner:{puuid}", summoner, ProfileCacheTime);
-            return summoner is not null;
-        }
-        catch (HttpRequestException e) when (e.StatusCode == HttpStatusCode.NotFound)
-        {
-            return false;
-        }
     }
 
     private async Task<string?> ActiveRegionAsync(string puuid, CancellationToken ct)
@@ -197,13 +250,11 @@ public class AccountService(SummonDbContext db, RiotClient riot, IMemoryCache ca
             .Select(a => new
             {
                 a.Puuid, a.GameName, a.TagLine, a.Platform,
+                Icon = db.Summoners.Where(s => s.Puuid == a.Puuid).Select(s => (int?)s.ProfileIconId).FirstOrDefault(),
                 Solo = a.RankedEntries.Where(e => e.QueueType == "RANKED_SOLO_5x5").Select(e => new { e.Tier, e.Rank, e.LeaguePoints }).FirstOrDefault(),
             })
             .ToListAsync(ct);
-        return rows.Select(a => new SearchSuggestion(a.Puuid, a.GameName, a.TagLine, a.Platform!,
-            // shortcut: icons come only from summoners cached by recent profile views; store the summoner to show them always
-            cache.TryGetValue($"summoner:{a.Puuid}", out RiotSummoner? summoner) ? summoner?.ProfileIconId : null,
-            a.Solo?.Tier, a.Solo?.Rank, a.Solo?.LeaguePoints)).ToList();
+        return rows.Select(a => new SearchSuggestion(a.Puuid, a.GameName, a.TagLine, a.Platform!, a.Icon, a.Solo?.Tier, a.Solo?.Rank, a.Solo?.LeaguePoints)).ToList();
     }
 
     private async Task<Account?> FetchAsync(string gameName, string tagLine, CancellationToken ct)

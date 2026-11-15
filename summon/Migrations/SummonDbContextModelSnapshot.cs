@@ -265,6 +265,29 @@ namespace summon.Migrations
                     b.ToTable("MatchParticipants");
                 });
 
+            modelBuilder.Entity("summon.Data.MatchPerformance", b =>
+                {
+                    b.Property<string>("MatchId")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<string>("Data")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.Property<string>("Summary")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.HasKey("MatchId");
+
+                    b.ToTable("MatchPerformances");
+                });
+
             modelBuilder.Entity("summon.Data.MatchTimeline", b =>
                 {
                     b.Property<string>("MatchId")
@@ -333,6 +356,25 @@ namespace summon.Migrations
                     b.ToTable("RankedEntries");
                 });
 
+            modelBuilder.Entity("summon.Data.Summoner", b =>
+                {
+                    b.Property<string>("Puuid")
+                        .HasColumnType("text");
+
+                    b.Property<int>("ProfileIconId")
+                        .HasColumnType("integer");
+
+                    b.Property<long>("SummonerLevel")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Puuid");
+
+                    b.ToTable("Summoners");
+                });
+
             modelBuilder.Entity("summon.Data.LpSnapshot", b =>
                 {
                     b.HasOne("summon.Data.Account", "Account")
@@ -360,6 +402,17 @@ namespace summon.Migrations
                     b.HasOne("summon.Data.Account", "Account")
                         .WithMany("RankedEntries")
                         .HasForeignKey("Puuid")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Account");
+                });
+
+            modelBuilder.Entity("summon.Data.Summoner", b =>
+                {
+                    b.HasOne("summon.Data.Account", "Account")
+                        .WithOne()
+                        .HasForeignKey("summon.Data.Summoner", "Puuid")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
