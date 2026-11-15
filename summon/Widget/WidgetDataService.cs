@@ -9,12 +9,13 @@ namespace summon.Widget;
 
 /// <summary>
 /// The data one widget shows, built like the original's buildWidgetData: every widget showing the same summoner and queue
-/// shares one call budget (ranked through RankedService's freshness, match ids every 5 minutes or when the ranked game count
+/// shares one call budget (ranked every minute, match ids every 5 minutes or when the ranked game count
 /// moves, at most 10 new matches per poll, the live game every 2 minutes), and a rate limited Riot just serves what is known.
 /// </summary>
 public class WidgetDataService(SummonDbContext db, RiotClient riot, AccountService accounts, RankedService ranked, MatchService matches, DataDragon dataDragon)
 {
     private static readonly long Min = 60_000;
+    private static readonly TimeSpan RankedEvery = TimeSpan.FromMinutes(1);
     private static readonly long IdsEveryMs = 5 * Min;
     private static readonly long LiveEveryMs = 2 * Min;
     private static readonly long IdsLookbackMs = 24 * 60 * Min;
@@ -97,8 +98,8 @@ public class WidgetDataService(SummonDbContext db, RiotClient riot, AccountServi
                 }
             }
 
-            // Stored entries newer than two minutes are reused; older ones are refreshed from Riot (and stay when it fails)
-            var entry = (await ranked.GetAsync(account, ct)).FirstOrDefault(e => e.QueueType == queueType);
+            // Ranked every minute like the original; entries are shared, so widgets of the same player reuse a fresh fetch
+            var entry = (await ranked.GetAsync(account, ct, RankedEvery)).FirstOrDefault(e => e.QueueType == queueType);
             int? total = entry is null ? null : entry.Wins + entry.Losses;
 
             if (state.Ids is null || total != state.IdsTotal || now - state.IdsAt >= IdsEveryMs)

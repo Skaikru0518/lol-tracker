@@ -145,8 +145,9 @@
             await using var scope = ScopeFactory.CreateAsyncScope();
             dataDragon ??= await scope.ServiceProvider.GetRequiredService<DataDragon>().GetAsync();
             var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-            // shortcut: "today" previews count from the server's midnight (UTC); the widget itself asks the viewer's browser
-            var midnight = new DateTimeOffset(DateTime.UtcNow.Date, TimeSpan.Zero).ToUnixTimeMilliseconds();
+            // "Today" counts from the viewer's own midnight, which only the browser knows, like the widget itself
+            localMidnight ??= await LocalMidnightAsync();
+            var midnight = localMidnight.Value;
             var data = await scope.ServiceProvider.GetRequiredService<WidgetDataService>()
                 .BuildAsync(Slug, WidgetLogic.Query(options with { Style = "strip" }, now, midnight), now);
             if (data is null)
@@ -165,6 +166,21 @@
             failed = true;
         }
         await InvokeAsync(StateHasChanged);
+    }
+
+    private long? localMidnight;
+
+    private async Task<long> LocalMidnightAsync()
+    {
+        try
+        {
+            return await JS.InvokeAsync<long>("summonWidget.midnight");
+        }
+        catch (JSException)
+        {
+            // Without the script: the server's midnight (UTC)
+            return new DateTimeOffset(DateTime.UtcNow.Date, TimeSpan.Zero).ToUnixTimeMilliseconds();
+        }
     }
 
     private void TogglePart(string part) =>

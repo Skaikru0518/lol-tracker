@@ -10,13 +10,15 @@ namespace summon.Accounts
         private const int HistoryLimit = 100;
         private const int RangeLimit = 2000;
 
-        public async Task<List<RankedEntry>> GetAsync(Account account, CancellationToken ct = default)
+        /// <summary>The player's ranked entries; stored ones newer than maxAge (two minutes unless given) are reused, older ones are fetched again.</summary>
+        public async Task<List<RankedEntry>> GetAsync(Account account, CancellationToken ct = default, TimeSpan? maxAge = null)
         {
             var stored = await db.RankedEntries.Where(e => e.Puuid == account.Puuid).ToListAsync(ct);
             var now = DateTime.UtcNow;
+            var fresh = maxAge ?? MaxAge;
 
             // shortcut: unranked players have no rows, so they are fetched on every view; add a checked-at time on Account if that costs too much
-            if (account.Platform is null || (stored.Count > 0 && stored.All(e => now - e.UpdatedAt < MaxAge))) return stored;
+            if (account.Platform is null || (stored.Count > 0 && stored.All(e => now - e.UpdatedAt < fresh))) return stored;
 
             List<RiotLeagueEntry> fetched;
             try
