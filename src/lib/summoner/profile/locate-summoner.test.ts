@@ -48,6 +48,13 @@ describe("locateSummoner", () => {
 		expect(prisma.account.update).not.toHaveBeenCalled();
 	});
 
+	it("treats Riot's 500 for an account without a LoL summoner as not found", async () => {
+		vi.mocked(prisma.account.findUnique).mockResolvedValue({ platform: null } as never);
+		vi.mocked(resolveSummoner).mockResolvedValue(null);
+		vi.mocked(getActiveRegion).mockRejectedValue(new RiotApiError(500, "Internal Server Error"));
+		expect(await locateSummoner("p1", "euw")).toBeNull();
+	});
+
 	it("rethrows active-region errors other than 404", async () => {
 		vi.mocked(prisma.account.findUnique).mockResolvedValue({ platform: "eune" } as never);
 		vi.mocked(getActiveRegion).mockRejectedValue(new RiotApiError(429, "Rate limit exceeded"));

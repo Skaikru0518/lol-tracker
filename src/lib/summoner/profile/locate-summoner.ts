@@ -11,7 +11,8 @@ async function activeRegion(puuid: string): Promise<string | null> {
 	try {
 		return (await getActiveRegion(puuid)).region;
 	} catch (error) {
-		if (error instanceof RiotApiError && error.status === 404) return null;
+		// Riot answers 500, not 404, for an account that never played LoL
+		if (error instanceof RiotApiError && (error.status === 404 || error.status === 500)) return null;
 		throw error;
 	}
 }
