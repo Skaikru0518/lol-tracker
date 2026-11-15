@@ -15,3 +15,6 @@ wwwroot/app.css
 # Docker
 Dockerfile
 .dockerignore
+
+# Kubernetes manifest
+deployment.yaml
