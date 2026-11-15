@@ -12,6 +12,8 @@ using summon.Home;
 using summon.Widget;
 using summon.MatchPage;
 using summon.Security;
+using summon.Jobs;
+using summon.Overlay;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -45,6 +47,7 @@ builder.Services.AddScoped<AchievementService>();
 builder.Services.AddScoped<LiveGameService>();
 builder.Services.AddHttpClient<HomeService>();
 builder.Services.AddScoped<WidgetDataService>();
+builder.Services.AddScoped<OverlayService>();
 builder.Services.AddHttpClient<MatchPageService>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddSingleton(TimeProvider.System);
@@ -52,6 +55,8 @@ builder.Services.AddSingleton<IpRateLimiter>();
 // Per request, or per circuit for interactive parts: read from the request that opened it
 builder.Services.AddScoped<ClientIp>();
 builder.Services.AddHostedService<AchievementJob>();
+builder.Services.AddHostedService<RankedJob>();
+builder.Services.AddHostedService<BaselineJob>();
 
 var app = builder.Build();
 
@@ -81,6 +86,28 @@ app.UseAntiforgery();
 app.MapStaticAssets();
 app.MapGet("/robots.txt", (IConfiguration configuration) => Results.Text(SiteInfo.Robots(SiteInfo.Url(configuration)), "text/plain"));
 app.MapGet("/sitemap.xml", (IConfiguration configuration) => Results.Text(SiteInfo.Sitemap(SiteInfo.Url(configuration), DateTime.UtcNow), "application/xml"));
+// The original's JSON endpoint for the in-game OBS overlay
+app.MapGet("/api/overlay/game", async (string? gameName, string? tagLine, string? platform, string? since,
+    OverlayService overlay, IpRateLimiter limiter, ClientIp client, ILogger<OverlayService> logger, CancellationToken ct) =>
+{
+    if (limiter.Limited("overlay", client)) return Results.Json(new { error = "Too many requests" }, statusCode: 429);
+    var server = Platforms.All.FirstOrDefault(p => p.Key == platform);
+    if (string.IsNullOrEmpty(gameName) || string.IsNullOrEmpty(tagLine) || server is null || !long.TryParse(since, out var sinceMs) || sinceMs < 0)
+        return Results.Json(new { error = "gameName, tagLine, platform and since are required" }, statusCode: 400);
+    try
+    {
+        return await overlay.BuildAsync(gameName, tagLine, server, sinceMs, ct) is { } game ? Results.Json(game) : Results.Json(new { inGame = false });
+    }
+    catch (HttpRequestException e) when (e.StatusCode is { } status)
+    {
+        return Results.Json(new { error = e.Message }, statusCode: (int)status);
+    }
+    catch (Exception e) when (e is not OperationCanceledException)
+    {
+        logger.LogError(e, "Overlay game failed");
+        return Results.Json(new { error = "Internal server error" }, statusCode: 500);
+    }
+});
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 

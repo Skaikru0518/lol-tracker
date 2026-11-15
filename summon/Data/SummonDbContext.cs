@@ -16,6 +16,7 @@ namespace summon.Data
         public DbSet<MatchTimeline> MatchTimelines => Set<MatchTimeline>();
         public DbSet<Summoner> Summoners => Set<Summoner>();
         public DbSet<MatchPerformance> MatchPerformances => Set<MatchPerformance>();
+        public DbSet<PerformanceBaseline> PerformanceBaselines => Set<PerformanceBaseline>();
         public DbSet<ChampionMastery> ChampionMasteries => Set<ChampionMastery>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -79,6 +80,12 @@ namespace summon.Data
                 performance.Property(p => p.Data).HasColumnType("jsonb");
                 performance.Property(p => p.Summary).HasColumnType("jsonb");
                 performance.Property(p => p.CreatedAt).HasDefaultValueSql("now()");
+            });
+            modelBuilder.Entity<PerformanceBaseline>(baseline =>
+            {
+                baseline.Property(b => b.Data).HasColumnType("jsonb");
+                baseline.Property(b => b.ComputedAt).HasDefaultValueSql("now()");
+                baseline.HasIndex(b => b.ComputedAt);
             });
             modelBuilder.Entity<MatchTimeline>(timeline =>
             {

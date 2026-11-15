@@ -32,17 +32,34 @@ public class PerformanceService(SummonDbContext db, IMemoryCache cache)
     private const int MinCacheGames = 100;
     private const int FullLobby = 10;
 
-    /// <summary>
-    /// Role baselines from the last 60 days of stored ranked games, kept for 10 minutes.
-    /// </summary>
-    // shortcut: rebuilt from every stored game on demand instead of a daily job and a table; move to a background job once the match table grows large
+    private const string BaselinesCacheKey = "performance-baselines";
+    // The original keeps the last 30 daily rows
+    private const int KeepBaselines = 30;
+
+    /// <summary>Role baselines from the newest stored row, kept for 10 minutes; empty (for a minute) before the first job run.</summary>
     public async Task<Dictionary<string, RoleBaseline>> GetBaselinesAsync(CancellationToken ct = default) =>
-        (await cache.GetOrCreateAsync("performance-baselines", async entry =>
+        (await cache.GetOrCreateAsync(BaselinesCacheKey, async entry =>
         {
-            entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10);
-            var since = DateTimeOffset.UtcNow.AddDays(-WindowDays).ToUnixTimeMilliseconds();
-            return ScoreEngine.BuildBaselines((await MatchProjection.RankedSinceAsync(db, since, ct)).Values);
+            var data = await db.PerformanceBaselines.AsNoTracking().OrderByDescending(b => b.ComputedAt).Select(b => b.Data).FirstOrDefaultAsync(ct);
+            // "No baseline yet" is kept briefly so scores appear soon after the first job run
+            entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(data is null ? 1 : 10);
+            return data is null ? [] : JsonSerializer.Deserialize<StoredBaselines>(data, JsonSerializerOptions.Web)?.Roles ?? [];
         }))!;
+
+    /// <summary>The daily baseline job: builds role baselines from the last 60 days of stored ranked games and stores them as the newest row.</summary>
+    public async Task<int> ComputeAndSaveBaselinesAsync(CancellationToken ct = default)
+    {
+        var since = DateTimeOffset.UtcNow.AddDays(-WindowDays).ToUnixTimeMilliseconds();
+        var roles = ScoreEngine.BuildBaselines((await MatchProjection.RankedSinceAsync(db, since, ct)).Values);
+        var sampleSize = roles.Values.Sum(r => r.Games);
+        db.PerformanceBaselines.Add(new PerformanceBaseline { SampleSize = sampleSize, Data = JsonSerializer.Serialize(new StoredBaselines(roles), JsonSerializerOptions.Web) });
+        await db.SaveChangesAsync(ct);
+        await db.PerformanceBaselines.OrderByDescending(b => b.ComputedAt).Skip(KeepBaselines).ExecuteDeleteAsync(ct);
+        cache.Remove(BaselinesCacheKey);
+        return sampleSize;
+    }
+
+    private record StoredBaselines(Dictionary<string, RoleBaseline> Roles);
 
     /// <summary>The player's score in each match, by match id; matches without one are left out.</summary>
     public async Task<Dictionary<string, PerformanceScore>> ScoreAsync(IEnumerable<RiotMatch> matches, string puuid, CancellationToken ct = default) =>

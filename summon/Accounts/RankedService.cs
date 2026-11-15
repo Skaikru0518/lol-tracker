@@ -36,6 +36,16 @@ namespace summon.Accounts
             return stored;
         }
 
+        /// <summary>The ranked cron's refresh: fetches the player's entries whatever their age and returns how many LP snapshots it wrote; Riot errors are thrown.</summary>
+        public async Task<int> RefreshAsync(string puuid, string platform, CancellationToken ct = default)
+        {
+            var fetched = await riot.GetLeagueEntriesAsync(platform, puuid, ct) ?? [];
+            var stored = await db.RankedEntries.Where(e => e.Puuid == puuid).ToListAsync(ct);
+            var snapshots = Save(puuid, stored, fetched, await LatestSnapshotsAsync([puuid], ct), DateTime.UtcNow);
+            await db.SaveChangesAsync(ct);
+            return snapshots;
+        }
+
         /// <summary>
         /// Ranked entries for several players (a scoreboard), DB first with the same two-minute freshness; the rest come
         /// from Riot five at a time and are saved like a profile's own, LP snapshots included. Players we have never seen
@@ -126,10 +136,11 @@ namespace summon.Accounts
                 .ToListAsync(ct))
             .ToDictionary(s => (s.Puuid, s.QueueType));
 
-        /// <summary>Upserts a player's entries into <paramref name="rows"/> and records an LP snapshot for each queue whose rank moved.</summary>
-        private void Save(string puuid, List<RankedEntry> rows, IEnumerable<RiotLeagueEntry> fetched,
+        /// <summary>Upserts a player's entries into <paramref name="rows"/> and records an LP snapshot for each queue whose rank moved; returns the snapshot count.</summary>
+        private int Save(string puuid, List<RankedEntry> rows, IEnumerable<RiotLeagueEntry> fetched,
             IReadOnlyDictionary<(string Puuid, string QueueType), LpSnapshot> latest, DateTime now)
         {
+            var snapshots = 0;
             foreach (var f in fetched)
             {
                 var entry = rows.Find(e => e.QueueType == f.QueueType);
@@ -162,8 +173,10 @@ namespace summon.Accounts
                         Losses = f.Losses,
                         CreatedAt = now,
                     });
+                    snapshots++;
                 }
             }
+            return snapshots;
         }
     }
 }

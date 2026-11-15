@@ -307,6 +307,33 @@ namespace summon.Migrations
                     b.ToTable("MatchTimelines");
                 });
 
+            modelBuilder.Entity("summon.Data.PerformanceBaseline", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("ComputedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<string>("Data")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.Property<int>("SampleSize")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ComputedAt");
+
+                    b.ToTable("PerformanceBaselines");
+                });
+
             modelBuilder.Entity("summon.Data.PlayerAchievement", b =>
                 {
                     b.Property<string>("Puuid")

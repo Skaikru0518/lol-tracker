@@ -1,0 +1,86 @@
+@page "/dev/ui"
+@using summon.Components.MatchPage
+@inject IWebHostEnvironment Environment
+@inject NavigationManager Navigation
+@inject DataDragon DataDragonService
+
+@* Dev-only gallery of the redesign primitives; 404 in production *@
+<PageTitle>UI gallery | Summon.gg</PageTitle>
+
+@if (dataDragon is not null)
+{
+    <div class="mx-auto flex max-w-5xl flex-col gap-6 px-4 py-6">
+        <HeroBanner SplashUrl="@DataDragonData.ChampionSplash("Nami")" Class="rounded-lg">
+            <div class="flex h-40 items-end gap-4 p-6">
+                <ChampionIcon DataDragon="dataDragon" ChampionName="Nami" Size="64" Level="18" />
+                <div>
+                    <h1 class="text-2xl font-bold text-foreground">Hero banner</h1>
+                    <div class="mt-2 flex gap-1.5">
+                        <Chip Color="#34c38f">EMERALD I · SOLO</Chip>
+                        <Chip Color="#4fb3c9">PLATINUM I · FLEX</Chip>
+                        <Chip Color="#fff">short hex</Chip>
+                        <Chip Color="red">invalid</Chip>
+                    </div>
+                </div>
+            </div>
+        </HeroBanner>
+
+        <div class="grid gap-4 md:grid-cols-2">
+            <Panel>
+                <PanelHeader Title="Ranked Solo">
+                    <Actions><button type="button" data-slot="button" class="@(ButtonBase) border-transparent bg-primary text-primary-foreground hover:bg-primary/80">Update</button></Actions>
+                </PanelHeader>
+                <PanelBody Class="flex items-center gap-4">
+                    <RankEmblem Tier="EMERALD" Size="64" />
+                    <RankEmblem Tier="" Size="40" />
+                    <RankEmblem Tier="emerald" Size="40" />
+                </PanelBody>
+            </Panel>
+
+            <Panel>
+                <PanelHeader Title="Match primitives" />
+                <PanelBody Class="flex items-center gap-3">
+                    <ChampionIcon DataDragon="dataDragon" ChampionName="MissFortune" Size="44" Level="14" />
+                    <SpellRuneStack DataDragon="dataDragon" Spell1="4" Spell2="7" />
+                    <ItemSlots DataDragon="dataDragon" Items="@([3031, 6672, 3006, 3094, 3036, 0, 3363])" />
+                </PanelBody>
+            </Panel>
+
+            <Panel>
+                <PanelHeader Title="Stat rings" />
+                <PanelBody Class="flex justify-around">
+                    <StatRing Label="Dmg share" Value="21.5" Display="21.5%" />
+                    <StatRing Label="KP" Value="45" Display="45%" Color="var(--color-win)" />
+                    <StatRing Label="CS/min" Value="7.4" Max="10" Display="7.4" />
+                    <StatRing Label="Overflow" Value="250" Display="250" />
+                    <StatRing Label="NaN" Value="double.NaN" Display="-" />
+                </PanelBody>
+            </Panel>
+
+            <Panel>
+                <PanelHeader Title="Empty state" />
+                <EmptyState Title="No matches found" Description="This summoner has no stored matches for this queue.">
+                    <Action><button type="button" data-slot="button" class="@(ButtonBase) border-border hover:bg-input/50 hover:text-foreground dark:bg-input/30">Retry</button></Action>
+                </EmptyState>
+            </Panel>
+        </div>
+    </div>
+}
+
+@code {
+    // The original's shadcn Button at size "sm"; the variant classes are added per button
+    private const string ButtonBase = "group/button inline-flex shrink-0 items-center justify-center gap-1 rounded-md border bg-clip-padding px-2 h-6 " +
+        "text-xs/relaxed font-medium whitespace-nowrap transition-all outline-none select-none active:translate-y-px";
+
+    private DataDragonData? dataDragon;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!Environment.IsDevelopment())
+        {
+            Navigation.NotFound();
+            return;
+        }
+        dataDragon = await DataDragonService.GetAsync();
+    }
+}
