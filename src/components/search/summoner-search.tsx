@@ -64,28 +64,31 @@ export default function SummonerSearch({
 	}
 
 	return (
-		<form onSubmit={handleSubmit} className="flex w-full gap-2">
+		<form onSubmit={handleSubmit} className="relative flex w-full gap-2">
 			<PlatformPicker value={platform} onChange={writePlatformPreference} compact={compact} className={heroSurface ? HERO_SURFACE : undefined} />
-			<div className="relative flex-1">
-				<Search
-					className={`pointer-events-none absolute left-3.5 top-1/2 z-10 -translate-y-1/2 size-4 text-muted-foreground ${compact ? "left-2.5 size-3.5" : ""}`}
-				/>
-				<Input
-					value={input}
-					onChange={(e) => {
-						setInput(e.target.value);
-						setFocused(true);
-					}}
-					placeholder="GameName#TAG"
-					autoFocus={autoFocus}
-					onFocus={() => setFocused(true)}
-					onBlur={() => setFocused(false)}
-					className={cn(
-						"text-base border-border hover:border-muted-foreground/50 focus:border-primary/50 transition-colors",
-						compact ? "h-9 pl-8" : "h-12 pl-10",
-						heroSurface ? HERO_SURFACE + " focus:bg-background/95" : "bg-card",
-					)}
-				/>
+			{/* Phones anchor the suggestions to the whole form; the input alone is too narrow for them */}
+			<div className="flex-1 sm:relative">
+				<div className="relative">
+					<Search
+						className={`pointer-events-none absolute left-3.5 top-1/2 z-10 -translate-y-1/2 size-4 text-muted-foreground ${compact ? "left-2.5 size-3.5" : ""}`}
+					/>
+					<Input
+						value={input}
+						onChange={(e) => {
+							setInput(e.target.value);
+							setFocused(true);
+						}}
+						placeholder="GameName#TAG"
+						autoFocus={autoFocus}
+						onFocus={() => setFocused(true)}
+						onBlur={() => setFocused(false)}
+						className={cn(
+							"text-base border-border hover:border-muted-foreground/50 focus:border-primary/50 transition-colors",
+							compact ? "h-9 pl-8" : "h-12 pl-10",
+							heroSurface ? HERO_SURFACE + " focus:bg-background/95" : "bg-card",
+						)}
+					/>
+				</div>
 				{focused && terms && (
 					<div className="absolute inset-x-0 top-full z-50 mt-1 overflow-hidden rounded-md border bg-popover text-left shadow-lg">
 						<SearchSuggestions

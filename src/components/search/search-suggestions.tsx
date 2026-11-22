@@ -58,8 +58,8 @@ export function SearchSuggestions({
 								<span className="text-muted-foreground">#{r.tagLine}</span>
 							</MarqueeText>
 						</span>
-						<span className="text-3xs font-semibold text-muted-foreground">{PLATFORMS[r.platform].label}</span>
-						<span className="text-xs" style={{ color: r.soloTier ? RANK_COLORS[r.soloTier] : undefined }}>
+						<span className="shrink-0 text-3xs font-semibold text-muted-foreground">{PLATFORMS[r.platform].label}</span>
+						<span className="shrink-0 whitespace-nowrap text-xs" style={{ color: r.soloTier ? RANK_COLORS[r.soloTier] : undefined }}>
 							{recentSearchRank(r)}
 						</span>
 					</button>
