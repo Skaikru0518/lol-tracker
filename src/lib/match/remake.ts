@@ -1,4 +1,4 @@
-const REMAKE_SECONDS = 300;
+export const REMAKE_SECONDS = 300;
 
 /** Games shorter than five minutes are remakes. */
 export function isRemake(durationSeconds: number): boolean {
