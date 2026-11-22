@@ -1,4 +1,4 @@
-import { CATEGORIES, CATEGORY_LABELS, type CategoryId } from "@/lib/performance/weights";
+import { CATEGORIES, CATEGORY_LABELS, CATEGORY_SHORT_LABELS, type CategoryId } from "@/lib/performance/weights";
 import { cn } from "@/lib/utils";
 import { type DuoSidePayload } from "@/lib/validators/duo";
 
@@ -17,15 +17,18 @@ export function CategoryRows({ player, friend }: { player: DuoSidePayload; frien
 		<span className={cn("text-sm tabular-nums", value !== null && other !== null && value > other ? "font-bold text-foreground" : "text-muted-foreground")}>{value ?? "—"}</span>
 	);
 	return (
-		<div className="space-y-2 border-t px-4 py-3 sm:px-8">
+		<div className="space-y-2 border-t px-3 py-3 sm:px-8">
 			{CATEGORIES.map((id) => {
 				const a = scoreOf(player, id);
 				const b = scoreOf(friend, id);
 				return (
-					<div key={id} className="grid grid-cols-[2rem_minmax(0,1fr)_5.5rem_minmax(0,1fr)_2rem] items-center gap-2">
+					<div key={id} className="grid grid-cols-[1.75rem_minmax(0,1fr)_4.25rem_minmax(0,1fr)_1.75rem] sm:grid-cols-[2rem_minmax(0,1fr)_5.5rem_minmax(0,1fr)_2rem] items-center gap-2">
 						{number(a, b)}
 						<Bar value={a} team="blue" />
-						<span className="text-center text-xs text-muted-foreground">{CATEGORY_LABELS[id]}</span>
+						<span className="text-center text-xs text-muted-foreground">
+							<span className="sm:hidden">{CATEGORY_SHORT_LABELS[id]}</span>
+							<span className="hidden sm:inline">{CATEGORY_LABELS[id]}</span>
+						</span>
 						<Bar value={b} team="red" />
 						<span className="text-right">{number(b, a)}</span>
 					</div>

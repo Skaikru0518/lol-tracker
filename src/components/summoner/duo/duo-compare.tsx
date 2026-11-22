@@ -19,7 +19,10 @@ export function DuoCompare({ puuid, friend, version }: { puuid: string; friend: 
 	return (
 		<div className="space-y-4">
 			<Panel>
-				<PanelHeader title={`${player.gameName} vs ${other.gameName}`} actions={<span className="text-xs text-muted-foreground">last 30 ranked games each</span>} />
+				<PanelHeader
+					title={<span className="truncate">{`${player.gameName} vs ${other.gameName}`}</span>}
+					actions={<span className="hidden text-xs text-muted-foreground sm:inline">last 30 ranked games each</span>}
+				/>
 				<CompareHeader player={player} friend={other} version={version} />
 				<CategoryRows player={player} friend={other} />
 				{shared.length > 0 && (

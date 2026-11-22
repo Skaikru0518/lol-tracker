@@ -80,7 +80,7 @@ describe("duoPartners", () => {
 
 	it("names a partner without a Riot ID Unknown", () => {
 		const games = ["g1", "g2", "g3"].map((id) => game(id, { mates: [player("A", { riotIdGameName: "" })] }));
-		expect(duoPartners(games, ME)[0].gameName).toBe("Unknown");
+		expect(duoPartners(games, ME)[0]).toMatchObject({ gameName: "Unknown", tagLine: "" });
 	});
 
 	it("picks the partner's most frequent role, ignoring empty positions", () => {

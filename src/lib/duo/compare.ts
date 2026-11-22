@@ -1,4 +1,4 @@
-import { sharedGames, type DuoGame } from "./partners";
+import { type DuoGame } from "./partners";
 
 export interface SharedSide {
 	championName: string;
@@ -17,8 +17,9 @@ export interface SharedGame {
 	crown: "player" | "friend" | null;
 }
 
+/** `games` are already the shared ones (see sharedGames); a game missing either player is skipped. */
 export function toSharedGames(games: DuoGame[], puuid: string, friend: string, scores: Record<string, Record<string, number>>): SharedGame[] {
-	return sharedGames(games, puuid, friend).flatMap((game) => {
+	return games.flatMap((game) => {
 		const me = game.participants.find((p) => p.puuid === puuid);
 		const fr = game.participants.find((p) => p.puuid === friend);
 		if (!me || !fr) return [];

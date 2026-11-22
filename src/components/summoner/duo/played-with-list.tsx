@@ -17,7 +17,7 @@ export function PlayedWithList({ partners, basePath, version, limit }: { partner
 							<div className="min-w-0 flex-1 text-sm">
 								<p className="truncate font-medium text-foreground">
 									{p.gameName}
-									<span className="ml-1 text-muted-foreground">#{p.tagLine}</span>
+									{p.tagLine && <span className="ml-1 text-muted-foreground">#{p.tagLine}</span>}
 								</p>
 								<p className="text-xs text-muted-foreground">
 									{p.games} games{role ? ` · ${ROLE_LABELS[role]}` : ""}

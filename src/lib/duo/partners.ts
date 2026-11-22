@@ -62,7 +62,8 @@ export function duoPartners(games: DuoGame[], puuid: string, limit = 10): DuoPar
 			return {
 				puuid: mate,
 				gameName: latest.riotIdGameName || "Unknown",
-				tagLine: latest.riotIdTagline,
+				// No tag without a name, so nothing links to a made-up Riot ID
+				tagLine: latest.riotIdGameName ? latest.riotIdTagline : "",
 				profileIcon: latest.profileIcon,
 				games: appearances.length,
 				wins,

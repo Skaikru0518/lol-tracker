@@ -16,7 +16,7 @@ function PartnerCard({ partner, basePath, version }: { partner: DuoPartnerPayloa
 				<img src={getSummonerIcon(version, partner.profileIcon)} alt="" width={40} height={40} className="size-10 shrink-0 rounded-lg" />
 				<div className="min-w-0 flex-1 leading-tight">
 					<p className="truncate text-sm font-semibold text-foreground">{partner.gameName}</p>
-					<p className="truncate text-3xs text-muted-foreground">#{partner.tagLine}</p>
+					{partner.tagLine && <p className="truncate text-3xs text-muted-foreground">#{partner.tagLine}</p>}
 				</div>
 				{role && <span className="shrink-0 rounded-full bg-muted/60 px-2 py-0.5 text-3xs font-medium text-muted-foreground">{ROLE_LABELS[role]}</span>}
 			</div>

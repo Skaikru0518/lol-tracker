@@ -29,7 +29,7 @@ function Side({ side, version, linked, team }: { side: DuoSidePayload; version: 
 				<p className="truncate text-sm font-bold text-foreground">{name}</p>
 				{side.tagLine && <p className="truncate text-3xs text-muted-foreground">#{side.tagLine}</p>}
 			</div>
-			<p className="flex items-center gap-1 text-2xs text-muted-foreground">
+			<p className="flex flex-wrap items-center justify-center gap-x-1 text-2xs text-muted-foreground">
 				<RankEmblem tier={side.rank?.tier} size={18} />
 				{side.rank ? `${formatRankLabel(side.rank.tier, side.rank.rank)} · ${side.rank.leaguePoints} LP` : "Unranked"}
 			</p>

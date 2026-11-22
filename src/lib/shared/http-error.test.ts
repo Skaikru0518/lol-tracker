@@ -7,6 +7,10 @@ describe("retryUnlessNotFound", () => {
 		expect(retryUnlessNotFound(0, new HttpError("Bad id", 400))).toBe(false);
 	});
 
+	it("never retries a 429, which only spends the rate limit again", () => {
+		expect(retryUnlessNotFound(0, new HttpError("Too many requests", 429))).toBe(false);
+	});
+
 	it("retries other failures up to three times", () => {
 		expect(retryUnlessNotFound(0, new HttpError("Server error", 500))).toBe(true);
 		expect(retryUnlessNotFound(2, new Error("network"))).toBe(true);

@@ -9,10 +9,10 @@ export class HttpError extends Error {
 	}
 }
 
-const NO_RETRY_STATUSES = new Set([400, 404]);
+const NO_RETRY_STATUSES = new Set([400, 404, 429]);
 const MAX_RETRIES = 3;
 
-/** TanStack `retry` callback: up to three retries, none for 400 or 404. */
+/** TanStack `retry` callback: up to three retries, none for 400, 404 or 429. */
 export function retryUnlessNotFound(failureCount: number, error: unknown): boolean {
 	if (error instanceof HttpError && NO_RETRY_STATUSES.has(error.status)) return false;
 	return failureCount < MAX_RETRIES;

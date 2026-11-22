@@ -11,12 +11,15 @@ async function side(puuid: string, latestGame: DuoGame | undefined): Promise<Duo
 	const [summary, rank, account] = await Promise.all([
 		recentPerformance(puuid),
 		prisma.rankedEntry.findFirst({ where: { puuid, queueType: "RANKED_SOLO_5x5" }, select: { tier: true, rank: true, leaguePoints: true } }),
-		fromGame ? null : prisma.account.findUnique({ where: { puuid }, select: { gameName: true, tagLine: true } }),
+		fromGame?.riotIdGameName ? null : prisma.account.findUnique({ where: { puuid }, select: { gameName: true, tagLine: true } }),
 	]);
 	return {
 		puuid,
-		gameName: fromGame?.riotIdGameName || account?.gameName || "Unknown",
-		tagLine: fromGame?.riotIdTagline ?? account?.tagLine ?? "",
+		...(fromGame?.riotIdGameName
+			? { gameName: fromGame.riotIdGameName, tagLine: fromGame.riotIdTagline }
+			: account
+				? { gameName: account.gameName, tagLine: account.tagLine }
+				: { gameName: "Unknown", tagLine: "" }),
 		profileIcon: fromGame?.profileIcon ?? 0,
 		rank,
 		summary,

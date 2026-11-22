@@ -5,7 +5,7 @@ import { type DuoGame } from "./partners";
 
 const WINDOW = 50;
 
-/** The profile's last 50 stored Rift games (no remakes), projected to the fields Duo reads. */
+/** The profile's last 50 stored Rift games (no remakes), projected to the fields Duo reads; missing or JSON-null text fields become "". */
 export async function loadDuoWindow(puuid: string): Promise<DuoGame[]> {
 	const rows = await prisma.$queryRaw<(Omit<DuoGame, "gameCreation"> & { gameCreation: bigint })[]>`
 		SELECT
@@ -17,13 +17,13 @@ export async function loadDuoWindow(puuid: string): Promise<DuoGame[]> {
 					'puuid', x->'puuid',
 					'teamId', x->'teamId',
 					'win', x->'win',
-					'teamPosition', COALESCE(x->'teamPosition', '""'::jsonb),
+					'teamPosition', COALESCE(NULLIF(x->'teamPosition', 'null'::jsonb), '""'::jsonb),
 					'championName', x->'championName',
 					'kills', x->'kills',
 					'deaths', x->'deaths',
 					'assists', x->'assists',
-					'riotIdGameName', COALESCE(x->'riotIdGameName', '""'::jsonb),
-					'riotIdTagline', COALESCE(x->'riotIdTagline', '""'::jsonb),
+					'riotIdGameName', COALESCE(NULLIF(x->'riotIdGameName', 'null'::jsonb), '""'::jsonb),
+					'riotIdTagline', COALESCE(NULLIF(x->'riotIdTagline', 'null'::jsonb), '""'::jsonb),
 					'profileIcon', x->'profileIcon'
 				))
 				FROM jsonb_array_elements(m.data->'info'->'participants') AS x

@@ -40,6 +40,13 @@ describe("toSharedGames", () => {
 	});
 });
 
+describe("toSharedGames input", () => {
+	it("trusts its caller to pass shared games and skips ones missing a player", () => {
+		const solo = { ...game("m1", true), participants: game("m1", true).participants.slice(0, 1) };
+		expect(shared([solo, game("m2", true)], {}).map((g) => g.matchId)).toEqual(["m2"]);
+	});
+});
+
 describe("together", () => {
 	it("counts wins and losses over shared games", () => {
 		const games = shared([game("a", true), game("b", true), game("c", true), game("d", false)], {});
