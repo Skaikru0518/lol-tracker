@@ -90,8 +90,7 @@ export function detectAchievements(input: DetectionInput): string[] {
 			if (p.teamPosition) roleCounts.set(p.teamPosition, (roleCounts.get(p.teamPosition) ?? 0) + 1);
 		}
 		const [first, second] = [...roleCounts.entries()].sort((a, b) => b[1] - a[1]);
-		const share = first ? first[1] / allRecent.length : 0;
-		if (first && MAIN_ROLES[first[0]] && first[1] !== second?.[1] && share >= 0.4) earned.push(`role-main:${first[0]}:${Math.round(share * 100)}`);
+		if (first && MAIN_ROLES[first[0]] && first[1] !== second?.[1] && first[1] / allRecent.length >= 0.4) earned.push(`role-main:${first[0]}`);
 
 		// --- Queue Enjoyer (last 25) ---
 		const last25 = allMatches.slice(0, 25);

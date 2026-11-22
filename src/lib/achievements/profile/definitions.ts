@@ -127,7 +127,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
 	{
 		id: "role-main",
 		name: "Lane Main",
-		description: "40%+ of your last 50 ranked matches in one role",
+		description: "40%+ of your last 50 ranked matches in one role; shows your season win rate there",
 		icon: "role-main",
 		color: "#8e44ad",
 		category: "playstyle",

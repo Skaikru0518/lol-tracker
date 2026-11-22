@@ -84,8 +84,8 @@ describe("detectAchievements", () => {
 		expect(detect(games).some((id) => id.startsWith("role-main"))).toBe(false);
 	});
 
-	it("names the main role and its share of the games", () => {
-		expect(detect([match({ teamPosition: "TOP" }), match({ teamPosition: "TOP" }), match({ teamPosition: "JUNGLE" })])).toContain("role-main:TOP:67");
+	it("names the main role", () => {
+		expect(detect([match({ teamPosition: "TOP" }), match({ teamPosition: "TOP" }), match({ teamPosition: "JUNGLE" })])).toContain("role-main:TOP");
 	});
 
 	it("needs 40% of the games in one role for a role main", () => {

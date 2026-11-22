@@ -10,9 +10,9 @@ import { tierLabel, topMilestones } from "@/lib/achievements/display";
 import { getMilestone } from "@/lib/achievements/milestones/definitions";
 import { earnedForm } from "@/lib/achievements/profile/form-id";
 
-const PREVIEW_COUNT = 6;
+const PREVIEW_COUNT = 12;
 
-/** The three best milestones, then earned Current form chips, above the Overview columns; detection runs once per profile visit. */
+/** Earned Current form chips first (they reflect recent games), then up to five best milestones, above the Overview columns; detection runs once per profile visit. */
 export function AchievementPreview({ puuid, basePath }: { puuid: string; basePath: string }) {
 	const { data: saved } = useAchievements(puuid);
 	const { mutate: detect } = useDetectAchievements();
@@ -21,15 +21,27 @@ export function AchievementPreview({ puuid, basePath }: { puuid: string; basePat
 		detect({ puuid });
 	}, [puuid, detect]);
 
-	const top = topMilestones(saved?.progress ?? [], saved?.rarity ?? null);
 	const earned = [...earnedForm(saved?.form.map((a) => a.achievementId) ?? []).values()];
-	const formShown = earned.slice(0, Math.max(0, PREVIEW_COUNT - top.length));
+	const formShown = earned.slice(0, PREVIEW_COUNT);
+	const top = topMilestones(saved?.progress ?? [], saved?.rarity ?? null, Math.min(5, PREVIEW_COUNT - formShown.length));
 	const hidden = earned.length - formShown.length;
 	if (top.length === 0 && earned.length === 0) return null;
 
 	return (
 		<TooltipProvider delayDuration={200}>
 			<div className="mb-4 flex flex-wrap items-center gap-1.5">
+				{formShown.map((a) => (
+					<Tooltip key={a.id}>
+						<TooltipTrigger asChild>
+							<Chip color={a.color} className="h-6 px-2 text-xs">
+								{a.name}
+							</Chip>
+						</TooltipTrigger>
+						<TooltipContent>
+							<p>{a.description}</p>
+						</TooltipContent>
+					</Tooltip>
+				))}
 				{top.map((row) => {
 					const def = getMilestone(row.achievementId);
 					if (!def) return null;
@@ -46,18 +58,6 @@ export function AchievementPreview({ puuid, basePath }: { puuid: string; basePat
 						</Tooltip>
 					);
 				})}
-				{formShown.map((a) => (
-					<Tooltip key={a.id}>
-						<TooltipTrigger asChild>
-							<Chip color={a.color} className="h-6 px-2 text-xs">
-								{a.name}
-							</Chip>
-						</TooltipTrigger>
-						<TooltipContent>
-							<p>{a.description}</p>
-						</TooltipContent>
-					</Tooltip>
-				))}
 				<Link href={`${basePath}/achievements`} className="ml-1 text-xs font-medium text-primary hover:underline">
 					{hidden > 0 ? `+${hidden} more` : "See all"} &rarr;
 				</Link>
