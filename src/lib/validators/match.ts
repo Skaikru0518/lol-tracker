@@ -53,11 +53,15 @@ export const participantSchema = z.object({
 	inhibitorKills: z.number(),
 	dragonKills: z.number(),
 	baronKills: z.number(),
+	// Read only by match badges; defaulted so a document without them still parses
+	objectivesStolen: z.number().default(0),
+	damageDealtToBuildings: z.number().default(0),
 	// Other
 	firstBloodKill: z.boolean(),
 	firstTowerKill: z.boolean(),
 	totalTimeSpentDead: z.number(),
 	longestTimeSpentLiving: z.number(),
+	gameEndedInSurrender: z.boolean().default(false),
 	timeCCingOthers: z.number(),
 	summoner1Id: z.number(),
 	summoner2Id: z.number(),

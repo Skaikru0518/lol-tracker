@@ -1,6 +1,7 @@
 import { csPerMinute, formatDuration } from "@/lib/shared/format";
 import { killParticipation } from "@/lib/summoner/matches/match-row";
 import { isRemake } from "./remake";
+import { getMatchBadgeById } from "@/lib/achievements/badges/definitions";
 import { type Match, type Participant } from "@/lib/validators/match";
 import { type Timeline } from "@/lib/validators/timeline";
 
@@ -130,5 +131,6 @@ export function arenaPlacement(player: Participant): number {
 
 /** Badge ids one player earned in a match. */
 export function badgeIdsFor(badges: { puuid: string; badgeId: string }[] | undefined, puuid: string): string[] {
-	return (badges ?? []).filter((b) => b.puuid === puuid).map((b) => b.badgeId);
+	// Stored rows can name badges that were since retired
+	return (badges ?? []).filter((b) => b.puuid === puuid && getMatchBadgeById(b.badgeId)).map((b) => b.badgeId);
 }

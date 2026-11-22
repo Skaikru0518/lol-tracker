@@ -107,13 +107,14 @@ describe("arenaPlacement", () => {
 });
 
 describe("badgeIdsFor", () => {
-	it("keeps only the player's badges", () => {
+	it("keeps only the player's badges that still exist", () => {
 		const badges = [
 			{ puuid: "a", badgeId: "mvp" },
-			{ puuid: "b", badgeId: "tank" },
-			{ puuid: "a", badgeId: "farmer" },
+			{ puuid: "b", badgeId: "tank-god" },
+			{ puuid: "a", badgeId: "cs-king" },
+			{ puuid: "a", badgeId: "gold-lead" },
 		];
-		expect(badgeIdsFor(badges, "a")).toEqual(["mvp", "farmer"]);
+		expect(badgeIdsFor(badges, "a")).toEqual(["mvp", "cs-king"]);
 		expect(badgeIdsFor(undefined, "a")).toEqual([]);
 	});
 });

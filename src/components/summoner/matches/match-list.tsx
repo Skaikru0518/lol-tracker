@@ -18,6 +18,7 @@ import { SHOW_SKILL_ESTIMATES } from "@/lib/shared/features";
 import { lpChangesForGames } from "@/lib/summoner/profile/lp-estimate";
 import { filterMatches } from "@/lib/summoner/matches/match-filter";
 import { type RuneMaps } from "@/lib/summoner/matches/match-row";
+import { badgeIdsFor } from "@/lib/match/detail";
 import { type Match } from "@/lib/validators/match";
 import { type RankedEntry } from "@/lib/validators/ranked";
 import { PerformanceHelp } from "@/components/match/performance/performance-help";
@@ -124,7 +125,7 @@ export function MatchList({
 						if (!player) return null;
 						const { queueId, gameDuration } = match.info;
 						const lpChange = lpChanges.get(match.metadata.matchId) ?? null;
-						const badgeIds = (badges?.[match.metadata.matchId] ?? []).filter((b) => b.puuid === puuid).map((b) => b.badgeId);
+						const badgeIds = badgeIdsFor(badges?.[match.metadata.matchId], puuid);
 
 						return (
 							<MatchRow

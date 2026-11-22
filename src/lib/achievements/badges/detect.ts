@@ -23,6 +23,15 @@ export type BadgeParticipant = Pick<
 	| "firstBloodKill"
 	| "pentaKills"
 	| "quadraKills"
+	| "damageSelfMitigated"
+	| "totalDamageShieldedOnTeammates"
+	| "objectivesStolen"
+	| "damageDealtToBuildings"
+	| "wardsKilled"
+	| "largestKillingSpree"
+	| "longestTimeSpentLiving"
+	| "totalTimeSpentDead"
+	| "gameEndedInSurrender"
 >;
 
 interface BadgeAssignment {
@@ -43,9 +52,13 @@ function soleLeader(players: BadgeParticipant[], value: (p: BadgeParticipant) =>
 
 const killsAndAssists = (p: BadgeParticipant) => p.kills + p.assists;
 const cs = (p: BadgeParticipant) => p.totalMinionsKilled + p.neutralMinionsKilled;
+const sum = (players: BadgeParticipant[], value: (p: BadgeParticipant) => number) => players.reduce((s, p) => s + value(p), 0);
 
-/** Badges for every player of a ranked game; other queues and remakes get none. */
-export function detectMatchBadges(info: { queueId: number; gameDuration: number; participants: BadgeParticipant[] }): BadgeAssignment[] {
+/** Badges for every player of a ranked game; other queues and remakes get none. `scores` (performance score by puuid) decides MVP and ACE. */
+export function detectMatchBadges(
+	info: { queueId: number; gameDuration: number; participants: BadgeParticipant[] },
+	scores: Record<string, number> = {},
+): BadgeAssignment[] {
 	const { participants } = info;
 	const badges: BadgeAssignment[] = [];
 	if (participants.length === 0 || !isAchievementEligible(info.queueId, info.gameDuration)) return badges;
@@ -55,17 +68,28 @@ export function detectMatchBadges(info: { queueId: number; gameDuration: number;
 	};
 	const winners = participants.filter((p) => p.win);
 	const losers = participants.filter((p) => !p.win);
+	const minutes = info.gameDuration / 60;
+	const score = (p: BadgeParticipant) => scores[p.puuid] ?? -1;
 
 	// --- Best in the match ---
-	award(soleLeader(winners, killsAndAssists, 5), "mvp");
+	award(soleLeader(winners, score, 0), "mvp");
+	award(soleLeader(losers, score, 0), "ace");
 	award(soleLeader(participants, (p) => p.totalDamageDealtToChampions), "damage-king");
-	award(soleLeader(participants, (p) => p.totalDamageTaken), "tank-god");
-	award(soleLeader(participants, (p) => p.visionScore), "vision-king");
-	award(soleLeader(participants, cs), "cs-king");
-	award(soleLeader(participants, (p) => p.goldEarned), "gold-lead");
+	award(soleLeader(participants, (p) => p.visionScore, 1.5 * minutes), "vision-king");
+	award(soleLeader(participants, cs, 8 * minutes), "cs-king");
 	award(soleLeader(participants, (p) => p.timeCCingOthers), "cc-machine");
-	award(soleLeader(participants, (p) => p.totalHealsOnTeammates, 10000), "healer");
+	award(soleLeader(participants, (p) => p.totalHealsOnTeammates + p.totalDamageShieldedOnTeammates, 10000), "healer");
 	award(soleLeader(participants, (p) => p.turretKills, 2), "tower-destroyer");
+	award(soleLeader(participants, (p) => p.damageDealtToBuildings, 8000), "siege-master");
+	award(soleLeader(participants, (p) => p.wardsKilled, 10), "sweeper");
+	award(soleLeader(participants, (p) => p.longestTimeSpentLiving, 900), "survivor");
+
+	// Damage taken mostly follows deaths, so feeders are left out of Tank God
+	const sturdy = participants.filter((p) => {
+		const team = participants.filter((t) => t.teamId === p.teamId);
+		return p.deaths <= sum(team, (t) => t.deaths) / team.length;
+	});
+	award(soleLeader(sturdy, (p) => p.totalDamageTaken + p.damageSelfMitigated), "tank-god");
 
 	const mostDamage = soleLeader(participants, (p) => p.totalDamageDealtToChampions);
 	const mostDeaths = soleLeader(participants, (p) => p.deaths, 5);
@@ -80,21 +104,15 @@ export function detectMatchBadges(info: { queueId: number; gameDuration: number;
 		if (p.championId === YASUO && p.deaths >= 10) award(p, "powerspike");
 		if (p.championId === TEEMO) award(p, "soulless");
 		if (cs(p) >= 200 && p.kills === 0 && p.assists === 0) award(p, "afk-farmer");
+		if (p.objectivesStolen > 0) award(p, "thief");
+		if (p.largestKillingSpree >= 8) award(p, "rampage");
+		if (p.totalTimeSpentDead >= info.gameDuration / 4) award(p, "grey-screen");
+		if (p.gameEndedInSurrender && !p.win && p.deaths >= 10) award(p, "surrendered");
 	}
 
 	// --- Within a team ---
-	for (const teamId of [100, 200]) {
-		const team = participants.filter((p) => p.teamId === teamId);
-		const leader = soleLeader(team, (p) => p.kills, 5);
-		if (leader && leader.deaths === Math.min(...team.map((p) => p.deaths))) award(leader, "solo-carry");
-	}
-
-	// The losing side's best K+A gets Bad Luck when they also died the least, Honorable otherwise
-	const bestLoser = soleLeader(losers, killsAndAssists, 5);
-	if (bestLoser) {
-		const diedLeast = bestLoser.deaths === Math.min(...losers.map((p) => p.deaths));
-		award(bestLoser, diedLeast && bestLoser.kills >= 5 ? "bad-luck" : "honorable");
-	}
+	const winningDamage = sum(winners, (p) => p.totalDamageDealtToChampions);
+	award(soleLeader(winners, (p) => p.totalDamageDealtToChampions, 0.35 * winningDamage), "solo-carry");
 
 	return badges;
 }

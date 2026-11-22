@@ -3,6 +3,7 @@ import { prisma } from "@/lib/server/db";
 import { ACHIEVEMENT_QUEUE_IDS, MIN_ACHIEVEMENT_GAME_SECONDS } from "@/lib/achievements/eligibility";
 import { detectMatchBadges } from "@/lib/achievements/badges/detect";
 import { matchSchema } from "@/lib/validators/match";
+import { matchScores } from "@/lib/performance/batch";
 import { withApiLog } from "@/lib/server/log";
 
 async function getHandler(req: NextRequest) {
@@ -41,16 +42,14 @@ async function getHandler(req: NextRequest) {
 	const missingIds = eligibleIds.filter((id) => !computedMatchIds.has(id));
 
 	if (missingIds.length > 0) {
-		const matches = await prisma.match.findMany({
-			where: { matchId: { in: missingIds } },
-		});
+		const [matches, scores] = await Promise.all([prisma.match.findMany({ where: { matchId: { in: missingIds } } }), matchScores(missingIds)]);
 
 		const allNewBadges: { matchId: string; puuid: string; badgeId: string }[] = [];
 
 		for (const match of matches) {
 			try {
 				const parsed = matchSchema.parse(match.data);
-				const badges = detectMatchBadges(parsed.info);
+				const badges = detectMatchBadges(parsed.info, scores[match.matchId]);
 				result[match.matchId] = badges;
 				for (const b of badges) {
 					allNewBadges.push({ matchId: match.matchId, puuid: b.puuid, badgeId: b.badgeId });

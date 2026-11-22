@@ -95,6 +95,17 @@ export async function performanceSummaries(matchIds: string[], puuid: string): P
 	return result;
 }
 
+/** Every player's score per match, from the cached summary or freshly scored; matches that cannot be scored are left out. */
+export async function matchScores(matchIds: string[]): Promise<Record<string, Record<string, number>>> {
+	const toScores = (byPuuid: Record<string, { score: number }>) => Object.fromEntries(Object.entries(byPuuid).map(([puuid, s]) => [puuid, s.score]));
+	const result: Record<string, Record<string, number>> = {};
+	const cached = await prisma.matchPerformance.findMany({ where: { matchId: { in: matchIds } }, select: { matchId: true, summary: true } });
+	for (const row of cached) result[row.matchId] = toScores(row.summary as unknown as Record<string, ScoreSummary>);
+	const cachedIds = new Set(cached.map((c) => c.matchId));
+	for (const [matchId, scores] of Object.entries(await scoreAndCache(matchIds.filter((id) => !cachedIds.has(id))))) result[matchId] = toScores(scores);
+	return result;
+}
+
 export async function performanceForMatch(matchId: string): Promise<MatchScores> {
 	const cached = await prisma.matchPerformance.findUnique({ where: { matchId }, select: { data: true } });
 	if (cached) return cached.data as unknown as MatchScores;
