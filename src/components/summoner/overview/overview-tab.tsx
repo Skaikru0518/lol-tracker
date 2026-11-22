@@ -7,7 +7,7 @@ import { MatchList } from "@/components/summoner/matches/match-list";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRankedLpHistories } from "@/hooks/useRankedLpHistories";
 import { fetchMatches, useMatches } from "@/hooks/useMatches";
-import { MORE_MATCHES_PAGE, nextMatchStart } from "@/lib/summoner/matches/more-matches";
+import { mergeMatchPages, MORE_MATCHES_PAGE, nextMatchStart } from "@/lib/summoner/matches/more-matches";
 import { useRanked } from "@/hooks/useRanked";
 import { useMmrEstimates } from "@/hooks/useMmrEstimates";
 import { RANKED_QUEUE_TYPES } from "@/lib/game/ranked-queues";
@@ -37,8 +37,9 @@ export function useOverviewMatches(puuid: string): { matches?: Match[]; isLoadin
 function useMoreMatches(puuid: string, restCount: number) {
 	const [requested, setRequested] = useState(false);
 	const query = useInfiniteQuery({
-		queryKey: ["matches", puuid, "more"],
-		queryFn: ({ pageParam }) => fetchMatches(puuid, MORE_MATCHES_PAGE, undefined, pageParam) as Promise<Match[]>,
+		// Outside the "matches" keys the Update button refreshes: older games never change
+		queryKey: ["matches-more", puuid],
+		queryFn: ({ pageParam }) => fetchMatches(puuid, MORE_MATCHES_PAGE, undefined, pageParam, true) as Promise<Match[]>,
 		initialPageParam: INITIAL_MATCH_COUNT + REMAINING_MATCH_COUNT,
 		getNextPageParam: (lastPage, _pages, lastStart) => nextMatchStart(lastPage.length, lastStart),
 		staleTime: 1000 * 60 * 5,
@@ -48,9 +49,10 @@ function useMoreMatches(puuid: string, restCount: number) {
 	return {
 		more,
 		// An empty second page means the player has no more than the games already shown
-		hasMore: requested ? query.hasNextPage : restCount > 0,
+		// Until a first page arrives (it can fail when the Riot budget runs out) the button stays to retry it
+		hasMore: requested ? query.hasNextPage || !query.data : restCount > 0,
 		loadingMore: query.isFetching,
-		loadMore: () => (requested ? void query.fetchNextPage() : setRequested(true)),
+		loadMore: () => (!requested ? setRequested(true) : query.data ? void query.fetchNextPage() : void query.refetch()),
 	};
 }
 
@@ -61,7 +63,7 @@ export function OverviewTab() {
 	const { data: runeData } = useRunes();
 	const { matches, isLoading, settled, restCount } = useOverviewMatches(puuid);
 	const { more, hasMore, loadingMore, loadMore } = useMoreMatches(puuid, restCount);
-	const listMatches = useMemo(() => (matches ? [...matches, ...more] : undefined), [matches, more]);
+	const listMatches = useMemo(() => (matches ? mergeMatchPages(matches, more) : undefined), [matches, more]);
 	// Read stored Rift games only after the Riot fetch has saved the newest ones
 	const { data: riftMatches } = useRiftMatches(settled ? puuid : undefined, matches?.[0]?.metadata.matchId);
 	const lpHistories = useRankedLpHistories(puuid);

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { type BadgeParticipant, detectMatchBadges } from "./detect";
+import { type BadgeParticipant, detectMatchBadges, scoresReady } from "./detect";
 
 function player(index: number, overrides: Partial<BadgeParticipant> = {}): BadgeParticipant {
 	const blue = index < 5;
@@ -132,5 +132,13 @@ describe("detectMatchBadges", () => {
 		const players = lobby({ 0: { gameEndedInSurrender: true, deaths: 12 }, 5: { gameEndedInSurrender: true, deaths: 10 } });
 		expect(badgesOf(players, "p5")).toContain("surrendered");
 		expect(badgesOf(players, "p0")).not.toContain("surrendered");
+	});
+});
+
+describe("scoresReady", () => {
+	it("is false without scores, so the badges are not stored and get recomputed later", () => {
+		expect(scoresReady(undefined)).toBe(false);
+		expect(scoresReady({})).toBe(false);
+		expect(scoresReady({ p0: 61 })).toBe(true);
 	});
 });

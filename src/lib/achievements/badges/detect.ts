@@ -50,6 +50,11 @@ function soleLeader(players: BadgeParticipant[], value: (p: BadgeParticipant) =>
 	return leaders.length === 1 && best >= min ? leaders[0] : null;
 }
 
+/** Badges are stored for good, so a match is only saved once its scores (which decide MVP and ACE) exist. */
+export function scoresReady(scores: Record<string, number> | undefined): scores is Record<string, number> {
+	return !!scores && Object.keys(scores).length > 0;
+}
+
 const killsAndAssists = (p: BadgeParticipant) => p.kills + p.assists;
 const cs = (p: BadgeParticipant) => p.totalMinionsKilled + p.neutralMinionsKilled;
 const sum = (players: BadgeParticipant[], value: (p: BadgeParticipant) => number) => players.reduce((s, p) => s + value(p), 0);

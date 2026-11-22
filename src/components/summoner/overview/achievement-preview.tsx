@@ -10,7 +10,7 @@ import { tierLabel, topMilestones } from "@/lib/achievements/display";
 import { getMilestone } from "@/lib/achievements/milestones/definitions";
 import { earnedForm } from "@/lib/achievements/profile/form-id";
 
-const PREVIEW_COUNT = 12;
+const PREVIEW_COUNT = 8;
 
 /** Earned Current form chips first (they reflect recent games), then up to five best milestones, above the Overview columns; detection runs once per profile visit. */
 export function AchievementPreview({ puuid, basePath }: { puuid: string; basePath: string }) {

@@ -6,10 +6,12 @@ export async function fetchMatches(
 	count: number = 20,
 	championId?: number,
 	start: number = 0,
+	complete = false,
 ) {
 	const params = new URLSearchParams({ puuid, count: count.toString() });
 	if (championId) params.set("championId", championId.toString());
 	if (start > 0) params.set("start", start.toString());
+	if (complete) params.set("complete", "true");
 	const res = await fetch(`/api/matches?${params}`);
 	if (!res.ok) throw new Error("Failed to fetch matches");
 	return res.json();

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { MORE_MATCHES_PAGE, nextMatchStart } from "./more-matches";
+import { mergeMatchPages, MORE_MATCHES_PAGE, nextMatchStart } from "./more-matches";
 
 describe("nextMatchStart", () => {
 	it("asks for the next page after one that returned games", () => {
@@ -14,5 +14,13 @@ describe("nextMatchStart", () => {
 
 	it("pages by 50", () => {
 		expect(MORE_MATCHES_PAGE).toBe(50);
+	});
+});
+
+describe("mergeMatchPages", () => {
+	const m = (matchId: string) => ({ metadata: { matchId } });
+
+	it("drops a game that a newer one pushed from the first page onto the next", () => {
+		expect(mergeMatchPages([m("c"), m("b")], [m("b"), m("a")]).map((x) => x.metadata.matchId)).toEqual(["c", "b", "a"]);
 	});
 });

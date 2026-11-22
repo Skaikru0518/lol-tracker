@@ -2,6 +2,7 @@ import { prisma } from "@/lib/server/db";
 import { getAccountById } from "@/lib/riot/account";
 import { isRecent, revalidateInBackground } from "@/lib/server/cache-utils";
 import { type Account } from "@/lib/validators/summoner";
+import { likeLiteral } from "@/lib/summoner/search/search-query";
 
 const ACCOUNT_MAX_AGE_SECONDS = 600;
 
@@ -17,7 +18,7 @@ async function fetchAndStoreAccount(gameName: string, tagLine: string): Promise<
 
 /** Case-insensitive equality; Prisma runs it as ILIKE, so `_` and `%` would otherwise match any character. */
 export function sameText(value: string) {
-	return { equals: value.replace(/[\\%_]/g, "\\$&"), mode: "insensitive" as const };
+	return { equals: likeLiteral(value), mode: "insensitive" as const };
 }
 
 /** Account by Riot ID: DB first (revalidated in the background when stale), else Riot. */

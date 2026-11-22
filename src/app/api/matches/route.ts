@@ -68,6 +68,8 @@ async function getHandler(req: NextRequest) {
 	const count = parseMatchCount(req.nextUrl.searchParams.get("count"));
 	const championId = parseChampionId(req.nextUrl.searchParams.get("championId"));
 	const rift = req.nextUrl.searchParams.get("rift") === "true";
+	// Load more pages by fixed offsets, so a page with gaps would hide those games for good
+	const complete = req.nextUrl.searchParams.get("complete") === "true";
 	const start = Math.max(Number.parseInt(req.nextUrl.searchParams.get("start") ?? "0", 10) || 0, 0);
 
 	if (!puuid)
@@ -109,15 +111,18 @@ async function getHandler(req: NextRequest) {
 
 		// Fetch missing matches from Riot API in parallel batches of 25
 		const BATCH_SIZE = 25;
+		let failed = 0;
 		for (let i = 0; riotReachable && i < missingIds.length; i += BATCH_SIZE) {
 			const batch = missingIds.slice(i, i + BATCH_SIZE);
-			await Promise.allSettled(
+			const settled = await Promise.allSettled(
 				batch.map(async (id) => {
 					const matchData = await fetchAndStoreMatch(id);
 					cachedMap.set(id, matchData as any);
 				}),
 			);
+			failed += settled.filter((r) => r.status === "rejected").length;
 		}
+		if (complete && failed > 0) return NextResponse.json({ error: "Some matches could not be loaded, try again" }, { status: 429 });
 
 		// Return matches in original order
 		const matches = matchIds

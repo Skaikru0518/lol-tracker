@@ -1,18 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/server/db";
 import { ACHIEVEMENT_QUEUE_IDS, MIN_ACHIEVEMENT_GAME_SECONDS } from "@/lib/achievements/eligibility";
-import { detectMatchBadges } from "@/lib/achievements/badges/detect";
+import { detectMatchBadges, scoresReady } from "@/lib/achievements/badges/detect";
 import { matchSchema } from "@/lib/validators/match";
 import { matchScores } from "@/lib/performance/batch";
+import { rateLimited } from "@/lib/server/ip-rate-limit";
 import { withApiLog } from "@/lib/server/log";
 
+const MAX_MATCH_IDS = 200;
+
 async function getHandler(req: NextRequest) {
+	if (rateLimited(req, "match-badges")) return NextResponse.json({ error: "Too many requests" }, { status: 429 });
 	const matchIdsParam = req.nextUrl.searchParams.get("matchIds");
 	if (!matchIdsParam)
 		return NextResponse.json({ error: "matchIds required" }, { status: 400 });
 
 	const matchIds = matchIdsParam.split(",").filter(Boolean);
 	if (matchIds.length === 0) return NextResponse.json({});
+	if (matchIds.length > MAX_MATCH_IDS) return NextResponse.json({ error: `At most ${MAX_MATCH_IDS} matchIds` }, { status: 400 });
 
 	const result: Record<string, { puuid: string; badgeId: string }[]> = Object.fromEntries(matchIds.map((id) => [id, []]));
 
@@ -51,6 +56,7 @@ async function getHandler(req: NextRequest) {
 				const parsed = matchSchema.parse(match.data);
 				const badges = detectMatchBadges(parsed.info, scores[match.matchId]);
 				result[match.matchId] = badges;
+				if (!scoresReady(scores[match.matchId])) continue;
 				for (const b of badges) {
 					allNewBadges.push({ matchId: match.matchId, puuid: b.puuid, badgeId: b.badgeId });
 				}
