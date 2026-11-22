@@ -6,7 +6,7 @@ const nextConfig: NextConfig = {
 		return [
 			{
 				// Pre-redesign champion pages; the tab segments are excluded
-				source: "/summoner/:name/:champion((?!(?:champions|lp|achievements|live)(?:/|$))[^/]+)",
+				source: "/summoner/:name/:champion((?!(?:champions|lp|duo|achievements|live)(?:/|$))[^/]+)",
 				destination: "/summoner/:name/champions/:champion",
 				permanent: true,
 			},

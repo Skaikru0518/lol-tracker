@@ -6,6 +6,7 @@ export const SUMMONER_TABS: readonly TabItem[] = [
 	{ label: "Overview", segment: null },
 	{ label: "Champions", segment: "champions" },
 	{ label: "LP History", segment: "lp" },
+	{ label: "Duo", segment: "duo" },
 	{ label: "Achievements", segment: "achievements" },
 ];
 
