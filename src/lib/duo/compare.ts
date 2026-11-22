@@ -45,3 +45,10 @@ export function together(shared: SharedGame[]): { wins: number; losses: number; 
 		friendCarried: shared.filter((g) => g.crown === "friend").length,
 	};
 }
+
+const FULL_SAMPLE = 30;
+
+/** Scored games behind an average when there are fewer than 30, else null; the average is built from scored games only. */
+export function thinSample(summary: { scoredGames: number }): number | null {
+	return summary.scoredGames < FULL_SAMPLE ? summary.scoredGames : null;
+}

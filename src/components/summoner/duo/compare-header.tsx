@@ -5,9 +5,8 @@ import { formatRankLabel } from "@/lib/game/rank-calculator";
 import { getSummonerIcon } from "@/lib/game/icon-helpers";
 import { toSummonerSlug } from "@/lib/game/riot-id";
 import { cn } from "@/lib/utils";
+import { thinSample } from "@/lib/duo/compare";
 import { type DuoSidePayload } from "@/lib/validators/duo";
-
-const FULL_SAMPLE = 30;
 
 function Side({ side, version, linked, team }: { side: DuoSidePayload; version: string; linked: boolean; team: "blue" | "red" }) {
 	const name = side.tagLine && linked ? (
@@ -36,7 +35,7 @@ function Side({ side, version, linked, team }: { side: DuoSidePayload; version: 
 			</p>
 			{side.summary.score ? <ScoreCircle score={side.summary.score.average} grade={side.summary.score.grade} size="lg" /> : <ScorePlaceholder />}
 			<p className="text-3xs text-muted-foreground">
-				{side.summary.games < FULL_SAMPLE ? `${side.summary.games} stored games` : "avg score"}
+				{thinSample(side.summary) === null ? "avg score" : `avg of ${thinSample(side.summary)} scored games`}
 			</p>
 		</div>
 	);

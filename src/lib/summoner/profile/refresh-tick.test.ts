@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { refreshTick } from "./refresh-tick";
+import { refreshTick, REFRESHED_KEYS } from "./refresh-tick";
 
 const INTERVAL = 300_000;
 
@@ -16,5 +16,11 @@ describe("refreshTick", () => {
 		const tick = refreshTick(10_000_000, 61_500, INTERVAL);
 		expect(tick.due).toBe(true);
 		expect(tick.deadline).toBe(10_300_000);
+	});
+});
+
+describe("REFRESHED_KEYS", () => {
+	it("refreshes the Duo list and comparison with the rest of the profile", () => {
+		expect(REFRESHED_KEYS).toEqual(expect.arrayContaining(["matches", "duo", "duo-compare"]));
 	});
 });

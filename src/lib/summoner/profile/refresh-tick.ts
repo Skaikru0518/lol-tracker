@@ -1,3 +1,6 @@
+/** Query key prefixes the Update button and the auto refresh invalidate. */
+export const REFRESHED_KEYS = ["matches", "ranked", "summoner", "mastery", "lp-history", "champion-stats", "mmr", "duo", "duo-compare"];
+
 /** One auto-refresh timer tick: whether a refresh is due, the next deadline and seconds left to show. */
 export function refreshTick(
 	now: number,

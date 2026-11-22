@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { together, toSharedGames } from "./compare";
+import { thinSample, together, toSharedGames } from "./compare";
 import { type DuoGame } from "./partners";
 
 function game(matchId: string, win: boolean): DuoGame {
@@ -44,5 +44,12 @@ describe("together", () => {
 	it("counts wins and losses over shared games", () => {
 		const games = shared([game("a", true), game("b", true), game("c", true), game("d", false)], {});
 		expect(together(games)).toMatchObject({ wins: 3, losses: 1 });
+	});
+});
+
+describe("thinSample", () => {
+	it("judges the sample by scored games, which the average is built from", () => {
+		expect(thinSample({ scoredGames: 12 })).toBe(12);
+		expect(thinSample({ scoredGames: 30 })).toBeNull();
 	});
 });
