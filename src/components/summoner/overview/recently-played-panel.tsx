@@ -1,46 +1,38 @@
 "use client";
 
-import { useMemo } from "react";
 import Link from "next/link";
-import { Panel, PanelBody, PanelHeader } from "@/components/ui/panel";
+import { Panel, PanelHeader } from "@/components/ui/panel";
 import { EmptyState } from "@/components/ui/empty-state";
-import { getSummonerIcon } from "@/lib/game/icon-helpers";
-import { toSummonerSlug } from "@/lib/game/riot-id";
-import { getRecentTeammates } from "@/lib/summoner/matches/teammates";
-import { type Match } from "@/lib/validators/match";
+import { Skeleton } from "@/components/ui/skeleton";
+import { PlayedWithList } from "@/components/summoner/duo/played-with-list";
+import { useDuoPartners } from "@/hooks/useDuo";
 
-/** Teammates from at least two of the loaded games, linking to their profiles. */
-export function RecentlyPlayedPanel({ matches, puuid, version }: { matches: Match[]; puuid: string; version: string }) {
-	const teammates = useMemo(() => getRecentTeammates(matches, puuid), [matches, puuid]);
+const SHOWN = 5;
+
+/** The first duo partners, the same list and numbers as the Duo tab. */
+export function RecentlyPlayedPanel({ puuid, basePath, version }: { puuid: string; basePath: string; version: string }) {
+	const { data: partners, isLoading } = useDuoPartners(puuid);
 
 	return (
 		<Panel>
-			<PanelHeader title="Recently played with" />
-			{teammates.length === 0 ? (
-				<EmptyState title="No repeat teammates" description="Players you queued with twice or more show up here." />
+			<PanelHeader
+				title="Recently played with"
+				actions={
+					<Link href={`${basePath}/duo`} className="text-xs font-medium text-primary hover:underline">
+						See all &rarr;
+					</Link>
+				}
+			/>
+			{isLoading ? (
+				<div className="space-y-2 p-3">
+					{Array.from({ length: 3 }, (_, i) => (
+						<Skeleton key={i} className="h-10" />
+					))}
+				</div>
+			) : partners && partners.length > 0 ? (
+				<PlayedWithList partners={partners} basePath={basePath} version={version} limit={SHOWN} />
 			) : (
-				<PanelBody className="space-y-1 p-2">
-					{teammates.map((t) => {
-						const winRate = Math.round((t.wins / t.games) * 100);
-						return (
-							<Link
-								key={t.puuid}
-								href={`/summoner/${toSummonerSlug(t.gameName, t.tagLine)}`}
-								className="flex items-center gap-3 rounded-md px-2 py-1.5 transition-colors hover:bg-accent"
-							>
-								<img src={getSummonerIcon(version, t.profileIcon)} alt="" width={32} height={32} className="size-8 rounded-md" />
-								<div className="min-w-0 flex-1 text-sm">
-									<p className="truncate font-medium text-foreground">
-										{t.gameName}
-										<span className="ml-1 text-muted-foreground">#{t.tagLine}</span>
-									</p>
-									<p className="text-xs text-muted-foreground">{t.games} games</p>
-								</div>
-								<span className={`text-sm font-medium ${winRate >= 50 ? "text-win" : "text-loss"}`}>{winRate}%</span>
-							</Link>
-						);
-					})}
-				</PanelBody>
+				<EmptyState title="No duo partners yet" description="Players with 3+ games on your team in your last 50 games show up here." />
 			)}
 		</Panel>
 	);

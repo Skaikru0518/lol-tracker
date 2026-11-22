@@ -87,7 +87,7 @@ export function OverviewTab() {
 						: RANKED_QUEUE_TYPES.map((queueType) => <Skeleton key={queueType} className="h-36" />)}
 					{riftMatches ? <RolesPerformancePanel matches={riftMatches} puuid={puuid} /> : <Skeleton className="h-72" />}
 					<MostPlayedPanel puuid={puuid} version={version} basePath={basePath} />
-					{matches && <RecentlyPlayedPanel matches={matches} puuid={puuid} version={version} />}
+					<RecentlyPlayedPanel puuid={puuid} basePath={basePath} version={version} />
 				</div>
 				<div className="min-w-0 space-y-4">
 					<RecentPerformancePanel puuid={puuid} version={version} newestMatchId={settled ? matches?.[0]?.metadata.matchId : undefined} />
