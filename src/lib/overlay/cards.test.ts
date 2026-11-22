@@ -68,7 +68,7 @@ describe("allocateMatchFetches", () => {
 
 describe("overlayTags", () => {
 	it("maps the streak and one-trick achievements", () => {
-		expect(overlayTags(["win-streak", "feeder", "one-trick"])).toEqual(["on-fire", "one-trick"]);
+		expect(overlayTags(["win-streak", "feeder", "one-trick:Nami"])).toEqual(["on-fire", "one-trick"]);
 	});
 });
 

@@ -8,7 +8,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { useAchievements, useDetectAchievements } from "@/hooks/useAchievements";
 import { tierLabel, topMilestones } from "@/lib/achievements/display";
 import { getMilestone } from "@/lib/achievements/milestones/definitions";
-import { ACHIEVEMENTS } from "@/lib/achievements/profile/definitions";
+import { earnedForm } from "@/lib/achievements/profile/form-id";
 
 const PREVIEW_COUNT = 6;
 
@@ -22,8 +22,7 @@ export function AchievementPreview({ puuid, basePath }: { puuid: string; basePat
 	}, [puuid, detect]);
 
 	const top = topMilestones(saved?.progress ?? [], saved?.rarity ?? null);
-	const earnedIds = new Set(saved?.form.map((a) => a.achievementId) ?? []);
-	const earned = ACHIEVEMENTS.filter((a) => earnedIds.has(a.id));
+	const earned = [...earnedForm(saved?.form.map((a) => a.achievementId) ?? []).values()];
 	const formShown = earned.slice(0, Math.max(0, PREVIEW_COUNT - top.length));
 	const hidden = earned.length - formShown.length;
 	if (top.length === 0 && earned.length === 0) return null;

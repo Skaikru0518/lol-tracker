@@ -93,8 +93,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
 	// Playstyle
 	{
 		id: "one-trick",
-		name: "One Trick",
-		description: "70%+ of your last 20 ranked matches on one champion (10+ games)",
+		name: "OTP",
+		description: "50%+ of your ranked games this season on one champion (10+ games)",
 		icon: "one-trick",
 		color: "#e91e63",
 		category: "playstyle",
@@ -125,43 +125,11 @@ export const ACHIEVEMENTS: AchievementDef[] = [
 	},
 	// Role
 	{
-		id: "top-main",
-		name: "Top Main",
-		description: "Most played role is Top (30%+ of your last 50 ranked matches)",
-		icon: "top-main",
-		color: "#e67e22",
-		category: "playstyle",
-	},
-	{
-		id: "jungle-main",
-		name: "Jungle Main",
-		description: "Most played role is Jungle (30%+ of your last 50 ranked matches)",
-		icon: "jungle-main",
-		color: "#27ae60",
-		category: "playstyle",
-	},
-	{
-		id: "mid-main",
-		name: "Mid Main",
-		description: "Most played role is Mid (30%+ of your last 50 ranked matches)",
-		icon: "mid-main",
+		id: "role-main",
+		name: "Lane Main",
+		description: "40%+ of your last 50 ranked matches in one role",
+		icon: "role-main",
 		color: "#8e44ad",
-		category: "playstyle",
-	},
-	{
-		id: "adc-main",
-		name: "ADC Main",
-		description: "Most played role is ADC (30%+ of your last 50 ranked matches)",
-		icon: "adc-main",
-		color: "#e74c3c",
-		category: "playstyle",
-	},
-	{
-		id: "support-main",
-		name: "Support Main",
-		description: "Most played role is Support (30%+ of your last 50 ranked matches)",
-		icon: "support-main",
-		color: "#2ecc71",
 		category: "playstyle",
 	},
 	// Queue Enjoyer

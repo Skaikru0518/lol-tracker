@@ -81,12 +81,15 @@ describe("detectAchievements", () => {
 
 	it("gives no role main on a tie for most played role", () => {
 		const games = [match({ teamPosition: "TOP" }), match({ teamPosition: "TOP" }), match({ teamPosition: "JUNGLE" }), match({ teamPosition: "JUNGLE" })];
-		const earned = detect(games);
-		expect(earned).not.toContain("top-main");
-		expect(earned).not.toContain("jungle-main");
+		expect(detect(games).some((id) => id.startsWith("role-main"))).toBe(false);
 	});
 
-	it("awards the role main for a clear most played role", () => {
-		expect(detect([match({ teamPosition: "TOP" }), match({ teamPosition: "TOP" }), match({ teamPosition: "JUNGLE" })])).toContain("top-main");
+	it("names the main role and its share of the games", () => {
+		expect(detect([match({ teamPosition: "TOP" }), match({ teamPosition: "TOP" }), match({ teamPosition: "JUNGLE" })])).toContain("role-main:TOP:67");
+	});
+
+	it("needs 40% of the games in one role for a role main", () => {
+		const games = ["TOP", "TOP", "JUNGLE", "MIDDLE", "BOTTOM", "UTILITY"].map((teamPosition) => match({ teamPosition }));
+		expect(detect(games).some((id) => id.startsWith("role-main"))).toBe(false);
 	});
 });

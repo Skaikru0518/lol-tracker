@@ -8,15 +8,15 @@ import { championTotals, seasonGames, seasonRanks } from "./aggregate";
 import { hasSeasonData, seasonsToCompute } from "./backfill";
 import { mergeProgress, progressChanged } from "./merge";
 import { loadCurrentRanks, loadGameRows, loadMasteries, loadTierSnapshots } from "./query";
-import { type ProgressResult, type StoredProgress } from "./types";
+import { type ChampionTotals, type ProgressResult, type StoredProgress } from "./types";
 
 const key = (r: { achievementId: string; scope: string }) => `${r.achievementId}:${r.scope}`;
 
 /** Peaks keep their highest value, so a later derank cannot make the card contradict the tier. */
 const PEAK_IDS = new Set([...MILESTONES, ...SEASONAL].filter((d) => d.display === "rank").map((d) => d.id));
 
-/** Recomputes milestones and seasons for one account and upserts the merged rows. */
-export async function recomputeProgress(puuid: string, now: Date = new Date()): Promise<void> {
+/** Recomputes milestones and seasons for one account and upserts the merged rows; returns the current season's champion totals. */
+export async function recomputeProgress(puuid: string, now: Date = new Date()): Promise<ChampionTotals[]> {
 	const [stored, games, snapshots, ranked, masteries] = await Promise.all([
 		prisma.achievementProgress.findMany({ where: { puuid } }),
 		loadGameRows(puuid),
@@ -26,6 +26,7 @@ export async function recomputeProgress(puuid: string, now: Date = new Date()): 
 	]);
 	const byKey = new Map<string, StoredProgress>(stored.map((s) => [key(s), s]));
 	const computed: ProgressResult[] = evaluateMilestones({ champions: championTotals(games), snapshots, ranked, masteries });
+	let currentChampions: ChampionTotals[] = [];
 
 	for (const { season, closed } of seasonsToCompute(new Set(stored.map((s) => s.scope)), now)) {
 		const range = seasonRange(season);
@@ -35,6 +36,7 @@ export async function recomputeProgress(puuid: string, now: Date = new Date()): 
 			snapshots: snapshots.filter((s) => s.createdAt >= range.from && (!range.to || s.createdAt < range.to)),
 			ranked: closed ? null : seasonRanks(ranked, range.from),
 		};
+		if (!closed) currentChampions = inputs.champions;
 		if (closed && !hasSeasonData(inputs)) continue;
 		computed.push(...evaluateSeasonal(season.id, inputs));
 	}
@@ -54,4 +56,5 @@ export async function recomputeProgress(puuid: string, now: Date = new Date()): 
 		];
 	});
 	if (writes.length > 0) await prisma.$transaction(writes);
+	return currentChampions;
 }

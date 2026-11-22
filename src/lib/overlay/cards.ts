@@ -50,7 +50,7 @@ export function allocateMatchFetches(missing: string[][], cap: number): { fetch:
 }
 
 export function overlayTags(achievementIds: string[]): OverlayTag[] {
-	return achievementIds.flatMap((id) => (TAGS[id] ? [TAGS[id]] : []));
+	return achievementIds.flatMap((saved) => TAGS[saved.split(":")[0]] ?? []);
 }
 
 export function mainRole(counts: { position: string; games: number }[]): OverlayRole | null {

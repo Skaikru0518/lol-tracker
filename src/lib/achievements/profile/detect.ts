@@ -3,6 +3,7 @@ import {
 	type AchievementParticipant,
 } from "@/lib/validators/match";
 import { isAchievementEligible } from "../eligibility";
+import { MAIN_ROLES } from "./form-id";
 
 interface DetectionInput {
 	matches: AchievementMatch[];
@@ -12,14 +13,6 @@ interface DetectionInput {
 const WINDOW = 10;
 /** Fewest games an average-based achievement is judged on. */
 const MIN_GAMES = 5;
-
-const ROLE_ACHIEVEMENTS: Record<string, string> = {
-	TOP: "top-main",
-	JUNGLE: "jungle-main",
-	MIDDLE: "mid-main",
-	BOTTOM: "adc-main",
-	UTILITY: "support-main",
-};
 
 function average<T>(items: T[], value: (item: T) => number): number {
 	return items.reduce((sum, item) => sum + value(item), 0) / items.length;
@@ -83,12 +76,7 @@ export function detectAchievements(input: DetectionInput): string[] {
 
 		// --- Playstyle ---
 
-		const last20 = allRecent.slice(0, 20).map((entry) => entry.player);
-		const champCounts = new Map<string, number>();
-		for (const p of last20) champCounts.set(p.championName, (champCounts.get(p.championName) ?? 0) + 1);
-		if (last20.length >= 10 && Math.max(...champCounts.values()) / last20.length >= 0.7) {
-			earned.push("one-trick");
-		}
+		// One trick is judged on the whole season, see seasonOneTrick
 
 		if (new Set(players.map((p) => p.championName)).size >= 5) earned.push("diverse-player");
 
@@ -102,8 +90,8 @@ export function detectAchievements(input: DetectionInput): string[] {
 			if (p.teamPosition) roleCounts.set(p.teamPosition, (roleCounts.get(p.teamPosition) ?? 0) + 1);
 		}
 		const [first, second] = [...roleCounts.entries()].sort((a, b) => b[1] - a[1]);
-		const roleAchi = first && ROLE_ACHIEVEMENTS[first[0]];
-		if (roleAchi && first[1] !== second?.[1] && first[1] / allRecent.length >= 0.3) earned.push(roleAchi);
+		const share = first ? first[1] / allRecent.length : 0;
+		if (first && MAIN_ROLES[first[0]] && first[1] !== second?.[1] && share >= 0.4) earned.push(`role-main:${first[0]}:${Math.round(share * 100)}`);
 
 		// --- Queue Enjoyer (last 25) ---
 		const last25 = allMatches.slice(0, 25);
