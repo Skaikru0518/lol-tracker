@@ -13,7 +13,7 @@ export function BadgeStack({ badgeIds, side, className }: { badgeIds: string[]; 
 	const rest = overflow.map(getMatchBadgeById).filter((def) => def !== undefined);
 
 	return (
-		<div className={cn("flex-col justify-center gap-px", side === "red" ? "items-end" : "items-start", className)}>
+		<div className={cn("flex-col items-start justify-center gap-px", side === "red" && "@[44rem]/scoreboard:items-end", className)}>
 			{shown.map((id) => {
 				const def = getMatchBadgeById(id);
 				if (!def) return null;

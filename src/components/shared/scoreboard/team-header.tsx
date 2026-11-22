@@ -13,7 +13,7 @@ const OBJECTIVES: { key: keyof TeamObjectives; label: string; icon: string }[] =
 /** Team label, result (or Remake), K/D/A and objective icons with counts for one side of the scoreboard. */
 export function TeamHeader({ team, side, remake }: { team: TeamSummary; side: "blue" | "red"; remake: boolean }) {
 	return (
-		<div className={cn("flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs", side === "red" && "flex-row-reverse text-right")}>
+		<div className={cn("flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs", side === "red" && "@[44rem]/scoreboard:flex-row-reverse @[44rem]/scoreboard:text-right")}>
 			<span className={cn("font-bold", side === "blue" ? "text-team-blue" : "text-team-red")}>{side.toUpperCase()}</span>
 			<span className={cn("font-semibold", remake ? "text-muted-foreground" : team.win ? "text-win" : "text-loss")}>
 				{remake ? "Remake" : team.win ? "Victory" : "Defeat"}

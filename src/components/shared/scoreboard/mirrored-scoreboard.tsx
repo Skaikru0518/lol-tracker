@@ -7,6 +7,9 @@ import { BansRow } from "./bans-row";
 import { ScoreboardRow } from "./scoreboard-row";
 import { TeamHeader } from "./team-header";
 
+// Narrow scoreboards stack the teams, each under its own header and read left to right
+const NARROW_HEADER = "px-3 py-2 @[44rem]/scoreboard:hidden";
+
 /** LoG-style 5v5: blue left, red right, lane opponents face each other, bans at the bottom. */
 export function MirroredScoreboard({
 	data,
@@ -37,12 +40,15 @@ export function MirroredScoreboard({
 
 	return (
 		<div className="@container/scoreboard bg-background/40">
-			<div className="flex items-start justify-between gap-4 border-b px-3 py-2">
+			<div className="hidden items-start justify-between gap-4 border-b px-3 py-2 @[44rem]/scoreboard:flex">
 				<TeamHeader team={data.blue} side="blue" remake={data.remake} />
 				<TeamHeader team={data.red} side="red" remake={data.remake} />
 			</div>
 			<div className="grid grid-cols-1 @[44rem]/scoreboard:grid-cols-2">
 				<div className="@container divide-y divide-border/50">
+					<div className={NARROW_HEADER}>
+						<TeamHeader team={data.blue} side="blue" remake={data.remake} />
+					</div>
 					{data.rows.map((row, i) => (
 						<ScoreboardRow
 							key={row.blue?.puuid ?? `b${i}`}
@@ -59,6 +65,9 @@ export function MirroredScoreboard({
 					))}
 				</div>
 				<div className="@container divide-y divide-border/50 border-t @[44rem]/scoreboard:border-l @[44rem]/scoreboard:border-t-0">
+					<div className={NARROW_HEADER}>
+						<TeamHeader team={data.red} side="red" remake={data.remake} />
+					</div>
 					{data.rows.map((row, i) => (
 						<ScoreboardRow
 							key={row.red?.puuid ?? `r${i}`}

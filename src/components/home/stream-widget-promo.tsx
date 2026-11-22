@@ -21,7 +21,8 @@ export async function StreamWidgetPromo() {
 						Search your summoner, then press <span className="font-medium text-foreground">Stream widget</span> on the profile to copy your URL.
 					</p>
 				</div>
-				<div className="grid justify-items-center gap-3 overflow-hidden rounded-lg p-4" style={CHECKERBOARD}>
+				{/* The widgets are fixed-size OBS layouts, so phones get a scaled-down preview */}
+				<div className="grid min-w-0 justify-items-center gap-3 overflow-hidden rounded-lg p-4 max-sm:[zoom:0.65]" style={CHECKERBOARD}>
 					<StreamWidget data={SAMPLE_WIDGET} options={{ ...DEFAULT_WIDGET_OPTIONS, fx: ["smoke"] }} version={version} />
 					<StreamWidget data={SAMPLE_WIDGET} options={{ ...DEFAULT_WIDGET_OPTIONS, style: "pill", theme: "clear" }} version={version} />
 				</div>

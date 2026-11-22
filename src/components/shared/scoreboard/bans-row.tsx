@@ -43,11 +43,12 @@ export function BansRow({
 	if (!hasBans && !children) return null;
 	if (!hasBans) return <div className="flex justify-center border-t px-3 py-2 text-xs">{children}</div>;
 	return (
-		<div className="flex items-center justify-between gap-2 border-t px-3 py-2 text-xs text-muted-foreground">
+		<div className="flex flex-wrap items-center justify-between gap-2 border-t px-3 py-2 text-xs text-muted-foreground">
 			<span className="flex items-center gap-1.5">
 				Bans <BanIcons bans={blueBans} version={version} champions={champions} />
 			</span>
-			{children}
+			{/* Below full width the slot drops to its own line instead of colliding with the bans */}
+			{children && <span className="order-last basis-full text-center @[44rem]/scoreboard:order-none @[44rem]/scoreboard:basis-auto">{children}</span>}
 			<span className="flex items-center gap-1.5">
 				<BanIcons bans={redBans} version={version} champions={champions} /> Bans
 			</span>

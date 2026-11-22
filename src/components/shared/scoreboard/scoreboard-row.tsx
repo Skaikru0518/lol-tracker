@@ -39,11 +39,11 @@ export function ScoreboardRow({
 	const p = participant;
 
 	return (
-		<div className={cn("flex h-13 items-center gap-2 px-2", side === "red" && "flex-row-reverse", highlighted && "bg-gold/10")}>
+		<div className={cn("flex h-13 items-center gap-2 px-2", side === "red" && "@[44rem]/scoreboard:flex-row-reverse", highlighted && "bg-gold/10")}>
 			{ranksLoading ? (
-				<Skeleton className="size-5 shrink-0 rounded-full" />
+				<Skeleton className="size-5 shrink-0 rounded-full @max-sm:hidden" />
 			) : (
-				<span title={rank ? `${formatRankLabel(rank.tier, rank.rank)} · ${rank.leaguePoints} LP` : "Unranked"} className="shrink-0">
+				<span title={rank ? `${formatRankLabel(rank.tier, rank.rank)} · ${rank.leaguePoints} LP` : "Unranked"} className="shrink-0 @max-sm:hidden">
 					<RankEmblem tier={rank?.tier} size={20} />
 				</span>
 			)}
@@ -57,7 +57,7 @@ export function ScoreboardRow({
 					),
 				)}
 			</div>
-			<div className={cn("w-24 min-w-0 leading-tight @sm:w-28", side === "red" && "text-right")}>
+			<div className={cn("w-24 min-w-0 leading-tight @max-sm:flex-1 @sm:w-28", side === "red" && "@[44rem]/scoreboard:text-right")}>
 				<Link
 					href={`/summoner/${toSummonerSlug(p.riotIdGameName, p.riotIdTagline)}`}
 					onClick={(e) => e.stopPropagation()}
@@ -69,7 +69,7 @@ export function ScoreboardRow({
 					{ranksLoading ? <Skeleton className="mt-0.5 h-2.5 w-14" /> : rank ? formatRankLabel(rank.tier, rank.rank) : "Unranked"}
 				</div>
 			</div>
-			<div className="w-24 shrink-0 whitespace-nowrap text-center leading-tight">
+			<div className="w-20 shrink-0 whitespace-nowrap text-center leading-tight @max-sm:order-last @sm:w-24">
 				<p className="text-xs font-semibold text-foreground">
 					{p.kills}/{p.deaths}/{p.assists}
 				</p>
@@ -77,7 +77,7 @@ export function ScoreboardRow({
 					{p.totalMinionsKilled + p.neutralMinionsKilled} CS · {formatThousands(p.goldEarned)}
 				</p>
 			</div>
-			<ItemSlots version={version} items={participantItems(p)} size={17} itemNames={itemNames} className="hidden @sm:flex" />
+			<ItemSlots version={version} items={participantItems(p)} size={17} itemNames={itemNames} className="grid shrink-0 grid-cols-4 @sm:flex" />
 			<BadgeStack badgeIds={badgeIds} side={side} className="hidden @[34rem]:flex" />
 		</div>
 	);
