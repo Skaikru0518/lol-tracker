@@ -2,24 +2,32 @@ import { CATEGORIES, CATEGORY_LABELS, type CategoryId } from "@/lib/performance/
 import { cn } from "@/lib/utils";
 import { type DuoSidePayload } from "@/lib/validators/duo";
 
-function Cell({ value, other, align }: { value: number | null; other: number | null; align: "left" | "right" }) {
-	const higher = value !== null && other !== null && value > other;
-	return <span className={cn("w-10 text-sm tabular-nums", align === "right" && "text-right", higher ? "font-bold text-foreground" : "text-muted-foreground")}>{value ?? "—"}</span>;
+function Bar({ value, team }: { value: number | null; team: "blue" | "red" }) {
+	return (
+		<div className={cn("flex h-2 overflow-hidden rounded-full bg-muted/40", team === "blue" && "justify-end")}>
+			<div className={cn("h-full rounded-full", team === "blue" ? "bg-team-blue" : "bg-team-red")} style={{ width: `${value ?? 0}%` }} />
+		</div>
+	);
 }
 
-/** The six category scores facing each other; the higher side is emphasized. */
+/** The six category scores as bars running out from the middle; the higher number is emphasized. */
 export function CategoryRows({ player, friend }: { player: DuoSidePayload; friend: DuoSidePayload }) {
 	const scoreOf = (side: DuoSidePayload, id: CategoryId) => side.summary.categories.find((c) => c.id === id)?.score ?? null;
+	const number = (value: number | null, other: number | null) => (
+		<span className={cn("text-sm tabular-nums", value !== null && other !== null && value > other ? "font-bold text-foreground" : "text-muted-foreground")}>{value ?? "—"}</span>
+	);
 	return (
-		<div className="divide-y divide-border/50 border-t">
+		<div className="space-y-2 border-t px-4 py-3 sm:px-8">
 			{CATEGORIES.map((id) => {
 				const a = scoreOf(player, id);
 				const b = scoreOf(friend, id);
 				return (
-					<div key={id} className="flex items-center justify-between px-4 py-1.5">
-						<Cell value={a} other={b} align="left" />
-						<span className="text-xs text-muted-foreground">{CATEGORY_LABELS[id]}</span>
-						<Cell value={b} other={a} align="right" />
+					<div key={id} className="grid grid-cols-[2rem_minmax(0,1fr)_5.5rem_minmax(0,1fr)_2rem] items-center gap-2">
+						{number(a, b)}
+						<Bar value={a} team="blue" />
+						<span className="text-center text-xs text-muted-foreground">{CATEGORY_LABELS[id]}</span>
+						<Bar value={b} team="red" />
+						<span className="text-right">{number(b, a)}</span>
 					</div>
 				);
 			})}

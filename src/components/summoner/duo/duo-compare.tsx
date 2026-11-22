@@ -1,5 +1,6 @@
 "use client";
 
+import { Crown } from "lucide-react";
 import { Panel, PanelHeader } from "@/components/ui/panel";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -22,10 +23,17 @@ export function DuoCompare({ puuid, friend, version }: { puuid: string; friend: 
 				<CompareHeader player={player} friend={other} version={version} />
 				<CategoryRows player={player} friend={other} />
 				{shared.length > 0 && (
-					<p className="border-t px-4 py-2 text-xs text-muted-foreground">
-						Together: <span className="text-win">{together.wins}W</span> <span className="text-loss">{together.losses}L</span> · 👑 {player.gameName} carried{" "}
-						{together.playerCarried}, {other.gameName} carried {together.friendCarried}
-					</p>
+					<div className="flex flex-wrap items-center justify-center gap-2 border-t px-4 py-3 text-xs">
+						<span className="rounded-full bg-muted/50 px-3 py-1 text-muted-foreground">{shared.length} games together</span>
+						<span className="rounded-full bg-muted/50 px-3 py-1 font-semibold">
+							<span className="text-win">{together.wins}W</span> <span className="text-loss">{together.losses}L</span>
+						</span>
+						<span className="flex items-center gap-1.5 rounded-full bg-muted/50 px-3 py-1">
+							<span className="font-semibold text-team-blue">{together.playerCarried}</span>
+							<Crown className="size-3.5 text-gold" aria-label="carried" />
+							<span className="font-semibold text-team-red">{together.friendCarried}</span>
+						</span>
+					</div>
 				)}
 			</Panel>
 			<Panel>
