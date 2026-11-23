@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { type Baselines } from "@/lib/validators/performance";
 import { METRIC_IDS } from "./weights";
 import { type ScoringParticipant } from "./metrics";
-import { MIN_CACHE_GAMES, scoreMatch, scorePerformance, summarize, type ScoringMatch } from "./score";
+import { MIN_CACHE_GAMES, rawScores, scoreMatch, scorePerformance, summarize, type ScoringMatch } from "./score";
 
 function p(overrides: Partial<ScoringParticipant>): ScoringParticipant {
 	return {
@@ -184,5 +184,22 @@ describe("calibrated scoring", () => {
 
 	it("does not cache before the baseline has a calibration", () => {
 		expect(scoreMatch(match([me, opp]), baselinesAround(medianCenters)).cacheable).toBe(false);
+	});
+});
+
+describe("metric weights inside a category", () => {
+	const metrics = Object.fromEntries(METRIC_IDS.map((id) => [id, Array.from({ length: 21 }, (_, i) => i)]));
+	const values = { kda: 10, deathsPerMin: 10, killParticipation: 18 };
+	const combat = (role: "UTILITY" | "MIDDLE") => rawScores(values, { games: 500, metrics }, role)!.categories.find((c) => c.id === "combat")!;
+	const pct = (c: ReturnType<typeof combat>, id: string) => c.metrics.find((m) => m.id === id)!.percentile;
+
+	it("counts kill participation twice in a support's combat score", () => {
+		const c = combat("UTILITY");
+		expect(c.raw).toBeCloseTo((pct(c, "kda") + pct(c, "deathsPerMin") + 2 * pct(c, "killParticipation")) / 4);
+	});
+
+	it("weighs combat metrics equally for other roles", () => {
+		const c = combat("MIDDLE");
+		expect(c.raw).toBeCloseTo((pct(c, "kda") + pct(c, "deathsPerMin") + pct(c, "killParticipation")) / 3);
 	});
 });

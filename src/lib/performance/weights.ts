@@ -77,10 +77,20 @@ export const METRIC_LABELS: Record<MetricId, string> = {
 	controlWards: "Control wards",
 };
 
+/** Metrics that count more than 1x inside a category for a role; everything else weighs 1. */
+export const METRIC_WEIGHTS: Partial<Record<Role, Partial<Record<CategoryId, Partial<Record<MetricId, number>>>>>> = {
+	// A support's kills come from assists, so being in fights says more than their own KDA
+	UTILITY: { combat: { killParticipation: 2 } },
+};
+
+export function metricWeight(role: Role, category: CategoryId, metric: MetricId): number {
+	return METRIC_WEIGHTS[role]?.[category]?.[metric] ?? 1;
+}
+
 export const ROLE_WEIGHTS: Record<Role, Record<CategoryId, number>> = {
 	TOP: { laning: 25, farming: 15, combat: 20, teamfight: 20, objectives: 15, vision: 5 },
 	JUNGLE: { laning: 10, farming: 15, combat: 20, teamfight: 20, objectives: 25, vision: 10 },
 	MIDDLE: { laning: 25, farming: 15, combat: 25, teamfight: 20, objectives: 10, vision: 5 },
 	BOTTOM: { laning: 20, farming: 25, combat: 20, teamfight: 20, objectives: 10, vision: 5 },
-	UTILITY: { laning: 15, farming: 5, combat: 15, teamfight: 25, objectives: 10, vision: 30 },
+	UTILITY: { laning: 15, farming: 5, combat: 25, teamfight: 15, objectives: 10, vision: 30 },
 };

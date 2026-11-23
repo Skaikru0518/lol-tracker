@@ -5,7 +5,7 @@ import { gradeFor, type Grade } from "./grades";
 import { playerMetrics, type MetricValues, type ScoringParticipant } from "./metrics";
 import { percentileOf } from "./percentile";
 import { asRole, type Role } from "./roles";
-import { CATEGORIES, CATEGORY_METRICS, LOWER_IS_BETTER, ROLE_WEIGHTS, type CategoryId, type MetricId } from "./weights";
+import { CATEGORIES, CATEGORY_METRICS, LOWER_IS_BETTER, metricWeight, ROLE_WEIGHTS, type CategoryId, type MetricId } from "./weights";
 
 export const MIN_BASELINE_GAMES = 30;
 // Scores are cached for good, so only freeze them once every role's baseline has a real sample
@@ -39,7 +39,6 @@ export interface PerformanceScore {
 	opponent: OpponentDiff | null;
 }
 
-const mean = (xs: number[]) => xs.reduce((s, x) => s + x, 0) / xs.length;
 const cs = (p: ScoringParticipant) => p.totalMinionsKilled + p.neutralMinionsKilled;
 
 export interface RawScores {
@@ -47,7 +46,7 @@ export interface RawScores {
 	overall: number;
 }
 
-/** Mean metric percentiles per category and their role-weighted mean, before calibration. */
+/** Weighted mean metric percentiles per category and their role-weighted mean, before calibration. */
 export function rawScores(values: MetricValues, baseline: RoleBaseline, role: Role): RawScores | null {
 	const categories: RawScores["categories"] = [];
 	for (const id of CATEGORIES) {
@@ -59,7 +58,9 @@ export function rawScores(values: MetricValues, baseline: RoleBaseline, role: Ro
 			// Rounded because every score is cached as JSON for good
 			return [{ id: metric, value: Math.round(value * 100) / 100, percentile: Math.round(LOWER_IS_BETTER.has(metric) ? 100 - raw : raw) }];
 		});
-		if (metrics.length > 0) categories.push({ id, raw: mean(metrics.map((m) => m.percentile)), metrics });
+		const weight = (m: { id: MetricId }) => metricWeight(role, id, m.id);
+		const totalMetricWeight = metrics.reduce((s, m) => s + weight(m), 0);
+		if (metrics.length > 0) categories.push({ id, raw: metrics.reduce((s, m) => s + m.percentile * weight(m), 0) / totalMetricWeight, metrics });
 	}
 	if (categories.length === 0) return null;
 	const weights = ROLE_WEIGHTS[role];
