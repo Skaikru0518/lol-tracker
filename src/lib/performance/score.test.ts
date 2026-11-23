@@ -203,3 +203,20 @@ describe("metric weights inside a category", () => {
 		expect(c.raw).toBeCloseTo((pct(c, "kda") + pct(c, "deathsPerMin") + pct(c, "killParticipation")) / 3);
 	});
 });
+
+describe("teamfight contribution", () => {
+	const metrics = Object.fromEntries(METRIC_IDS.map((id) => [id, Array.from({ length: 21 }, (_, i) => i)]));
+	const teamfight = (values: Record<string, number>) => rawScores(values, { games: 500, metrics }, "UTILITY")!.categories.find((c) => c.id === "teamfight")!;
+	const pct = (c: ReturnType<typeof teamfight>, id: string) => c.metrics.find((m) => m.id === id)!.percentile;
+
+	it("counts only the strongest of damage, damage taken and healing share, next to kill participation", () => {
+		const c = teamfight({ damageShare: 3, damageTakenShare: 0, healShieldPerMin: 19, killParticipation: 10 });
+		expect(c.metrics.map((m) => m.id)).toEqual(["damageShare", "damageTakenShare", "healShieldPerMin", "killParticipation"]);
+		expect(c.raw).toBeCloseTo((pct(c, "healShieldPerMin") + pct(c, "killParticipation")) / 2);
+	});
+
+	it("uses the contributions present when an older match has no healing data", () => {
+		const c = teamfight({ damageShare: 18, damageTakenShare: 2, killParticipation: 10 });
+		expect(c.raw).toBeCloseTo((pct(c, "damageShare") + pct(c, "killParticipation")) / 2);
+	});
+});

@@ -33,6 +33,7 @@ export const METRIC_IDS = [
 	"killParticipation",
 	"damageShare",
 	"damageTakenShare",
+	"healShieldPerMin",
 	"objectiveDamagePerMin",
 	"epicKills",
 	"structureKills",
@@ -48,9 +49,14 @@ export const CATEGORY_METRICS: Record<CategoryId, MetricId[]> = {
 	laning: ["goldDiffPerMin", "xpDiffPerMin", "csDiffPerMin", "damageDiffPerMin"],
 	farming: ["csPerMin", "goldPerMin"],
 	combat: ["kda", "deathsPerMin", "killParticipation"],
-	teamfight: ["damageShare", "damageTakenShare", "killParticipation"],
+	teamfight: ["damageShare", "damageTakenShare", "healShieldPerMin", "killParticipation"],
 	objectives: ["objectiveDamagePerMin", "epicKills", "structureKills", "steals"],
 	vision: ["visionPerMin", "wardsPlacedPerMin", "wardsKilledPerMin", "controlWards"],
+};
+
+/** Metrics of which only the best percentile counts, as one entry: carries, tanks and enchanters each shine at one of them. */
+export const CATEGORY_BEST_OF: Partial<Record<CategoryId, MetricId[]>> = {
+	teamfight: ["damageShare", "damageTakenShare", "healShieldPerMin"],
 };
 
 export const LOWER_IS_BETTER: ReadonlySet<MetricId> = new Set(["deathsPerMin"]);
@@ -67,6 +73,7 @@ export const METRIC_LABELS: Record<MetricId, string> = {
 	killParticipation: "Kill participation",
 	damageShare: "Team damage share",
 	damageTakenShare: "Damage taken share",
+	healShieldPerMin: "Healing and shielding / min",
 	objectiveDamagePerMin: "Objective damage / min",
 	epicKills: "Dragons and barons",
 	structureKills: "Turrets and inhibitors",

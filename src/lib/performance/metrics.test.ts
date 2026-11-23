@@ -96,3 +96,16 @@ describe("playerMetrics", () => {
 		expect(playerMetrics(solo, [solo], 1200).values.killParticipation).toBe(0);
 	});
 });
+
+describe("healShieldPerMin", () => {
+	it("is the healing and shielding on teammates per minute", () => {
+		const healer = p({ puuid: "h", totalHealsOnTeammates: 6000, totalDamageShieldedOnTeammates: 3000 });
+		expect(playerMetrics(healer, [healer], 1800).values.healShieldPerMin).toBeCloseTo(300);
+	});
+
+	it("is left out for older rows without the fields, and zero without any healing", () => {
+		expect(playerMetrics(p({ puuid: "a" }), [p({ puuid: "a" })], 1800).values.healShieldPerMin).toBeUndefined();
+		const none = p({ puuid: "n", totalHealsOnTeammates: 0, totalDamageShieldedOnTeammates: 0 });
+		expect(playerMetrics(none, [none], 1800).values.healShieldPerMin).toBe(0);
+	});
+});

@@ -5,7 +5,7 @@ import { gradeFor, type Grade } from "./grades";
 import { playerMetrics, type MetricValues, type ScoringParticipant } from "./metrics";
 import { percentileOf } from "./percentile";
 import { asRole, type Role } from "./roles";
-import { CATEGORIES, CATEGORY_METRICS, LOWER_IS_BETTER, metricWeight, ROLE_WEIGHTS, type CategoryId, type MetricId } from "./weights";
+import { CATEGORIES, CATEGORY_BEST_OF, CATEGORY_METRICS, LOWER_IS_BETTER, metricWeight, ROLE_WEIGHTS, type CategoryId, type MetricId } from "./weights";
 
 export const MIN_BASELINE_GAMES = 30;
 // Scores are cached for good, so only freeze them once every role's baseline has a real sample
@@ -46,7 +46,7 @@ export interface RawScores {
 	overall: number;
 }
 
-/** Weighted mean metric percentiles per category and their role-weighted mean, before calibration. */
+/** Weighted mean metric percentiles per category (a best-of group counts once, at its best) and their role-weighted mean, before calibration. */
 export function rawScores(values: MetricValues, baseline: RoleBaseline, role: Role): RawScores | null {
 	const categories: RawScores["categories"] = [];
 	for (const id of CATEGORIES) {
@@ -58,9 +58,15 @@ export function rawScores(values: MetricValues, baseline: RoleBaseline, role: Ro
 			// Rounded because every score is cached as JSON for good
 			return [{ id: metric, value: Math.round(value * 100) / 100, percentile: Math.round(LOWER_IS_BETTER.has(metric) ? 100 - raw : raw) }];
 		});
-		const weight = (m: { id: MetricId }) => metricWeight(role, id, m.id);
-		const totalMetricWeight = metrics.reduce((s, m) => s + weight(m), 0);
-		if (metrics.length > 0) categories.push({ id, raw: metrics.reduce((s, m) => s + m.percentile * weight(m), 0) / totalMetricWeight, metrics });
+		if (metrics.length === 0) continue;
+		const bestOf = CATEGORY_BEST_OF[id] ?? [];
+		const grouped = metrics.filter((m) => bestOf.includes(m.id));
+		const parts = [
+			...metrics.filter((m) => !bestOf.includes(m.id)).map((m) => ({ percentile: m.percentile, weight: metricWeight(role, id, m.id) })),
+			...(grouped.length > 0 ? [{ percentile: Math.max(...grouped.map((m) => m.percentile)), weight: 1 }] : []),
+		];
+		const total = parts.reduce((s, p) => s + p.weight, 0);
+		categories.push({ id, raw: parts.reduce((s, p) => s + p.percentile * p.weight, 0) / total, metrics });
 	}
 	if (categories.length === 0) return null;
 	const weights = ROLE_WEIGHTS[role];

@@ -30,9 +30,12 @@ export type ScoringParticipant = Pick<
 	champExperience?: number;
 	damageDealtToObjectives?: number;
 	objectivesStolen?: number;
+	totalHealsOnTeammates?: number;
+	totalDamageShieldedOnTeammates?: number;
 };
 
 const cs = (p: ScoringParticipant) => p.totalMinionsKilled + p.neutralMinionsKilled;
+const support = (p: ScoringParticipant) => (p.totalHealsOnTeammates ?? 0) + (p.totalDamageShieldedOnTeammates ?? 0);
 
 export function laneOpponent<P extends ScoringParticipant>(player: P, participants: P[]): P | null {
 	if (!player.teamPosition) return null;
@@ -67,6 +70,9 @@ export function playerMetrics<P extends ScoringParticipant>(player: P, participa
 	};
 	if (player.damageDealtToObjectives !== undefined) values.objectiveDamagePerMin = player.damageDealtToObjectives / minutes;
 	if (player.objectivesStolen !== undefined) values.steals = player.objectivesStolen;
+	if (player.totalHealsOnTeammates !== undefined && player.totalDamageShieldedOnTeammates !== undefined) {
+		values.healShieldPerMin = support(player) / minutes;
+	}
 
 	if (opponent) {
 		values.goldDiffPerMin = (player.goldEarned - opponent.goldEarned) / minutes;

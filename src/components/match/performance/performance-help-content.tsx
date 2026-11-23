@@ -14,7 +14,7 @@ const CATEGORY_HELP: Record<CategoryId, string> = {
 	laning: "Gold, XP, CS and damage against your lane opponent, per minute.",
 	farming: "CS and gold per minute.",
 	combat: "KDA, deaths per minute (fewer is better) and kill participation, which counts double for supports.",
-	teamfight: "Your share of your team's damage dealt and damage taken, and kill participation.",
+	teamfight: "Your strongest contribution to fights (share of your team's damage dealt or taken, or healing and shielding per minute) next to kill participation.",
 	objectives: "Damage to objectives, dragons and barons, turrets and inhibitors, and objective steals.",
 	vision: "Vision score, wards placed and destroyed per minute, and control wards bought.",
 };

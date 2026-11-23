@@ -38,7 +38,9 @@ export async function loadScoringMatches(matchIds: string[]): Promise<(ScoringMa
 					'baronKills', x->'baronKills',
 					'champExperience', x->'champExperience',
 					'damageDealtToObjectives', x->'damageDealtToObjectives',
-					'objectivesStolen', x->'objectivesStolen'
+					'objectivesStolen', x->'objectivesStolen',
+					'totalHealsOnTeammates', x->'totalHealsOnTeammates',
+					'totalDamageShieldedOnTeammates', x->'totalDamageShieldedOnTeammates'
 				))
 				FROM jsonb_array_elements(m.data->'info'->'participants') AS x
 			) AS participants
